@@ -9,6 +9,7 @@ import { domain, num, unavailable } from "./util.js";
 import { cardFor, homeCards, findCard } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 import { scopePicker } from "./settings.js";
+import { claudeAvailable } from "./claude.js";
 
 export const canEdit = p => !!p.hass?.user?.is_admin;
 /** entity domains that have a card */
@@ -133,6 +134,7 @@ export const CARD_TYPES = [
   { id: "homeclimate", group: "panel", label: "Thermostaat (thuis)", sub: "de hoofdthermostaat", icon: "mdi:home-thermometer-outline", key: "climate" },
   { id: "scenes", group: "panel", label: "Scènes", sub: "scèneknoppen van een ruimte", icon: "mdi:palette-outline", roomKey: "scenes" },
   { id: "presets", group: "panel", label: "Lichtscènes", sub: "opgeslagen lichtstanden van een ruimte", icon: "mdi:lightbulb-group-outline", roomKey: "presets" },
+  { id: "claude", group: "panel", label: "Claude Code", sub: "gebruik: sessie en week", icon: "mdi:creation", key: "claude", avail: claudeAvailable },
   { id: "group", group: "panel", label: "Groep", sub: "meerdere lampen of stekkers als één kaart", icon: "mdi:shape-outline" },
   { id: "graph", group: "panel", label: "Grafiek", sub: "verloop van een sensor", icon: "mdi:chart-line" },
   { id: "tpl", group: "own", label: "Template", sub: "uit je eigen bibliotheek", icon: "mdi:code-braces" },
@@ -157,13 +159,13 @@ export function addPopup(p, pop) {
     const pc = p.pageCfg(key);
     if ((pc.hidden || []).includes(k)) { await p.setHidden(key, k, false); p.popup = null; return; }
     if (have.has(k)) { p.showToast(t("Deze kaart staat al op deze pagina")); return; }
-    const exists = isHome ? homeCards(p, p.home).some(c => c.key === k) : !!findCard(p, k, key);
+    const exists = k === "claude" ? claudeAvailable(p) : isHome ? homeCards(p, p.home).some(c => c.key === k) : !!findCard(p, k, key);
     if (!exists) { p.showToast(t("Deze kaart is nog niet ingesteld: zie Instellingen → Startpagina")); return; }
     await addKey(p, key, k);
   };
 
   if (step === 1) return html`<div class="popup addp nofoot">${head(t("Kaart toevoegen"), t("Welk soort kaart?"))}
-    ${GROUPS.map(([g, lbl]) => html`<div class="glbl">${t(lbl)}</div><div class="pages types">${CARD_TYPES.filter(x => x.group === g).map(x => html`
+    ${GROUPS.map(([g, lbl]) => html`<div class="glbl">${t(lbl)}</div><div class="pages types">${CARD_TYPES.filter(x => x.group === g && (!x.avail || x.avail(p))).map(x => html`
       <a @click=${() => x.key ? addPanel(x.key) : x.id === "group" ? upd({ step: 2, kind: x.id, gd: { style: "tiles", members: [] } }) : x.id === "graph" ? upd({ step: 2, kind: x.id, gd: { hours: 24 } }) : upd({ step: 2, kind: x.id, q: "" })}><ha-icon icon=${x.icon}></ha-icon><div>${t(x.label)}<small>${t(x.sub)}</small></div></a>`)}</div>`)}
     </div>`;
 

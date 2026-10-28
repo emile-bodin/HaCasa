@@ -127,6 +127,7 @@ export const TABS = [
   { id: "meldingen", label: t("Bewegen & deurbel"), sub: t("bewegingsbalk, camera-popup"), icon: "mdi:motion-sensor" },
   { id: "agenda", label: t("Agenda & afval"), sub: t("kalenders en ophaaldagen"), icon: "mdi:calendar-blank-outline" },
   { id: "energie", label: t("Energie"), sub: t("vermogen, verbruik, gas"), icon: "mdi:lightning-bolt-outline" },
+  { id: "claude", label: t("Claude Code"), sub: t("sessie en week uit sensoren"), icon: "mdi:creation" },
   { id: "groepen", label: t("Groepen"), sub: t("meerdere lampen of stekkers op één kaart"), icon: "mdi:shape-outline" },
   { id: "grafieken", label: t("Grafieken"), sub: t("lijn van een sensor op een kaart"), icon: "mdi:chart-line" },
   { id: "templates", label: t("Templatekaarten"), sub: t("eigen kaarten met Jinja"), icon: "mdi:code-braces" },
@@ -140,6 +141,7 @@ export function renderSettings(p) {
   const set = (k, v) => { p.draft = { ...d, [k]: v }; };
   const setHome = (k, v) => set("home", { ...(d.home || {}), [k]: v });
   const setEnergy = (k, v) => setHome("energy", { ...(d.home?.energy || {}), [k]: v });
+  const setClaude = (k, v) => setHome("claude", { ...(d.home?.claude || {}), [k]: v });
   const setBell = (k, v) => setHome("doorbell", { ...(d.home?.doorbell || {}), [k]: v });
 
   // rooms: ordered list of selected areas + the rest
@@ -283,6 +285,12 @@ export function renderSettings(p) {
       ${field(t("Teruggeleverd"), select(hass, "sensor", d.home?.energy?.returned, v => setEnergy("returned", v), { empty: t("geen"), filter: s => s.attributes.unit_of_measurement === "kWh" }))}
       ${field(t("Prijs per kWh"), html`<input type="number" step="0.01" min="0" .value=${d.home?.energy?.price ?? ""} placeholder="0.30" @change=${e => setEnergy("price", e.target.value === "" ? undefined : +e.target.value)}>`, t("voor de kostenregel op stekkerkaarten"))}
       ${field(t("Gas"), select(hass, "sensor", d.home?.energy?.gas, v => setEnergy("gas", v), { empty: t("geen"), filter: s => s.attributes.unit_of_measurement === "m³" }))}`),
+
+    claude: sec(t("Claude Code"), t("kaart via Bewerken → Kaart toevoegen"), html`
+      ${field(t("Sessie (5 uur)"), select(hass, "sensor", d.home?.claude?.session, v => setClaude("session", v), { empty: t("automatisch"), filter: s => s.attributes.unit_of_measurement === "%" }), t("percentage gebruikt in het 5-uursvenster"))}
+      ${field(t("Week"), select(hass, "sensor", d.home?.claude?.week, v => setClaude("week", v), { empty: t("automatisch"), filter: s => s.attributes.unit_of_measurement === "%" }), t("percentage gebruikt in de weeklimiet"))}
+      ${field(t("Reset sessie"), select(hass, "sensor", d.home?.claude?.sessionReset, v => setClaude("sessionReset", v), { empty: t("automatisch") }), t("alleen nodig als de sessiesensor zelf geen resettijd heeft"))}
+      ${field(t("Reset week"), select(hass, "sensor", d.home?.claude?.weekReset, v => setClaude("weekReset", v), { empty: t("automatisch") }), t("alleen nodig als de weeksensor zelf geen resettijd heeft"))}`),
 
     templates: sec(t("Templatekaarten"), t("sjablonen met Jinja; plaatsen doe je per pagina via Bewerken → Kaart toevoegen"), html`<ul class="rooms">
       ${(d.templates || []).map((tp, i) => html`<li class="on"><span>${tp.name || t("Naamloos")}<small>${tp.ask?.length ? t("{n} invulvelden", { n: tp.ask.length }) + " · " : ""}${tp.state || t("geen template")}</small></span><button title=${t("Bewerken")} @click=${() => p.openPopup({ type: "tpl", index: i })}>✎</button><button title=${t("Verwijderen")} @click=${() => set("templates", (d.templates || []).filter((_, j) => j !== i))}>×</button></li>`)}

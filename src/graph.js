@@ -30,7 +30,7 @@ export async function loadGraph(p, g) {
 
 /** smooth line with a soft fill; the viewBox is stretched, so the stroke keeps its width via vector-effect */
 const W = 300, H = 40;
-function line(pts) {
+export function line(pts) {
   if (!pts || pts.length < 2) return svg`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="0" x2="${W}" y1="${H - 2}" y2="${H - 2}" stroke="rgba(255,255,255,.3)" stroke-width="1" vector-effect="non-scaling-stroke"/></svg>`;
   const lo = Math.min(...pts), hi = Math.max(...pts), span = hi - lo || 1, pad = 3;
   const xy = pts.map((v, i) => [i / (pts.length - 1) * W, H - pad - (v - lo) / span * (H - 2 * pad)]);

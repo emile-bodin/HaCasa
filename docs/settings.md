@@ -15,6 +15,7 @@ Open **More → Panel settings**. Changes are a draft until you press **Save**; 
 | **Motion & doorbell** | which motion sensors drive the motion bar; doorbell triggers and the camera that pops up |
 | **Calendar & waste** | calendars for the agenda card and notification line; waste sensors and their labels |
 | **Energy** | power, consumption, solar return, gas and the price per kWh |
+| **Claude Code** | the sensors for the Claude Code usage card (found automatically by name) |
 | **Groups** | cards that combine several lights, switches or plugs |
 | **Graphs** | a card with the line of one numeric sensor over the last hours or days |
 | **Template cards** | your own cards with Jinja templates |

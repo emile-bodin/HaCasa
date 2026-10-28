@@ -110,6 +110,9 @@ export function makeHass(onChange) {
   add("lock.front_door", "hallway", "locked", { friendly_name: "Front door lock", changed_by: "Sam" }, { changed: ago(130) });
   add("vacuum.robbie", "living_room", "docked", { friendly_name: "Robbie", battery_level: 86, fan_speed: "standard" });
   add("humidifier.humidifier", "bedroom", "on", { friendly_name: "Humidifier", humidity: 50, current_humidity: 44, action: "humidifying", available_modes: ["auto", "sleep"] });
+  // Claude Code usage (a Claude usage integration: percentages, with the moment each window resets)
+  add("sensor.claude_5_h_session", null, "84.0", { friendly_name: "Claude · 5 h session", unit_of_measurement: "%", state_class: "measurement", session_resets_at: new Date(Date.now() + 175 * 60000).toISOString(), last_success_at: new Date().toISOString(), state: "ok" });
+  add("sensor.claude_week", null, "54.0", { friendly_name: "Claude · week", unit_of_measurement: "%", state_class: "measurement", weekly_resets_at: new Date(Date.now() + 4.5 * 86400000).toISOString(), last_success_at: new Date().toISOString(), state: "ok" });
   add("update.home_assistant_core_update", null, "on", { friendly_name: "Home Assistant Core Update", title: "Home Assistant Core", installed_version: "2026.9.3", latest_version: "2026.10.1", release_summary: "New features and improvements.", supported_features: 1 + 16 });
   add("update.shelly_plug_firmware", "kitchen", "on", { friendly_name: "Shelly Plug Firmware", title: "Shelly Plug", installed_version: "1.4.2", latest_version: "1.5.0", device_class: "firmware", supported_features: 1 });
   add("script.good_night", null, "off", { friendly_name: "Good night", icon: "mdi:weather-night" });

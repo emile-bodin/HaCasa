@@ -4,6 +4,7 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **Claude Code usage card:** a card with the 5-hour session and the weekly limit of Claude Code as two meters (percentage used, time until the reset, a tick for how far the window has run; amber from 70 %, red from 90 %, *ahead of schedule* when you use more than the elapsed time allows, *outdated* after 30 minutes without an update). The popup adds the pace, the last update and the history of both windows. The data comes from sensors in Home Assistant (`sensor.claude_5_h_session`, `sensor.claude_week`, optionally the two reset sensors), found by name or chosen under the new **Settings → Claude Code** tab; the card is added with **Edit → Add card → Tomte cards → Claude Code**, which only lists it when the sensors exist. Covered by the smoke test (card, colours, popup, picker, settings tab); the mock home has the sensors.
 - **No HACS:** Tomte is no longer set up for HACS. `hacs.json`, the HACS validation job in CI, the HACS badge and the HACS install steps are gone; installing is downloading `tomte.js` and `loader.js` from a GitHub release into `/config/www/tomte/` and pointing `module_url` and `extra_module_url` at `/local/tomte/loader.js` (README and installation guide). The update notice no longer reads a HACS update entity and no longer offers an Install button: it compares the version with the latest GitHub release (at most twice a day) and tapping it opens the release page. The mock home lost its HACS update entity.
 ## 1.0.2 · 2026-10-28
 

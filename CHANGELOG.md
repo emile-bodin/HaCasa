@@ -1,10 +1,41 @@
 # Changelog
 
+This project started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCasa) by Damian Eickhoff (3.0.5 and the work after it) and is now a standalone project with its own version numbers, starting at 1.0.0. The history of HaCasa Nova before that is kept at the bottom.
+
 ## Unreleased
 
-- **Standalone project, version 3.1.0:** the repository is no longer a fork of damianeickhoff/HaCasa: the README, the links, the update check (it now looks at this repository's releases) and `package.json` point here, and the community links to the original's Discord and Discussions are gone. The original author keeps credit; the MIT license and notice stay. The version starts again at 3.1.0.
-- **Deploy workflow:** `npm run deploy:dev` and `npm run deploy:prod` check (translations, syntax, a jsdom render smoke test), build, back up the bundle they replace and install it with a cache-busting loader; `deploy:prod` only runs from a clean `main` and tags the version; `rollback:dev` and `rollback:prod` restore the previous bundle. See *Workflow* in the development guide.
-- **Settings in two layers:** the *household* (shared by everyone, stored in Home Assistant's system data) and *personal* (user data, only what differs from the household). An administrator edits the household by default and switches to *only me* with the picker in the edit bar and the settings header. Everything merges per field, so one personal change no longer replaces a whole room or card; a personal save stores only the difference with the layers below it; saving to the household drops the personal difference for the same page or card (*Back to household* in the edit bar does it by hand). Settings → General → Storage shows the household version and where the personal layer wins, and *Clear my differences* removes them. The "not saved" marker now compares the draft with the layer it started from, so it no longer comes back after saving.
+## 1.0.0 · 2026-10-28
+
+The first release of this project. It contains everything from HaCasa Nova up to its unreleased work after 3.0.5 (listed under *Carried over*) plus the changes below.
+
+### Settings
+
+- **Two layers:** the *household* (shared by everyone, stored in Home Assistant's system data, edited by administrators) and *personal* (user data, only what differs from the household). An administrator edits the household by default and switches to *only me* with the picker in the edit bar and the settings header. A first-time administrator without household settings shares their own with one choice (the personal copy is backed up first).
+- **Merge per field:** everything merges deeply, so one personal change no longer replaces a whole room or card. A personal save stores only the difference with the layers below it, a household save stores only what differs from the defaults, and saving to the household drops the personal difference for the same page, card or field (*Back to household* in the edit bar does it by hand).
+- **Settings → General → Storage:** shows the household version (revision, time, who) and where the personal layer wins, with *Clear my differences*. Import and export work on the layer being edited; export gives the merged settings. Household settings are polled once a minute, so a change shows on other devices without a reload.
+- **The "not saved" marker** compares the draft with the layer it started from (and ignores key order), so it no longer comes back after saving.
+- **Edit mode:** non-administrators still cannot edit; for administrators the edit bar shows the scope picker.
+
+### Cards and popups
+
+- **Robot vacuum:** the card shows an icon per state (docked, cleaning, error), the battery (from the robot's battery sensor), the current room or task while cleaning, area and time, and a red dot when a wear part is at zero hours. The popup has Start, Pause, Stop, Dock and Locate; the current or last task (what, with which settings, started by dashboard, automation, app or schedule); *Clean* with mode, suction, water and intensity chosen locally and a button per room plus the whole house; the robot's own tasks; the map; dock actions (empty the dust bin, wash and dry the mop); maintenance with a reset button and confirmation; last clean and totals; the robot's defaults; and its switches. A robot that is loaded twice (a test copy of the integration) shows once.
+- **Litter box:** a device with Clean, Empty, Deodorize and similar switches becomes one card with a button per action, the status (cleaning, emptying, waste bin full or the weight) and a popup with the same actions, weight, bin and lifetime. New icon.
+- **Appliances:** SmartThings machines are recognised (machine state, job state, completion time); the cycle phase is shown (washing, rinsing, spinning, drying …) and as a row in the popup; the end time only counts while a program runs; the card shows the remaining time next to the finish time; machines whose remote control is switched off cannot be started from the panel; month totals (energy, cost, cycles) from `sensor.<name>_energie_maand`, `_kosten_maand` and `_cycli_maand` show on the card and in the popup (*This month*); a plug that is not named like an appliance is a plain plug unless you switch the appliance features on; the same machine from two integrations (for example Home Connect and SmartThings) shows once.
+- **Thermostat:** a setpoint you set in the panel shows at once and for ten seconds, until the device reports it.
+- **Two rows:** a room page can show its cards in two rows (*Pages → Card layout*), sized to the space under the title on wide screens, with a compact layout for small cards; the edit strip follows. Media cards get a compact layout too.
+- **Idle screen:** the content drifts a little every minute (against burn-in), dims between 23:00 and 06:00, and shows washers and dryers that are running. The tap that wakes it no longer presses the card underneath.
+- **Attention:** an unavailable device is reported once by its device name, and not at all while another entity of that device still reports.
+- **Smaller fixes:** waste dates with a time are read as the local day; the agenda reloads when the calendar list changes; the notification subscription is cleaned up and restored after a reconnect; the title block keeps its height when the ticker is empty; the Apple TV streaming match no longer catches every `tv` source.
+
+### Project
+
+- **Standalone:** the README, links, documentation and the update check (it now reads this repository's releases) point here. The demo video, the community links to the original's Discord and Discussions, the funding link and the call for testers are gone; the README says what this version is and thanks the original author. The MIT license and the original copyright notice stay.
+- **Versions:** this project starts at 1.0.0.
+- **Workflow:** `npm run deploy:dev` and `npm run deploy:prod` check (translations, syntax, a jsdom render smoke test), build, back up the bundle they replace and install it with a cache-busting loader; `deploy:prod` only runs from a clean `main` and tags the version; `rollback:dev` and `rollback:prod` restore the previous bundle; `npm run release -- <version>` writes the version and the changelog heading. See *Workflow* in the development guide.
+- **Translations:** English and German for everything above (German falls back to English where it is missing).
+
+### Carried over from HaCasa Nova (unreleased after 3.0.5)
+
 - **Edit mode:** administrators pick **More → Edit room** (or *Edit home view*), or hold the page title. The strip then shows every card of the page: drag a card by its grip to reorder, × hides it, hidden cards stay in the row dimmed with an eye to bring them back, a tap opens the card settings, and an **Add card** tile sits at the end. *Done* in the bar at the bottom (the bottom nav on phones) leaves edit mode. This replaces the up/down list in Page settings for ordering.
 - **Template cards as a library:** a template card now lives in **Settings → Template cards** as a reusable definition. The entity is chosen when you place it (`$entity` in the templates), and the template marks which fields (text, label, condition) are **filled in when placing**. Place the same template as often as you like through edit mode → Add card → Template; each copy keeps its own values, name and icon. A template can also be written right in the picker, once for that page or kept in the library. Template cards that were pinned to a page are moved to that page's cards automatically.
 - **Card picker:** Add card opens a picker like Home Assistant's: *Devices* (light, switch or plug, door or window, motion, on/off sensor, value, media, thermostat, shutter, fan, lock, camera, other — then the matching entities), *HaCasa cards* (weather, agenda, waste, energy, attention, home thermostat, scenes and light scenes of a room, a new group or graph configured right there) and *Your own cards* (a template from your library). A tap on a group or graph in edit mode edits it. Cards added by hand are removed with the bin in edit mode; the panel's automatic cards are hidden with × and come back dimmed with a banner.
@@ -17,6 +48,11 @@
 - **Bottom bar on phones and tablets:** the menu button and the search button in the top bar are replaced by a bar at the bottom: Home, the current room (opens the room list, or the floors when navigation is set to floors), More and a search button. Search opens in the bar itself, with the results above it.
 - **More on phone cards:** the waste card shows the pickup after the next one at the bottom, and the agenda card the appointment after the next one (on wider screens both were already in the side column).
 - **Thermostat card:** the big number is now the current temperature; the setpoint stays on the slider and is listed under the name, next to one extra item you pick under Bottom line in the card settings (or for all thermostats under Card defaults): humidity or the active preset (automatic), heating time today, outside temperature, or nothing. Phones show that item at the bottom.
+
+## HaCasa Nova history (before this project)
+
+The versions below are the original project's.
+
 
 ## 3.0.5
 

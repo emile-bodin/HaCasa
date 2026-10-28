@@ -15,7 +15,7 @@ A room-first Home Assistant panel, based on [HaCasa Nova](https://github.com/dam
 
 </div>
 
-> 🏠 **A standalone, personal project.** This began as a fork of [damianeickhoff/HaCasa](https://github.com/damianeickhoff/HaCasa) and has been detached from it. I maintain it for my own household and give it its own versions (from `3.1.0`). It is not affiliated with or supported by the original author: for the original panel, go to [their repository](https://github.com/damianeickhoff/HaCasa). Everything good about the foundation is theirs. See [Thanks](#thanks).
+> 🏠 **A standalone, personal project.** This began as a fork of [damianeickhoff/HaCasa](https://github.com/damianeickhoff/HaCasa) and has been detached from it. I maintain it for my own household and give it its own versions (starting at `1.0.0`). It is not affiliated with or supported by the original author: for the original panel, go to [their repository](https://github.com/damianeickhoff/HaCasa). Everything good about the foundation is theirs. See [Thanks](#thanks).
 
 > ⚠️ **Built for one home.** It is tested in the house it was made for and in the mock home (`dev/index.html`), nowhere else. Expect rough edges, try it next to your current dashboard rather than replacing it, and [open an issue](https://github.com/emile-bodin/HaCasa/issues/new/choose) if something breaks.
 
@@ -31,7 +31,7 @@ The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus
 
 ## What this version adds
 
-Compared with HaCasa Nova 3.0.5 (details in the [changelog](CHANGELOG.md)):
+Compared with HaCasa Nova 3.0.5 and the work after it (details in the [changelog](CHANGELOG.md)):
 
 - **Household and personal settings**, with a scope picker in the edit bar and the settings header.
 - **A robot vacuum card and popup** (rooms, tasks, maintenance, dock), a **litter box card**, extra **appliance details** (SmartThings phases, month totals, remaining time) and an optional **two-row room layout**.
@@ -166,6 +166,7 @@ npm run watch            # rebuilds dist/hacasa-nova.js on every change
 npm run deploy:dev       # check, build, smoke-test and install as the HaCasa-dev panel
 npm run deploy:prod      # the same from a clean main, installed as the HaCasa panel, and tags the version
 npm run rollback:dev     # (or rollback:prod) put the previous bundle back
+npm run release -- 1.0.1 # write the version and the changelog heading, commit (from a clean main)
 ```
 
 `dev/index.html` runs the panel outside Home Assistant against a mock home (`dev/mock-hass.js`); add `?lang=nl` for Dutch. `dev/smoke.mjs` renders the panel in jsdom and walks the settings layers. Icons are drawn by `dev/make-icons.mjs` and inlined into the bundle by `build.mjs`. The workflow (dev first, then production) is described in the [development guide](https://github.com/emile-bodin/HaCasa/blob/main/docs/development.md).

@@ -98,12 +98,13 @@ Pull requests are welcome.
 
 ## Workflow: dev, then production
 
-This repository is a standalone project with two panels in Home Assistant: **HaCasa-dev** (`/hacasa-dev`, bundle `hacasa-nova-dev`, settings key `hacasa_nova_dev`) and **HaCasa** (`/hacasa`, bundle `hacasa-nova`, settings key `hacasa_nova`). They keep separate settings, so a test in dev never touches production.
+This repository is a standalone project with two panels in Home Assistant: **HaCasa-dev** (`/hacasa-dev`, bundle `hacasa-nova-dev`, settings key `hacasa_nova_dev`) and **HaCasa** (`/hacasa`, bundle `hacasa-nova`, settings key `hacasa_nova`). They keep separate settings, so a test in dev never touches production. Versions are `major.minor.patch` and start at 1.0.0; the dev build adds `-dev`.
 
-1. Work on a branch: `git switch -c feature/<name>`.
-2. `npm run deploy:dev` checks the translations, builds the current branch, syntax-checks the bundle, runs the render smoke test (`dev/smoke.mjs`, jsdom) and installs the bundle in `/config/www/hacasa-nova-dev` (override with `HACASA_TARGET` or `deploy.local.json`). Reload the browser: the loader picks up the new build.
-3. Test in HaCasa-dev. `npm run rollback:dev` puts the previous bundle back.
-4. Merge to `main`, then `npm run deploy:prod`. It refuses to run unless you are on a clean `main` (`--force` skips that), runs the same checks, installs into `/config/www/hacasa-nova` and tags the version (`v3.1.0`). Push the tag with `git push origin v3.1.0`.
-5. `npm run rollback:prod` restores the previous production bundle.
+1. **Branch.** `git switch -c feature/<name>`.
+2. **Dev.** `npm run deploy:dev` checks the translations, builds the current branch, syntax-checks the bundle, runs the render smoke test (`dev/smoke.mjs`, jsdom) and installs the bundle in `/config/www/hacasa-nova-dev` (override with `HACASA_TARGET` or `deploy.local.json`). Reload the browser: the loader picks up the new build. `npm run rollback:dev` puts the previous bundle back.
+3. **Changelog.** Describe the change under `## Unreleased` in `CHANGELOG.md` as you go, in the same commit as the change.
+4. **Merge** the branch into `main` (a pull request on GitHub, or locally).
+5. **Release.** On a clean `main`: `npm run release -- 1.0.1`. It writes the version into `package.json` and the lock file, turns `## Unreleased` into `## 1.0.1 · <date>` and commits. Patch for fixes, minor for new features, major for breaking changes of the stored settings.
+6. **Production.** `npm run deploy:prod` refuses to run unless you are on a clean `main` (`--force` skips that), runs the same checks, installs into `/config/www/hacasa-nova` and tags the commit `v1.0.1`. Then `git push origin main --tags`. `npm run rollback:prod` restores the previous production bundle.
 
-The last ten replaced bundles per panel are kept in `.deploy-backups/` (git-ignored). Versions follow `package.json`; the dev build adds `-dev`.
+The last ten replaced bundles per panel are kept in `.deploy-backups/` (git-ignored). Promoting does not have to wait: dev is where you test, and you decide when a change is good enough for production.

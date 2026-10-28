@@ -4,6 +4,8 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+## 1.2.2 · 2026-10-28
+
 - **New Claude Code and ChatGPT cards:** the same slots as every other card. The time left of the 5-hour session is the corner text (like the weight on the litter box card), a notice (ahead of schedule, outdated, an error) sits under the name, and the two meters sit in the bottom-line row, so the name keeps the height of the other cards and nothing runs outside the card in two rows (the audit found two overflows on the old card at 192×120). The audit's test lab now places both cards.
 
 - **Fix: saving page settings no longer removes the cards you added by hand.** *Pagina instellen → Opslaan* (for example after switching between one and two rows) rebuilt the page without its list of added cards, so Claude Code, ChatGPT, value cards and template cards disappeared. It now keeps everything it does not edit.

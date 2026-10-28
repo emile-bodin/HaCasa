@@ -6,7 +6,6 @@
 
 A room-first Home Assistant panel, based on [HaCasa Nova](https://github.com/damianeickhoff/HaCasa) by Damian Eickhoff and the [Homio](https://github.com/iamtherufus/Homio) design by iamtherufus.
 
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories/)
 [![Release](https://img.shields.io/github/v/release/emile-bodin/TomTe?style=flat-square&label=release)](https://github.com/emile-bodin/TomTe/releases)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.4%2B-18BCF2?style=flat-square)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/github/license/emile-bodin/TomTe?style=flat-square)](https://github.com/emile-bodin/TomTe/blob/main/LICENSE)
@@ -82,23 +81,12 @@ Compared with HaCasa Nova 3.0.5 and the work after it (details in the [changelog
 
 You need Home Assistant **2024.4 or newer**. Tomte can run as its own sidebar panel (recommended) or as a card inside a dashboard.
 
-### 1. Download with HACS
+### 1. Download
 
-1. Open **HACS** in Home Assistant.
-2. Open the menu (⋮, top right) and choose **Custom repositories**.
-3. Add `https://github.com/emile-bodin/TomTe` with type **Dashboard**.
-4. Search for **Tomte**, open it and choose **Download**.
-5. Reload your browser when HACS asks.
+1. Download `tomte.js` and `loader.js` from the [latest release](https://github.com/emile-bodin/TomTe/releases/latest).
+2. Copy both to `/config/www/tomte/` (so `/config/www/tomte/tomte.js` and `/config/www/tomte/loader.js`).
 
-<details>
-<summary>Manual download (without HACS)</summary>
-
-1. Download `tomte.js` from the [latest release](https://github.com/emile-bodin/TomTe/releases/latest).
-2. Copy it to `/config/www/tomte/tomte.js`.
-3. Download `loader.js` from the same release and put it next to it (`/config/www/tomte/loader.js`). Home Assistant caches `/local` for 31 days, so a `module_url` straight at `tomte.js` keeps showing an old version after an update; the loader asks the server which build is current and always loads that one.
-4. Use `/local/tomte/loader.js` wherever the steps below say `/hacsfiles/TomTe/tomte.js` (without the loader, `/local/tomte/tomte.js` works but needs a cache clear after every update).
-
-</details>
+Home Assistant serves `/local` with a 31-day browser cache, so a `module_url` straight at `tomte.js` keeps showing an old version after an update. The loader asks the server which build of `tomte.js` is current and always loads that one, so after an update a browser reload is enough. Use `/local/tomte/loader.js` in the steps below (without it, `/local/tomte/tomte.js` works but needs a cache clear after every update).
 
 ### 2a. Add it as a sidebar panel (recommended)
 
@@ -107,14 +95,14 @@ Add this to `configuration.yaml` and restart Home Assistant:
 ```yaml
 frontend:
   extra_module_url:
-    - /hacsfiles/TomTe/tomte.js   # loads the Tomte logo icon for the sidebar
+    - /local/tomte/loader.js   # loads the Tomte logo icon for the sidebar
 
 panel_custom:
   - name: tomte-panel
     url_path: tomte
     sidebar_title: Tomte
     sidebar_icon: tomte:logo
-    module_url: /hacsfiles/TomTe/tomte.js
+    module_url: /local/tomte/loader.js
 ```
 
 **Tomte** now appears in the sidebar with the Tomte logo. Open it and the setup wizard starts.
@@ -125,7 +113,7 @@ The icon works everywhere Home Assistant takes an icon, so `tomte:logo` can also
 
 ### 2b. Or use it as a dashboard card (no YAML)
 
-HACS registers the file as a dashboard resource for you. Then:
+First add the loader as a dashboard resource: **Settings → Dashboards → ⋮ → Resources → Add resource**, URL `/local/tomte/loader.js`, type *JavaScript module*. Then:
 
 1. **Settings → Dashboards → Add dashboard → New dashboard from scratch**, then open it.
 2. Edit the dashboard, change the view type to **Panel (single card)**.

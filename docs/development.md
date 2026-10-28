@@ -31,7 +31,7 @@ Room photos are looked up under `/images/rooms/` of the served folder; without t
 
 ## Inside Home Assistant: a dev panel next to the real one
 
-`npm run build:dev` builds a variant that registers its own names (`<tomte-panel-dev>`, `custom:tomte-card-dev`) and keeps its own settings (copied once from your real ones). It runs side by side with the version installed through HACS, so the household keeps the stable one while you experiment.
+`npm run build:dev` builds a variant that registers its own names (`<tomte-panel-dev>`, `custom:tomte-card-dev`) and keeps its own settings (copied once from your real ones). It runs side by side with the production panel, so the household keeps the stable one while you experiment.
 
 1. Tell the deploy script where your Home Assistant `www` folder is, in `deploy.local.json` (git-ignored):
 
@@ -55,7 +55,7 @@ Room photos are looked up under `/images/rooms/` of the served folder; without t
 
 3. After every change: `npm run deploy:dev` and reload the browser. The loader picks up the new build by itself, no restart needed.
 
-Releases go the normal way: `npm run build`, commit `dist/tomte.js`, publish a GitHub release, and update your own install through HACS like any other user.
+Releases go through the release workflow (see *Workflow* below); you update your own install with `npm run deploy:prod`.
 
 ## Layout
 
@@ -74,7 +74,7 @@ src/
   lang/         one dictionary per language (en.js, …)
   styles.js     all CSS
 icons/          SVG icons, drawn by dev/make-icons.mjs, inlined by build.mjs
-dist/           the built file Home Assistant loads (committed for HACS)
+dist/           the built files Home Assistant loads: tomte.js and loader.js (committed, so the release workflow can check them)
 docs/           this site (MkDocs Material)
 ```
 
@@ -94,7 +94,7 @@ Pull requests are welcome.
 
 1. Bump `version` in `package.json` and add the changes to `CHANGELOG.md`.
 2. `npm run build` and commit `dist/tomte.js`.
-3. Tag `vX.Y.Z` and publish a GitHub release; HACS picks it up.
+3. Tag `vX.Y.Z` and push the tag: the release workflow publishes the GitHub release.
 
 ## Workflow: dev, then production
 
@@ -106,8 +106,8 @@ This repository is a standalone project with two panels in Home Assistant: **Tom
 4. **Merge** the branch into `main` (a pull request on GitHub, or locally).
 5. **Release.** On a clean `main`: `npm run release -- 1.0.1`. It writes the version into `package.json` and the lock file, turns `## Unreleased` into `## 1.0.1 · <date>` and commits. Patch for fixes, minor for new features, major for breaking changes of the stored settings.
 6. **Production.** `npm run deploy:prod` refuses to run unless you are on a clean `main` (`--force` skips that), runs the same checks, installs into `/config/www/tomte` and tags the commit `v1.0.1`. Then `git push origin main --tags`. `npm run rollback:prod` restores the previous production bundle.
-7. **GitHub release.** Pushing the tag starts `.github/workflows/release.yml`: it checks that the tag matches `package.json`, runs the translation check, rebuilds and compares `dist/` with what is committed, runs the smoke test, and publishes a release `Tomte <version>` with `dist/tomte.js` (what HACS downloads) and `dist/loader.js` (for manual installs) attached and the matching section of `CHANGELOG.md` as the notes. Re-run it for an existing tag with *Actions → Release → Run workflow*.
+7. **GitHub release.** Pushing the tag starts `.github/workflows/release.yml`: it checks that the tag matches `package.json`, runs the translation check, rebuilds and compares `dist/` with what is committed, runs the smoke test, and publishes a release `Tomte <version>` with `dist/tomte.js` and `dist/loader.js` attached and the matching section of `CHANGELOG.md` as the notes. Re-run it for an existing tag with *Actions → Release → Run workflow*.
 
-**The loader.** `build.mjs` writes `loader.js` next to the bundle (`dist/loader.js`, `dist-dev/loader.js`; the release workflow attaches `dist/loader.js` to the GitHub release next to `dist/tomte.js`, so manual installs can use it), the deploy scripts install it, and `module_url` (and `extra_module_url`) in `configuration.yaml` point at it, not at the bundle. Home Assistant serves `/local` with a 31-day browser cache, so without it a deployed build would not show until the cache expires. The loader asks the server for the bundle's ETag and imports the bundle under that `?v=`, so after a deploy a browser reload is enough. HACS installs have no loader (they use the bundle directly): reload the browser after an update.
+**The loader.** `build.mjs` writes `loader.js` next to the bundle (`dist/loader.js`, `dist-dev/loader.js`; the release workflow attaches `dist/loader.js` to the GitHub release next to `dist/tomte.js`, so a manual install can use it), the deploy scripts install it, and `module_url` (and `extra_module_url`) in `configuration.yaml` point at it, not at the bundle. Home Assistant serves `/local` with a 31-day browser cache, so without it a deployed build would not show until the cache expires. The loader asks the server for the bundle's ETag and imports the bundle under that `?v=`, so after a deploy a browser reload is enough. HACS installs have no loader (they use the bundle directly): reload the browser after an update.
 
 The last ten replaced bundles per panel are kept in `.deploy-backups/` (git-ignored). Promoting does not have to wait: dev is where you test, and you decide when a change is good enough for production.

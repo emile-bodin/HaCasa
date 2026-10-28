@@ -1,8 +1,8 @@
-// Bundles src/panel.js into one self-contained file, dist/tomte.js (HACS serves a single file),
+// Bundles src/panel.js into one self-contained file, dist/tomte.js (Home Assistant serves a single file),
 // with the SVG icons from icons/ inlined as data: URLs. Also writes version.json for cache-busting.
 // `node build.mjs --watch` rebuilds on change.
 // `node build.mjs --dev` builds the dev variant into dist-dev/tomte-dev.js: element <tomte-panel-dev>,
-// card custom:tomte-card-dev and its own settings key, so it runs next to the HACS install.
+// card custom:tomte-card-dev and its own settings key, so it runs next to the real one.
 import * as esbuild from "esbuild";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 

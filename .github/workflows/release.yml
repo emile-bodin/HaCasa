@@ -1,7 +1,7 @@
 name: Release
 
 # Pushing a version tag (npm run deploy:prod makes it, then: git push origin main --tags) publishes a GitHub release
-# with dist/tomte.js (what HACS downloads) and dist/loader.js (for manual installs), and the changelog section as notes.
+# with dist/tomte.js and dist/loader.js (what you download and copy to /config/www/tomte/), and the changelog section as notes.
 on:
   push:
     tags: ["v*"]

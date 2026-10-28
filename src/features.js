@@ -145,15 +145,11 @@ const REPO = "emile-bodin/TomTe";
 const parts = v => String(v || "").replace(/^v/, "").split(/[.-]/).slice(0, 3).map(n => parseInt(n, 10) || 0);
 /** true when version a is newer than b ("v3.0.5" > "3.0.4") */
 export const newer = (a, b) => { const x = parts(a), y = parts(b); for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i]; return false; };
-/** the update to offer an administrator, or null: from HACS's update entity, or, for installs without HACS,
- *  GitHub's latest release (checked at most twice a day, cached per browser). Dev builds stay quiet. */
+/** the update to offer an administrator, or null: GitHub's latest release of this project (checked at most twice a day,
+ *  cached per browser); tapping it opens the release page. Dev builds stay quiet. */
 export function selfUpdate(p) {
   const hass = p.hass;
-  if (!hass?.user?.is_admin || p.config.noUpdateCheck) return null;
-  const ent = Object.values(hass.states).find(s => s.entity_id.startsWith("update.") && (s.entity_id === "update.tomte_update" || String(s.attributes.release_url || "").toLowerCase().includes(REPO.toLowerCase())));
-  if (ent) return ent.state === "on" && ent.attributes.skipped_version !== ent.attributes.latest_version
-    ? { to: ent.attributes.latest_version, from: ent.attributes.installed_version, open: () => p.moreInfo(ent.entity_id) } : null;
-  if (SUFFIX) return null;
+  if (!hass?.user?.is_admin || p.config.noUpdateCheck || SUFFIX) return null;
   checkGithub(p);
   const g = p.ghLatest;
   return g?.tag && newer(g.tag, VERSION) ? { to: g.tag, from: VERSION, open: () => window.open(g.url, "_blank", "noopener") } : null;

@@ -20,11 +20,3 @@ jobs:
       - run: npm run build
       - name: dist is up to date
         run: git diff --exit-code -- dist/tomte.js dist/loader.js || (echo "Run npm run build and commit dist/tomte.js and dist/loader.js" && exit 1)
-
-  hacs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: hacs/action@main
-        with:
-          category: plugin
-          ignore: brands

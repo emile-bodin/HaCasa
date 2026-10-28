@@ -645,7 +645,7 @@ class TomtePanel extends LitElement {
     if (h.doorsOpen.length) items.push({ k: "doors", icon: "mdi:door-open", title: h.doorsOpen.map(e => name(this.hass, e)).join(", "), text: h.doorsOpen.length === 1 ? t("Staat open") : t("Staan open") });
     for (const m of modeList(this).filter(m => m.on)) items.push({ k: "modes", icon: m.icon || "mdi:account-switch-outline", title: m.label, text: t("Actief") });
     items.push(...this.applianceItems(this.rooms.flatMap(r => r.ents.appliances)));
-    const su = selfUpdate(this);   // a newer Tomte: first in the row, tap = what's new (+ install via HACS)
+    const su = selfUpdate(this);   // a newer Tomte: first in the row, tap = the release page on GitHub
     if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("Tomte {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
     const editing = this.editing("home"), cards = editing ? [editStrip(this, "home")] : this.applyPage("home", homeCards(this, h)).map(c => c.tpl);
     return html`

@@ -61,7 +61,7 @@ The name is the Scandinavian *tomte*, the household spirit that quietly watches 
 
 ## Where next
 
-- **[Installation](installation.md)**: HACS, then a sidebar panel or a dashboard card.
+- **[Installation](installation.md)**: download two files, then a sidebar panel or a dashboard card.
 - **[First run](first-run.md)**: the four-step setup.
 - **[Best experience](best-experience.md)**: start page, hidden sidebar, wall tablets.
 - **[Cards](cards.md)**: what every card does and how to change it.

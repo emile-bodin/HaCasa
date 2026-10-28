@@ -9,23 +9,12 @@ Both use the same settings, so you can switch later.
 
 ## 1. Download
 
-=== "HACS (recommended)"
+1. Download `tomte.js` and `loader.js` from the [latest release](https://github.com/emile-bodin/TomTe/releases/latest).
+2. Copy both to `/config/www/tomte/` (so `/config/www/tomte/tomte.js` and `/config/www/tomte/loader.js`). Home Assistant serves that folder as `/local/tomte/`.
 
-    1. Open **HACS** in Home Assistant.
-    2. Open the menu (⋮, top right) and choose **Custom repositories**.
-    3. Add `https://github.com/emile-bodin/TomTe` with type **Dashboard**.
-    4. Search for **Tomte**, open it and choose **Download**.
-    5. Reload the browser when HACS asks.
+Home Assistant serves `/local` with a 31-day browser cache, so a `module_url` straight at `tomte.js` keeps showing the old version after an update. The loader asks the server for the current build of `tomte.js` (its ETag) and loads that one, so after an update a browser reload is enough. Use `/local/tomte/loader.js` in `module_url` and in `extra_module_url` below. (Without the loader `/local/tomte/tomte.js` works too, but you have to clear the browser cache after every update.)
 
-    HACS installs the file at `/config/www/community/TomTe/tomte.js`, which Home Assistant serves as `/hacsfiles/TomTe/tomte.js`. HACS also adds it as a dashboard resource.
-
-=== "Manual"
-
-    1. Download `tomte.js` from the [latest release](https://github.com/emile-bodin/TomTe/releases/latest).
-    2. Copy it to `/config/www/tomte/tomte.js`.
-    3. Download `loader.js` from the same release and copy it next to it (`/config/www/tomte/loader.js`). Home Assistant serves `/local` with a 31-day browser cache, so a `module_url` straight at `tomte.js` keeps showing the old version after an update. The loader asks the server for the current build of `tomte.js` (its ETag) and loads that one, so after an update a browser reload is enough.
-    4. Its URL is `/local/tomte/loader.js`. Use that instead of the `/hacsfiles/…` URL below, in `module_url` and in `extra_module_url`. (Without the loader `/local/tomte/tomte.js` works too, but you have to clear the browser cache after every update.)
-    5. For the card variant, add it as a resource yourself: **Settings → Dashboards → ⋮ → Resources → Add resource**, type *JavaScript module*.
+For the dashboard-card variant add the loader as a resource: **Settings → Dashboards → ⋮ → Resources → Add resource**, URL `/local/tomte/loader.js`, type *JavaScript module*.
 
 ## 2a. Sidebar panel
 
@@ -34,14 +23,14 @@ Add this to `configuration.yaml` and restart Home Assistant:
 ```yaml
 frontend:
   extra_module_url:
-    - /hacsfiles/TomTe/tomte.js   # loads the Tomte logo icon for the sidebar
+    - /local/tomte/loader.js   # loads the Tomte logo icon for the sidebar
 
 panel_custom:
   - name: tomte-panel
     url_path: tomte
     sidebar_title: Tomte
     sidebar_icon: tomte:logo
-    module_url: /hacsfiles/TomTe/tomte.js
+    module_url: /local/tomte/loader.js
 ```
 
 | key | value |
@@ -90,9 +79,9 @@ Open the panel and the [setup wizard](first-run.md) starts. Then add [room photo
 
 ## Updating
 
-When a new version is out, administrators see a line in the notification row on the home page: **Tomte 3.x.x · update available**. Tap it to open Home Assistant's update dialog with the **changelog** (all release notes since your version) and an **Install** button. The same dialog is under **Settings → System → Updates → Tomte**. After installing, reload the browser.
+When a new version is out, administrators see a line in the notification row on the home page: **Tomte 1.x.x · update available**. Tap it to open the release page on GitHub. To update, download `tomte.js` (and `loader.js` if it changed) from the release, replace the files in `/config/www/tomte/` and reload the browser. With the loader a normal reload is enough.
 
 Your settings are stored in Home Assistant, not in the file, so updates never touch them.
 
 !!! note
-    The notice comes from the update entity HACS creates (`update.tomte_update`). Installed without HACS? Then the panel asks GitHub for the latest release, at most twice a day. Turn the notice off under **More → Panel settings → General → Check for updates**.
+    The panel asks GitHub for the latest release, at most twice a day, and caches the answer in the browser. Turn the notice off under **More → Panel settings → General → Check for updates**.

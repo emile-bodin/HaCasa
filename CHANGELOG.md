@@ -4,6 +4,7 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **No HACS:** Tomte is no longer set up for HACS. `hacs.json`, the HACS validation job in CI, the HACS badge and the HACS install steps are gone; installing is downloading `tomte.js` and `loader.js` from a GitHub release into `/config/www/tomte/` and pointing `module_url` and `extra_module_url` at `/local/tomte/loader.js` (README and installation guide). The update notice no longer reads a HACS update entity and no longer offers an Install button: it compares the version with the latest GitHub release (at most twice a day) and tapping it opens the release page. The mock home lost its HACS update entity.
 ## 1.0.2 · 2026-10-28
 
 - **Release workflow:** pushing a version tag (`v*`) runs `.github/workflows/release.yml`: it checks that the tag matches `package.json`, the translations, that `dist/` is up to date and the render smoke test, then publishes a GitHub release with `dist/tomte.js` (for HACS) and `dist/loader.js` attached and the matching changelog section as the notes. It can be re-run for an existing tag from the Actions tab.

@@ -2,7 +2,7 @@
 // "## Unreleased" heading of CHANGELOG.md into "## 1.2.0 · <date>", with an empty Unreleased above it, then commits.
 // It also builds dist/ so the release commit carries the matching bundle. Needs a clean working tree on main. `npm run deploy:prod` builds that commit and tags it v1.2.0.
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 
 const version = process.argv[2];
 if (!/^\d+\.\d+\.\d+$/.test(version || "")) { console.error("usage: npm run release -- <major.minor.patch>   e.g. 1.0.1"); process.exit(1); }
@@ -22,6 +22,7 @@ for (const f of ["package.json", "package-lock.json"]) {
   writeFileSync(f, JSON.stringify(j, null, 2) + "\n");
 }
 execSync("node build.mjs", { stdio: "inherit" });   // dist/ is tracked: the release commit carries the build of that version
-git("add package.json package-lock.json CHANGELOG.md dist");
+copyFileSync("CHANGELOG.md", "docs/changelog.md");   // the docs site shows a copy of the changelog
+git("add package.json package-lock.json CHANGELOG.md docs/changelog.md dist");
 git(`-c user.name="$(git config user.name || echo release)" -c user.email="$(git config user.email || echo release@local)" commit -q -m "Release ${version}"`);
 console.log(`released ${version}. Next: npm run deploy:prod (builds, installs and tags v${version}), then git push origin main --tags (the tag publishes the GitHub release with tomte.js and loader.js)`);

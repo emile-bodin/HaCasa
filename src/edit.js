@@ -63,11 +63,11 @@ function editDown(p, key, ev) {
   addEventListener("pointermove", move); addEventListener("pointerup", up); addEventListener("pointercancel", up);
 }
 
-export function editStrip(p, key) {
+export function editStrip(p, key, rows = 1) {
   const pc = p.pageCfg(key), hid = new Set(pc.hidden || []), added = new Set(pc.add || []), all = p.orderCards(p.pageCards(key), p.editOrder || pc.order);
   // groups and graphs made for this page count as hand-added too: the bin takes them away for good
   const own = c => added.has(c.key) || (c.key.startsWith("group:") && (p.config.groups || []).some(g => "group:" + g.id === c.key && (g.room || "home") === key)) || (c.key.startsWith("graph:") && (p.config.graphs || []).some(g => "graph:" + g.id === c.key && (g.room || "home") === key));
-  return html`${all.map(c => { const userHid = hid.has(c.key), cond = !userHid && p.condHiddenCard(c.key);
+  const cards = all.map(c => { const userHid = hid.has(c.key), cond = !userHid && p.condHiddenCard(c.key);
     return html`<div class=${classMap({ ecard: true, hid: userHid || cond, lift: p.editDrag === c.key })} data-key=${c.key}>
       ${c.tpl}
       <div class="shield" @pointerdown=${ev => editDown(p, c.key, ev)}></div>
@@ -76,8 +76,11 @@ export function editStrip(p, key) {
         : own(c) ? html`<button class="x" title=${t("Verwijderen")} @click=${() => p.removeAdded(key, c.key)}><ha-icon icon="mdi:trash-can-outline"></ha-icon></button>`
         : html`<button class="x" title=${t("Verbergen")} @click=${() => p.setHidden(key, c.key, true)}><ha-icon icon="mdi:close"></ha-icon></button>`}
       ${userHid || cond ? html`<div class="hban"><ha-icon icon=${cond ? "mdi:code-braces" : "mdi:eye-off-outline"}></ha-icon>${cond ? t("Verborgen door voorwaarde") : t("Verborgen")}</div>` : html`<div class="grip"><ha-icon icon="mdi:drag-vertical"></ha-icon></div>`}
-    </div>`; })}
-    <div class="card add" @click=${() => p.openPopup({ type: "add", key })}><span class="plus"><ha-icon icon="mdi:plus"></ha-icon></span><b>${t("Kaart toevoegen")}</b></div>`;
+    </div>`; });
+  cards.push(html`<div class="card add" @click=${() => p.openPopup({ type: "add", key })}><span class="plus"><ha-icon icon="mdi:plus"></ha-icon></span><b>${t("Kaart toevoegen")}</b></div>`);
+  if (rows !== 2) return html`${cards}`;
+  const half = Math.ceil(cards.length / 2), row = list => html`<div class="room-row">${list.map(c => html`<div class="room-cell"><div class="room-scale">${c}</div></div>`)}</div>`;
+  return html`<div class="room-rows">${row(cards.slice(0, half))}${row(cards.slice(half))}</div>`;
 }
 
 /** the bar at the bottom while editing (desktop; phones put it in the bottom nav) */

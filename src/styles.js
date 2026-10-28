@@ -160,6 +160,12 @@ export const styles = css`
   .sfade.l.on{opacity:1}
   .strip::after{content:"";flex:none;width:var(--pad)}
   .strip.drag{cursor:grabbing;scroll-snap-type:none}
+  .strip.rows2{--rows2-scale:.9;--rows2-card-h:calc(180 * var(--u));--rows2-card-w:calc(288 * var(--u));display:block;height:calc(var(--rows2-card-h) * 2 + var(--card-gap) + 12px);overflow-x:auto;overflow-y:hidden}
+  .room-rows{display:flex;flex-direction:column;gap:var(--card-gap);width:max-content;min-width:100%}
+  .room-row{display:flex;gap:var(--card-gap);width:max-content;min-height:var(--rows2-card-h, var(--card-h))}
+  .room-cell{position:relative;flex:none;width:var(--rows2-card-w);height:var(--rows2-card-h)}
+  .room-scale{position:absolute;left:0;top:0;width:var(--card-w);height:var(--card-h);transform:scale(var(--rows2-scale));transform-origin:top left}
+  .sfade.rows2{height:calc(360 * var(--u) + var(--card-gap) + 12px)}
   /* layout: icon + corner text on top, name/state centred in what is left, caps line at the bottom */
   .card{flex:none;width:var(--card-w);height:var(--card-h);background:var(--card);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);border:1px solid var(--line);box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 12px 32px rgba(0,0,0,.18);--cp:22px;padding:var(--cp);display:grid;grid-template-columns:minmax(0,1fr) max-content;grid-template-rows:max-content 1fr max-content max-content 1fr 28px;grid-template-areas:"i c" ". ." "n n" "s s" ". ." "l l";scroll-snap-align:start;position:relative;border-radius:var(--r);overflow:hidden;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;animation:rise .55s var(--ease) both;transition:transform .25s var(--ease),background .25s,border-color .25s,padding .3s}
   .card:nth-child(2){animation-delay:60ms}.card:nth-child(3){animation-delay:120ms}.card:nth-child(4){animation-delay:180ms}.card:nth-child(5){animation-delay:240ms}.card:nth-child(n+6){animation-delay:300ms}
@@ -238,7 +244,7 @@ export const styles = css`
   .card.media:not(.art):not(.appart){padding-left:var(--cp)}
   .card.art,.card.appart{--cb:rgba(255,255,255,.2);border-color:var(--cb)}
   .card.art{background-size:cover;background-position:center}
-  .card.art::before,.card.appart::before{content:"";position:absolute;top:0;bottom:0;right:0;left:34%;background:rgba(20,20,24,.32);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);box-shadow:-6px 0 14px -2px rgba(0,0,0,.4);pointer-events:none}
+  .card.art::before,.card.appart::before{content:"";position:absolute;top:0;bottom:0;right:0;left:34%;background:rgba(20,20,24,.45);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);box-shadow:-6px 0 14px -2px rgba(0,0,0,.4);pointer-events:none}
   .card.art>*:not(.ctl):not(.ua):not(.appi):not(.c),.card.appart>*:not(.ctl):not(.ua):not(.appi):not(.c){position:relative}
   .card.art .c,.card.appart .c{z-index:1}
   .card.art .ctl{z-index:1}
@@ -249,6 +255,9 @@ export const styles = css`
   .card.media .ctl button{flex:1;height:42px;background:rgba(255,255,255,.12);border:1px solid var(--line)}
   .card.media .ctl button.main{flex:1.6;background:rgba(255,255,255,.9);color:#1d1d1f;border-color:transparent}
   /* media card without artwork: the running app in its brand colour */
+  .card.art .n,.card.art .s,.card.art .c{text-shadow:0 1px 8px rgba(0,0,0,.35)}
+  .card.media.unavailable .ctl{opacity:.35;pointer-events:none}   /* an unreachable player cannot be steered: do not offer it */
+  .card.media.unavailable .ctl button.main{background:rgba(255,255,255,.12);color:#fff;border-color:var(--line)}
   .card.appart{background:linear-gradient(135deg,color-mix(in srgb,var(--app,#8a8f96) 70%,#1c1c1c) 0%,color-mix(in srgb,var(--app,#8a8f96) 30%,#1c1c1c) 100%)}
   .card.appart .appi{position:absolute;left:calc(var(--card-w) * .17);top:50%;transform:translate(-50%,-50%);--mdc-icon-size:44px;opacity:.95}
   /* light colour tint */
@@ -460,6 +469,16 @@ export const styles = css`
   .popup .modes{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:18px}
   .popup .modes.n2{grid-template-columns:1fr 1fr}
   .popup .modes.n3{grid-template-columns:repeat(3,1fr)}
+  .popup .vh{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.6;margin-top:22px}
+  .popup .vh+.modes,.popup .vh+ul{margin-top:8px}
+  .popup .vs{font-size:12px;opacity:.6;margin-top:12px}
+  .popup .vs+.modes{margin-top:6px}
+  .popup .vh+.vs{margin-top:4px}
+  .popup .mart.vmap{background-size:contain;background-repeat:no-repeat;background-color:rgba(255,255,255,.04);height:220px;cursor:pointer}
+  .card .vdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#f27a5c;margin-left:6px;vertical-align:middle}
+  .card.verr .s{color:#f27a5c}
+  .card .vbat{display:inline-flex;align-items:center;gap:3px;margin-right:10px}
+  .card .vbat ha-icon{--mdc-icon-size:14px}
   .popup .mart{height:170px;margin-top:16px;border-radius:var(--r-sm);background-size:cover;background-position:center}
   .popup .modes.att{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px}
   .popup .modes.att button{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:6px;padding:13px 11px;font-size:11px;letter-spacing:.6px;white-space:nowrap}
@@ -670,6 +689,8 @@ export const styles = css`
     .wx .hl{margin-top:2px}
     .wx .hours{display:none}
     .strip{position:static;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:6px;padding:4px var(--pad) calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));scroll-snap-type:none;scrollbar-width:none}
+    .strip.rows2{height:auto;display:grid;overflow-y:auto;overflow-x:hidden}
+    .strip.rows2 .room-rows,.strip.rows2 .room-row,.strip.rows2 .room-cell,.strip.rows2 .room-scale{display:contents}
     .strip::after{display:none}
     .sfade{display:none}
     .card{--cp:14px;width:auto;height:var(--card-h);padding:var(--cp);grid-template-rows:max-content 1fr max-content max-content 1fr 24px}
@@ -743,7 +764,108 @@ export const styles = css`
     .empty{position:static;padding:0 var(--pad) 40px}
     .page,.settings{position:static;flex:1;min-height:0;overflow:auto;padding-top:calc(88px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));padding-bottom:calc(90px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))}
   }
-  @media (min-width:600px) and (max-width:900px){ .strip{grid-template-columns:1fr 1fr 1fr} }
+  @media (min-width:901px){   /* two rows on wide screens: cards under 160px get the phone's compact layout, not a scaled-down picture — :where() keeps the phone rules' own weight, so the desktop rules they lose to on phones still win here */
+    :where(.strip.rows2.compact) .card.hassub{padding-right:var(--cp)}
+    :where(.strip.rows2.compact) .card .subc{display:none}
+    :where(.strip.rows2.compact) .card .lbl.mob{display:flex}
+    :where(.strip.rows2) .card.climate{--bt:26px;--rw:34px;padding-right:calc(var(--rw) + var(--cp) + 10px);padding-bottom:var(--cp)}
+    :where(.strip.rows2) .card.climate .ctl.row{display:none}
+    :where(.strip.rows2) .card.climate .c{right:calc(var(--rw) + var(--cp) + 8px)}
+    :where(.strip.rows2) .card.climate .rail em{display:none}
+    :where(.strip.rows2) .card.climate .rail b{font-size:9px}
+    :where(.strip.rows2.compact) .card{--cp:14px;height:var(--card-h);padding:var(--cp);grid-template-rows:max-content 1fr max-content max-content 1fr 24px}
+    :where(.strip.rows2.compact) .card .i{width:26px;height:26px;margin-left:-2px}
+    :where(.strip.rows2.compact) .card .i img.ico{width:26px;height:26px}
+    :where(.strip.rows2.compact) .card .i ha-icon{--mdc-icon-size:30px;margin:-2px}
+    :where(.strip.rows2.compact) .card .c{font-size:9px;letter-spacing:1.2px;height:26px}
+    :where(.strip.rows2.compact) .card .n{font-size:14px}
+    :where(.strip.rows2.compact) .card .s{font-size:11px;margin-top:2px}
+    :where(.strip.rows2.compact) .card .s.big{font-size:24px;letter-spacing:-1px}
+    :where(.strip.rows2.compact) .card .lbl{font-size:9px;letter-spacing:1.4px;height:24px}
+    :where(.strip.rows2.compact) .card .lbl.steps button{height:24px;padding:0 8px;font-size:9px}
+    :where(.strip.rows2.compact) .card .lbl.cols button{width:20px;height:20px}
+    :where(.strip.rows2.compact) .card .lbl.bars{padding-top:6px}
+    :where(.strip.rows2.compact) .card.plug .spk{display:none}
+    :where(.strip.rows2.compact) .card.plug .meta{display:none}
+    :where(.strip.rows2.compact) .card.plug.appl .lbl{right:calc(var(--cp) + 70px);height:30px}
+    :where(.strip.rows2.compact) .card.plug.hasspk{padding-right:var(--cp)}
+    :where(.strip.rows2.compact) .card.actions{padding-right:calc(var(--cp) + 40px)}
+    :where(.strip.rows2.compact) .card .ctl{width:34px;grid-auto-rows:34px;gap:3px}
+    :where(.strip.rows2.compact) .card .ctl button img{width:14px}
+    :where(.strip.rows2.compact) .card .ctl button ha-icon{--mdc-icon-size:18px}
+    :where(.strip.rows2.compact) .card .ctl.modes{display:none}
+    :where(.strip.rows2.compact) .card.wide{padding-right:52px}
+    :where(.strip.rows2) .card.climate{grid-template-areas:"i c" ". ." "s s" "n n" ". ." "l l"}
+    :where(.strip.rows2) .card.climate .lbl{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:600;margin-top:0}
+    :where(.strip.rows2) .card.climate .lbl .tg,:where(.strip.rows2) .card.climate .lbl .tg+.dt,:where(.strip.rows2) .card.climate .lbl .lng{display:none}
+    :where(.strip.rows2) .card.climate .lbl ha-icon{--mdc-icon-size:12px;margin-right:3px}
+    :where(.strip.rows2.compact) .card .s.big{font-size:22px}
+    :where(.strip.rows2.compact) .card .seg{padding:2px}
+    :where(.strip.rows2.compact) .card .seg button{height:24px;padding:0 9px;font-size:9px}
+    :where(.strip.rows2) .card.media{padding:var(--cp) var(--cp) 46px}
+    :where(.strip.rows2) .card.appart .appi{display:none !important}
+    :where(.strip.rows2) .card.appart::before{left:0;box-shadow:none;background:rgba(20,20,24,.35)}
+    :where(.strip.rows2) .card.art::before{left:0;box-shadow:none;background:rgba(20,20,24,.5)}
+    :where(.strip.rows2) .card.media .ctl{left:var(--cp);right:var(--cp);bottom:var(--cp);gap:4px}
+    :where(.strip.rows2) .card.media .ctl button{height:30px}
+    :where(.strip.rows2.compact) .card .slider{height:6px}
+    :where(.strip.rows2.compact) .card.vs{padding-right:calc(var(--cp) + 20px)}
+    :where(.strip.rows2.compact) .card.vs .c{right:calc(var(--cp) + 20px)}
+    :where(.strip.rows2.compact) .card .slider b{width:14px;height:14px;margin:-7px 0 0 -7px}
+    :where(.strip.rows2.compact) .card.appl,:where(.strip.rows2.compact) .card.acts{padding-bottom:calc(var(--cp) + 30px + 6px)}
+    :where(.strip.rows2.compact) .card.acts .ctl.row button{height:30px;padding:0 10px;font-size:10px}
+    :where(.strip.rows2.compact) .card.appl .ctl.row button{height:30px;padding:0 10px;font-size:10px}
+    :where(.strip.rows2.compact) .card.appl:not(.plug) .lbl{display:none}
+    :where(.strip.rows2.compact) .card.list .s{gap:3px;margin-top:4px}
+    :where(.strip.rows2.compact) .card.list .s span{font-size:11px;gap:6px}
+    :where(.strip.rows2.compact) .card.list .s span em{display:none}
+    :where(.strip.rows2.compact) .card .ua{top:8px;right:8px;width:18px;height:18px}
+    :where(.strip.rows2.compact) .card .ua ha-icon{--mdc-icon-size:13px}
+    :where(.strip.rows2.compact) .card.pstrip{padding-bottom:62px}
+    :where(.strip.rows2.compact) .card .socks{gap:4px}
+    :where(.strip.rows2.compact) .card .socks button{height:44px}
+    :where(.strip.rows2.compact) .card .socks button ha-icon{--mdc-icon-size:16px}
+    :where(.strip.rows2.compact) .card .socks button small{display:none}
+    :where(.strip.rows2.compact) .card.scenes .s{gap:4px;margin-top:4px}
+    :where(.strip.rows2.compact) .card.scenes .s button{height:40px}
+    :where(.strip.rows2.compact) .card.scenes .s button small{display:none}
+    :where(.strip.rows2.compact) .card.group .gtiles button{height:40px}
+    :where(.strip.rows2.compact) .card.group .gtiles button small{display:none}
+    :where(.strip.rows2.compact) .card.group .glist{gap:3px;margin-top:4px}
+    :where(.strip.rows2.compact) .card.group .glist div{font-size:11px}
+    :where(.strip.rows2.compact) .card.people .s span{width:36px;height:36px}
+    :where(.strip.rows2.compact) .card.cam{padding-bottom:12px}
+  }
+  /* media card, compact (phones and two rows): one-line title, the progress line runs along the card's bottom edge (mini-player style) instead of
+     through the controls, 34px touch targets, and a scrim that darkens toward the controls so white text holds on light artwork */
+  @media (max-width:900px){
+    .card.media{--bh:34px;padding-bottom:calc(var(--cp) + var(--bh) + 10px)}
+    .card.media .n{-webkit-line-clamp:1}
+    .card.media.unavailable .ctl{display:none}
+    .card.media .ctl button{height:var(--bh)}
+    .card.media .prog{position:absolute !important;grid-area:auto;left:0;right:0;bottom:0;height:3px;border-radius:0;margin:0;z-index:1}   /* !important: .card.art>*:not(...) sets position:relative with far more weight */
+    .card.art::before{background:linear-gradient(180deg,rgba(20,20,24,.38) 0%,rgba(20,20,24,.72) 100%)}
+  }
+  @media (min-width:901px){
+    :where(.strip.rows2) .card.media{--bh:34px;padding-bottom:calc(var(--cp) + var(--bh) + 10px)}
+    :where(.strip.rows2) .card.media .n{-webkit-line-clamp:1}
+    :where(.strip.rows2) .card.media.unavailable .ctl{display:none}
+    :where(.strip.rows2) .card.media .ctl button{height:var(--bh)}
+    :where(.strip.rows2) .card.media .prog{position:absolute !important;grid-area:auto;left:0;right:0;bottom:0;height:3px;border-radius:0;margin:0;z-index:1}   /* !important: .card.art>*:not(...) sets position:relative with far more weight */
+    :where(.strip.rows2) .card.art::before{background:linear-gradient(180deg,rgba(20,20,24,.38) 0%,rgba(20,20,24,.72) 100%)}
+  }
+  @media (min-width:901px){   /* two rows under 160px: no room for icon and status line; play/pause and the progress line carry the state */
+    :where(.strip.rows2.compact) .card.media .i,:where(.strip.rows2.compact) .card.media .c{display:none}
+    :where(.strip.rows2.compact) .card.media{grid-template-areas:". ." ". ." "n n" "s s" "l l" ". ."}
+  }
+  @media (min-width:600px) and (max-width:900px){
+    .strip{grid-template-columns:1fr 1fr 1fr}
+    .strip.rows2{--rows2-scale:.9;--card-h:200px;--card-w:320px;--rows2-card-h:180px;--rows2-card-w:288px;display:block;overflow-x:auto;overflow-y:auto}
+    .strip.rows2 .room-rows{display:flex}
+    .strip.rows2 .room-row{display:flex}
+    .strip.rows2 .room-cell{display:block}
+    .strip.rows2 .room-scale{display:block}
+  }
   ${unsafeCSS(pageStyles)}
   ${unsafeCSS(extraStyles)}
   ${unsafeCSS(extra2Styles)}

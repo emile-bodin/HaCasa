@@ -19,7 +19,7 @@ import { searchBar, openFor } from "./search.js";
 import { graphCard } from "./graph.js";
 import { fetchNumeric, batteryEta, modeList } from "./extras3.js";
 import { deviceName } from "./model.js";
-import { BASE, TAG, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText } from "./util.js";
+import { BASE, TAG, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText, markSetpoint, clearSetpoint } from "./util.js";
 
 /** numbers with their unit (6,8 kWh · 50% · 12 min · 14:02) rendered white inside a notice */
 const emph = text => { const parts = String(text ?? "").split(/(\d+(?:[.,:]\d+)?(?:\s?(?:%|kWh|W|kW|°C?|min|uur|u|×))?)/g); return parts.map((x, i) => i % 2 ? html`<b>${x}</b>` : x); };
@@ -53,12 +53,16 @@ class HacasaNova extends LitElement {
     this.loadConfig();
     this._clock = setInterval(() => { this.now = clock(); }, 15000);
     this._ticker = setInterval(() => { this.tick++; }, 4000);
+    this._onFit = () => this._fitRows2(); addEventListener("resize", this._onFit);
     this._onKey = e => { if (e.key === "Escape") { if (this.popup?.menu) { this.popup = { ...this.popup, menu: false }; return; } if (!this.popup && this.edit) { this.stopEdit(); return; } this.popup = null; this.search = ""; this.searchOpen = false; } };
     addEventListener("keydown", this._onKey);
     // inside a Lovelace card the dashboard owns the URL path, so rooms are routed through the hash
     if (this.hashMode) { this._onHash = () => { this.route = { path: location.hash.replace(/^#/, "") || "/", prefix: "" }; }; addEventListener("hashchange", this._onHash); this._onHash(); }
     // idle screen: any input resets the timer
-    this._activity = () => { this._lastActivity = Date.now(); if (this.idle) this.wake(); };
+    this._activity = e => { this._lastActivity = Date.now(); if (this.idle) this.wake(e?.type === "pointerdown" || e?.type === "touchstart"); };
+    // the tap that wakes the idle screen must not also press the card under it
+    this._eatClick = e => { if (this._eatUntil) { if (Date.now() < this._eatUntil) { e.stopImmediatePropagation(); e.preventDefault(); } this._eatUntil = 0; } };
+    addEventListener("click", this._eatClick, true);
     for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) addEventListener(ev, this._activity, { passive: true });
     this._lastActivity = Date.now();
     this._onResize = () => { clearTimeout(this._rsT); this._rsT = setTimeout(() => this.requestUpdate(), 150); }; addEventListener("resize", this._onResize);
@@ -73,8 +77,8 @@ class HacasaNova extends LitElement {
     this.addEventListener("pointerdown", e => { if (this.navFloor != null && !this.drawer && !e.composedPath().some(el => el.classList?.contains("fl"))) this.navFloor = null; });
     this.addEventListener("pointerdown", e => { if (this.drawer && !e.composedPath().some(el => el.classList?.contains("links") || el.classList?.contains("rtab"))) this.drawer = false; });
   }
-  disconnectedCallback() { super.disconnectedCallback(); clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); clearInterval(this._gpoll); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
-  wake() { this.idle = false; this._lastActivity = Date.now(); }
+  disconnectedCallback() { super.disconnectedCallback(); clearInterval(this._clock); removeEventListener("resize", this._onFit); clearInterval(this._ticker); clearInterval(this._idleT); clearInterval(this._gpoll); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); removeEventListener("click", this._eatClick, true); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); Promise.resolve(this._unsubNotif).then(u => typeof u === "function" && u()).catch(() => {}); this._unsubNotif = null; }
+  wake(fromTouch = false) { if (fromTouch) this._eatUntil = Date.now() + 1500; this.idle = false; this._lastActivity = Date.now(); }
   /** go to the previous/next room in nav order (home is before the first room) */
   swipe(dir) { const order = [null, ...this.rooms]; const i = order.findIndex(r => (r?.id || null) === (this.room?.id || null)); const n = order[i + dir]; if (n !== undefined) this.go(n); }
   async loadEvents() { this._eventsAt = Date.now(); this.events = await fetchEvents(this.hass, this.home?.calendars || []); }
@@ -172,13 +176,14 @@ class HacasaNova extends LitElement {
   willUpdate() {
     if (!this.hass) return;
     setLang(this.config.language || pickLang(this.hass.language || this.hass.locale?.language));
-    if (!this._userLoaded) { this._userLoaded = true; this.loadUser(); this._unsubNotif = subscribeNotifications(this.hass, list => { this.notifications = list; }); this.subscribeTemplates(); }
+    if (!this._userLoaded) { this._userLoaded = true; this.loadUser(); this.subscribeTemplates(); }
+    if (!this._unsubNotif && this.isConnected) this._unsubNotif = subscribeNotifications(this.hass, list => { this.notifications = list; });   // again after a reconnect
     this.rooms = buildRooms(this.hass, this.config);
     this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
     watchTriggers(this);
     if (!this._wizardShown && this.userConfig !== undefined && !this.setupIsDone && !this.cardConfig) { this._wizardShown = true; this.popup = { type: "wizard", step: 0 }; }
     if (!this._hinted && this.userConfig !== undefined && this.setupIsDone && !this.userConfig?.hintSeen) { this._hinted = true; this.showToast(t("Tik op een kaart om te schakelen, houd vast voor details. Via ⋯ in de popup stel je dit per kaart in."), 9000, "info"); this.saveUser({ hintSeen: true }); }
-    if (this.home.calendars.length && (!this._eventsAt || Date.now() - this._eventsAt > 10 * 60000)) this.loadEvents();
+    if (!this._eventsAt || Date.now() - this._eventsAt > 10 * 60000 || this._eventsKey !== this.home.calendars.join()) { this._eventsKey = this.home.calendars.join(); this.loadEvents(); }   // also when the calendar list changes
     if (this.home.weather && (!this._wxAt || Date.now() - this._wxAt > 30 * 60000 || this._wxId !== this.home.weather.entity_id)) this.loadWx();
     const seg = (this.route?.path || "/").split("/").filter(Boolean)[0];
     this.settings = seg === "instellingen";
@@ -193,6 +198,7 @@ class HacasaNova extends LitElement {
   }
 
   updated(changed) {
+    this._fitRows2();
     const key = this.settings ? "settings" : this.page || (this.room ? this.room.id : "home");
     if (key !== this._viewKey) { this._viewKey = key; requestAnimationFrame(() => { this.style.transform = "translateZ(0)"; requestAnimationFrame(() => { this.style.transform = ""; }); }); }
   }
@@ -200,8 +206,10 @@ class HacasaNova extends LitElement {
   /* ---------- actions ---------- */
   /** service call with visible feedback: errors from HA (wrong alarm code, unavailable device, …) show as a toast */
   async call(domain, service, data) {
+    const target = domain === "climate" && service === "set_temperature" && data?.entity_id && data.temperature != null;
+    if (target) { markSetpoint(data.entity_id, data.temperature); this.requestUpdate(); setTimeout(() => this.requestUpdate(), 10100); }
     try { return await this.hass.callService(domain, service, data); }
-    catch (e) { const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
+    catch (e) { if (target) { clearSetpoint(data.entity_id); this.requestUpdate(); } const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
   }
   showToast(msg, ms = 4000, cls = "") { this.toast = msg; this.toastCls = cls; clearTimeout(this._toastT); this._toastT = setTimeout(() => { this.toast = null; }, ms); }
   openPopup(pop) { this.popup = pop; }
@@ -332,7 +340,7 @@ class HacasaNova extends LitElement {
   /** appliance features on/off for a plug; the popup stays open on the matching card form */
   async setApplianceMode(key, on) {
     const cards = { ...(this.wl?.cards || {}) }, c = { ...(cards[key] || {}) };
-    if (on) delete c.noAppliance; else c.noAppliance = true;
+    c.noAppliance = !on;
     if (Object.keys(c).length) cards[key] = c; else delete cards[key];
     await this.saveUser({ cards });
     this.rooms = buildRooms(this.hass, this.config);
@@ -404,7 +412,25 @@ class HacasaNova extends LitElement {
 
   /* ---------- strip: wheel + mouse drag ---------- */
   _stripScroll(e) { const on = e.currentTarget.scrollLeft > 4; if (on !== !!this.stripScrolled) this.stripScrolled = on; }
-  stripFades() { return html`<div class=${classMap({ sfade: true, l: true, on: !!this.stripScrolled })}></div><div class="sfade r"></div>`; }
+  stripFades(rows = 1) { return html`<div class=${classMap({ sfade: true, l: true, on: !!this.stripScrolled, rows2: rows === 2 })}></div><div class=${classMap({ sfade: true, r: true, rows2: rows === 2 })}></div>`; }
+  /** two rows of cards (rooms with Kaartindeling = two rows): the cards split over two lines, each in a cell that scales it down */
+  roomRows(cards) {
+    const half = Math.ceil(cards.length / 2), row = list => html`<div class="room-row">${list.map(c => html`<div class="room-cell"><div class="room-scale">${c}</div></div>`)}</div>`;
+    return html`<div class="room-rows">${row(cards.slice(0, half))}${row(cards.slice(half))}</div>`;
+  }
+  /** wide screens: size the two rows to the space under the title (cards between 120 and 180px high; below 160px they get the compact layout) */
+  _fitRows2() {
+    const strip = this.renderRoot?.querySelector(".strip.rows2"), title = this.renderRoot?.querySelector(".title");
+    if (!strip) return;
+    const targets = [strip, ...this.renderRoot.querySelectorAll(".sfade.rows2")], props = ["--rows2-scale", "--rows2-card-h", "--rows2-card-w", "--card-h", "--card-w", "height"];
+    if (innerWidth <= 900 || !title) { strip.classList.remove("compact"); targets.forEach(el => props.forEach(pr => el.style.removeProperty(pr))); return; }
+    const gap = parseFloat(getComputedStyle(strip).getPropertyValue("--card-gap")) || 6, free = strip.getBoundingClientRect().bottom - title.getBoundingClientRect().bottom - 24 - 12 - gap;
+    const h = Math.round(Math.max(120, Math.min(180, free / 2))), w = Math.round(h * 1.6), total = `${h * 2 + gap + 12}px`;
+    strip.classList.toggle("compact", h < 160);
+    strip.style.setProperty("--rows2-scale", 1);
+    [["--rows2-card-h", h], ["--card-h", h], ["--rows2-card-w", w], ["--card-w", w]].forEach(([k, v]) => strip.style.setProperty(k, v + "px"));
+    targets.forEach(el => el.style.height = total);
+  }
   /** energy page: today's use and return per hour, power peak and a 3 h sparkline */
   async loadEnergyToday() {
     const en = this.home.energy; this.energyHist = { ...(this.energyHist || {}), at: Date.now() };
@@ -575,7 +601,7 @@ class HacasaNova extends LitElement {
         ${items.length ? html`<div class="ticker">
           ${items.map((it, k) => { const body = html`${ico(it.icon)}${it.title ? html`<b class="tt">${it.title}</b><i class="dt"></i>` : nothing}<span>${emph(it.text)}</span>`;
             return html`<div class=${k === i ? "show" : ""}>${it.tap ? html`<button class="tk" @click=${e => { e.stopPropagation(); it.tap(); }}>${body}</button>` : body}</div>`; })}
-        </div>` : nothing}
+        </div>` : html`<div class="ticker" aria-hidden="true"></div>`}
         ${extra}
       </div>
       ${aside}
@@ -691,10 +717,10 @@ class HacasaNova extends LitElement {
     for (const b of e.battery.filter(x => +x.state?.state <= (this.config.home?.lowBattery ?? 20))) items.push({ k: "battery", icon: "mdi:battery-20", title: name(this.hass, b), text: t("Batterij {n}%", { n: b.state.state }) });
     if (e.lights.length) items.push({ k: "lights", icon: "mdi:lightbulb-outline", title: t("Lampen"), text: r.lightsOn ? t("{n} van {m} aan", { n: r.lightsOn, m: e.lights.length }) : t("Alles uit") });
     if (r.motion) items.push({ k: "motion", icon: "mdi:motion-sensor", title: t("Beweging"), text: r.motionOn ? t("Nu") : relTime(r.motion.last_changed) });
-    const editing = this.editing(r.id), cards = editing ? [editStrip(this, r.id)] : this.applyPage(r.id, this.roomCards(r)).map(c => c.tpl);
+    const rows = this.pageCfg(r.id).rows === 2 ? 2 : 1, editing = this.editing(r.id), cards = editing ? [editStrip(this, r.id, rows)] : this.applyPage(r.id, this.roomCards(r)).map(c => c.tpl);
     return html`
       ${this.renderTitle(r.temp, r.name, "", this.tickerOn(r.id, items), nothing, r.id, nothing, r.hum)}
-      <div class="strip" @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${cards}</div>${this.stripFades()}
+      <div class=${classMap({ strip: true, rows2: rows === 2 })} @pointerdown=${this._stripDown} @wheel=${this._stripWheel} @scroll=${this._stripScroll}>${rows === 2 && !editing ? this.roomRows(cards) : cards}</div>${this.stripFades(rows)}
       ${!cards.length ? html`<div class="empty">${t("Geen apparaten in deze ruimte.")}</div>` : nothing}
       ${editing ? editBar(this, r.id) : nothing}
       <div class=${classMap({ banner: true, show: r.motionOn && !editing })}><img class="ico" src=${icon("motion")} alt="">${t("Beweging in de {room}", { room: roomWord(r.name) })}</div>`;

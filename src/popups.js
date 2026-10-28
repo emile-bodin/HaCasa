@@ -1,12 +1,12 @@
 // Popup renderers. `pop` is the panel's open popup descriptor {type, ...}; `p` the panel.
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
-import { icon, isOn, unavailable, num, relTime, shortDate, domain } from "./util.js";
+import { icon, isOn, unavailable, num, relTime, shortDate, domain, setpoint } from "./util.js";
 import { name, deviceName } from "./model.js";
 import { PAGES } from "./pages.js";
 import { keypad, bars } from "./extras.js";
-import { eventWhen, timeline, applianceState } from "./extras2.js";
-import { wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, cardType } from "./cards.js";
+import { eventWhen, timeline, applianceState, applianceMonth, noRemote } from "./extras2.js";
+import { litterBox, wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, cardType } from "./cards.js";
 import { roomPresets, snapshot, applyPreset, presetMatches, installUpdate, pendingUpdates } from "./features.js";
 import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check } from "./settings.js";
@@ -15,6 +15,7 @@ import { fetchHistory } from "./extras2.js";
 import { addPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, graphCandidates, hoursLabel } from "./edit.js";
 import { templateOf } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
+import { siblings, maintenance, vacTask, vacStatus, VAC_LABELS, BUSY } from "./vacuum.js";
 
 const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
 const entityOf = pop => pop.type === "cardcfg" ? pop.key : pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
@@ -48,7 +49,7 @@ const wrap = (title, big, sub, body) => {
   return html`<div class="pw" @click=${() => { if (pop.menu) p.openPopup({ ...pop, menu: false }); }}><div class=${form ? "popup wide cardf" : "popup"}><h2>${title} ${hbtns(p, pop)}</h2><div class="big">${big}</div><div class="sub">${sub}</div>${body}</div>${pop.menu && entityOf(pop) ? optionsMenu(p, pop) : nothing}</div>`;
 };
 /** a switch whose device also has a power sensor or an operation-state sensor can be shown as an appliance (bezig / klaar) */
-const applianceCapable = (p, id) => { const dev = p.hass.entities?.[id]?.device_id; return !!dev && Object.values(p.hass.entities).some(e => e.device_id === dev && e.entity_id !== id && (p.hass.states[e.entity_id]?.attributes.device_class === "power" || p.hass.states[e.entity_id]?.attributes.unit_of_measurement === "W" || e.translation_key === "operation_state" || /_operation_state$/.test(e.entity_id))); };
+const applianceCapable = (p, id) => { const dev = p.hass.entities?.[id]?.device_id; return !!dev && Object.values(p.hass.entities).some(e => e.device_id === dev && e.entity_id !== id && (p.hass.states[e.entity_id]?.attributes.device_class === "power" || p.hass.states[e.entity_id]?.attributes.unit_of_measurement === "W" || e.translation_key === "operation_state" || /_operation_state$|^sensor\..*_machine_state$/.test(e.entity_id))); };
 const TICKER_KINDS = { home: { update: t("HaCasa-updates"), energy: t("Energie"), waste: t("Afval"), agenda: t("Agenda"), notifications: t("Meldingen"), attention: t("Aandacht"), doors: t("Open deuren"), weather: t("Weer"), modes: t("Modi"), appliances: t("Huishoudapparaten") }, room: { lights: t("Lampen"), doors: t("Open deuren/ramen"), media: t("Media"), battery: t("Batterij laag"), appliances: t("Huishoudapparaten") } };
 /** sensible wizard defaults: what the panel already detected */
 function wizardDefaults(p) {
@@ -197,7 +198,10 @@ export function renderPopup(p, pop) {
         <ul>${li("mdi:history", on ? t("Aan sinds") : t("Uit sinds"), relTime(s.last_changed))}${s.attributes.brightness ? li("mdi:brightness-6", t("Helderheid"), `${pct}%`) : nothing}</ul>`);
     }
     case "strip": {
-      const st = pop.st;
+      const st = pop.st, K = litterBox(p, st);
+      if (K) return wrap(roomName, (p.config.cards || {})[st.id]?.name || K.title, K.status, html`
+        ${(acts => acts.length ? modes(acts, "n" + acts.length) : nothing)([["clean", t("Reinigen")], ["empty", t("Legen")]].filter(([r]) => K.items.some(x => x.r === r)).map(([r, lb]) => ({ label: lb, go: () => K.items.filter(x => x.r === r).forEach(x => p.call("switch", "turn_on", { entity_id: x.s.id })) })))}
+        <ul>${K.wz && !unavailable(K.wz) && K.kg != null ? li("mdi:scale", t("Gewicht"), `${Math.round(K.kg * 10) / 10} kg`) : nothing}${K.fz && !unavailable(K.fz) ? li("mdi:trash-can-outline", t("Afvalbak"), K.full ? t("Vol") : t("Niet vol"), { on: K.full }) : nothing}${K.lz && !unavailable(K.lz) ? li("mdi:timer-sand", t("Levensduur"), K.lz.state) : nothing}${K.items.map(x => { const d = x.s.state; return li(x.icon, x.name, isOn(d) ? t("Aan") : unavailable(d) ? t("Onbereikbaar") : t("Uit"), { on: isOn(d), sub: relTime(d?.last_changed), onclick: () => p.call("switch", "toggle", { entity_id: x.s.id }) }); })}</ul>`);
       return wrap(roomName, (p.config.cards || {})[st.id]?.name || (hass.devices?.[st.device]?.name_by_user || hass.devices?.[st.device]?.name || t("Stekkerdoos")), t("{n} van {m} aan", { n: st.switches.filter(e => isOn(hass.states[e.id])).length, m: st.switches.length }), html`
         ${modes([{ label: t("Alles aan"), go: () => p.call("switch", "turn_on", { entity_id: st.switches.map(e => e.id) }) }, { label: t("Alles uit"), go: () => p.call("switch", "turn_off", { entity_id: st.switches.map(e => e.id) }) }], "n2")}
         <ul>${st.switches.map(e => { const s = hass.states[e.id]; return li((p.config.cards || {})[e.id]?.icon || "mdi:power-socket-eu", label(p, e), isOn(s) ? t("Aan") : unavailable(s) ? t("Onbereikbaar") : t("Uit"), { on: isOn(s), sub: s?.attributes?.current_power_w ? `${s.attributes.current_power_w} W` : relTime(s?.last_changed), onclick: () => p.call("switch", "toggle", { entity_id: e.id }) }); })}</ul>`);
@@ -225,11 +229,53 @@ export function renderPopup(p, pop) {
         <ul>${li("mdi:history", t("Laatst gewijzigd"), relTime(s.last_changed))}${s.attributes.changed_by ? li("mdi:account-outline", t("Door"), s.attributes.changed_by) : nothing}</ul>`);
     }
     case "vacuum": {
-      const s = hass.states[pop.e.id], batt = num(s.attributes.battery_level), cleaning = s.state === "cleaning";
-      const call = svc => p.call("vacuum", svc, { entity_id: pop.e.id });
-      return wrap(roomName, label(p, pop.e), { cleaning: t("Aan het stofzuigen"), docked: t("In het dock"), idle: t("Klaar"), paused: t("Gepauzeerd"), returning: t("Keert terug"), error: t("Fout") }[s.state] || s.state, html`
+      const s = hass.states[pop.e.id], x = siblings(hass, pop.e.id), call = (svc, extra = {}) => p.call("vacuum", svc, { entity_id: pop.e.id, ...extra });
+      const batt = num(s.attributes.battery_level) ?? num(x.s("battery")?.state), cleaning = s.state === "cleaning", busy = BUSY.includes(s.state), docked = ["docked", "idle"].includes(s.state), err = s.state === "error";
+      const area = num(x.s("cleaning_area")?.state), mins = num(x.s("cleaning_time")?.state), task = vacTask(x), room = task && task.on ? task.lbl : x.s("active_cleaning_target")?.state;
+      // rooms: from the vacuum entity, else from the options of the robot's "clean room" select ("Name (ID: 3)")
+      const fromAttr = (s.attributes.rooms || s.attributes.segments || []).filter(z => z && z.id != null);
+      const rooms = fromAttr.length ? fromAttr : (x.sel("clean_room")?.attributes?.options || []).map(v => /^(.*) \(ID: (\d+)\)$/.exec(v)).filter(Boolean).map(m => ({ id: +m[2], name: m[1] }));
+      const activeIds = (s.attributes.active_room_ids || []).map(String), cam = x.cam(), parts = maintenance(x);
+      const scene = x.sel("scene_task"), scenes = scene && !unavailable(scene) ? (scene.attributes.options || []).filter(v => v !== "None") : [];
+      const pick = (z, v) => p.call("select", "select_option", { entity_id: z.entity_id, option: v });
+      const ok = z => z && !unavailable(z), gMode = x.sel("cleaning_mode"), gFan = x.sel("suction_level"), gWater = x.sel("water_level"), gInt = x.sel("cleaning_intensity");
+      // the choices made in this popup stay local (pop.vc); they only reach the robot with a room button
+      const vc = { mode: ok(gMode) ? gMode.state : null, fan: ok(gFan) ? gFan.state : null, water: ok(gWater) ? gWater.state : null, int: ok(gInt) ? gInt.state : null, ...(pop.vc || {}) };
+      if (ok(gMode) && vc.mode && !(gMode.attributes.options || []).includes(vc.mode)) vc.mode = gMode.state;   // a mode this robot no longer offers
+      const setVc = (k, v) => p.openPopup({ ...pop, vc: { ...vc, [k]: v } });
+      const ncls = n => n === 2 ? "n2" : n === 3 ? "n3" : "";
+      const choice = (k, z, lb) => {
+        if (!ok(z)) return nothing;
+        const op = z.attributes.options || [];
+        return html`<div class="vs">${lb}</div>${modes(op.map(v => ({ label: VAC_LABELS[v] || v, on: vc[k] === v, go: () => setVc(k, v) })), ncls(op.length))}`;
+      };
+      const sweeps = vc.mode !== "Mop", mops = !!vc.mode && vc.mode !== "Vacuum";
+      const clean = ids => call("send_command", { command: "room_clean", params: { rooms: ids.map(id => {
+        const z = { id: Number(id) };
+        if (vc.mode) z.clean_mode = vc.mode; if (sweeps && vc.fan) z.fan_speed = vc.fan; if (mops && vc.water) z.water_level = vc.water; if (vc.int) z.clean_intensity = vc.int;
+        return z;
+      }) } });
+      const toggle = (k, ic, lb) => { const z = x.sw(k); return ok(z) ? li(ic, lb, z.state === "on" ? t("Aan") : t("Uit"), { on: z.state === "on", onclick: () => p.call("switch", "toggle", { entity_id: z.entity_id }) }) : nothing; };
+      const press = (k, ic, lb) => { const z = x.b(k); return ok(z) ? li(ic, lb, "", { onclick: () => p.call("button", "press", { entity_id: z.entity_id }) }) : nothing; };
+      const sel = (z, ic, lb) => ok(z) ? li(ic, lb, VAC_LABELS[z.state] || z.state, { onclick: () => p.moreInfo(z.entity_id) }) : nothing;
+      const em = x.s("error_message")?.state;
+      const sub = err && em ? em : busy ? [room && room !== "None" ? room : "", area != null ? area + " m²" : "", mins != null ? Math.round(mins) + " min" : ""].filter(Boolean).join(" · ") : batt != null ? t("Batterij {n}%", { n: batt }) : "";
+      return wrap(roomName, label(p, pop.e), vacStatus(s) + (sub ? " · " + sub : ""), html`
         ${modes([{ label: cleaning ? t("Pauze") : t("Start"), on: cleaning, go: () => call(cleaning ? "pause" : "start") }, { label: t("Stop"), go: () => call("stop") }, { label: t("Dock"), go: () => call("return_to_base") }, { label: t("Zoek"), go: () => call("locate") }])}
-        <ul>${batt != null ? li(batt < 20 ? "mdi:battery-20" : "mdi:battery", t("Batterij"), `${batt}%`) : nothing}${s.attributes.fan_speed ? li("mdi:fan", t("Zuigkracht"), s.attributes.fan_speed) : nothing}${li("mdi:history", t("Laatst gewijzigd"), relTime(s.last_changed))}</ul>`);
+        ${task ? html`<div class="vh">${task.on ? t("Huidige taak") : t("Laatste taak")}</div><ul>${li(task.a.kind === "scene" ? "mdi:play-circle-outline" : "mdi:floor-plan", task.lbl, "", { on: task.on, sub: task.md || (task.a.params_from === "robot" ? t("instellingen uit de app") : ""), onclick: () => p.moreInfo(task.z.entity_id) })}${li("mdi:account-arrow-right-outline", t("Gestart via"), task.src || "–", { sub: task.a.started ? relTime(task.a.started) : "" })}</ul>` : nothing}
+        ${rooms.length ? html`<div class="vh">${t("Schoonmaken")}</div>
+        ${choice("mode", gMode, t("Modus"))}${sweeps ? choice("fan", gFan, t("Zuigkracht")) : nothing}${mops ? choice("water", gWater, t("Water")) : nothing}${choice("int", gInt, t("Intensiteit"))}
+        <div class="vs">${t("Waar")}</div>${modes([...rooms.map(z => ({ label: z.name || t("Kamer {n}", { n: z.id }), on: busy && activeIds.includes(String(z.id)), go: () => clean([z.id]) })), { label: t("Hele huis"), on: busy && rooms.length > 1 && rooms.every(z => activeIds.includes(String(z.id))), go: () => clean(rooms.map(z => z.id)) }], ncls(rooms.length + 1))}` : nothing}
+        ${scenes.length ? html`<div class="vh">${t("Taken uit de app")}</div><div class="vs">${t("Gebruiken hun eigen instellingen uit de Eufy-app")}</div>${modes(scenes.map(v => ({ label: v.replace(/\s*\(ID:.*\)$/, ""), go: () => pick(scene, v) })), ncls(scenes.length))}` : nothing}
+        ${cam && cam.attributes.entity_picture ? html`<div class="mart vmap" style=${`background-image:url("${cam.attributes.entity_picture}")`} @click=${() => p.moreInfo(cam.entity_id)}></div>` : nothing}
+        ${docked ? html`<div class="vh">${t("Dock")}</div><ul>${press("empty_dust_bin", "mdi:delete-empty", t("Stofbak legen"))}${press("wash_mop", "mdi:water-sync", t("Dweil wassen"))}${press("dry_mop", "mdi:hair-dryer", t("Dweil drogen"))}${ok(x.s("dock_status")) ? li("mdi:home-variant-outline", t("Dock status"), x.s("dock_status").state) : nothing}</ul>` : nothing}
+        ${parts.length ? html`<div class="vh">${t("Onderhoud")}</div><ul>${parts.map(m => li(m.ic, m.lb, m.v != null ? Math.round(m.v) + " u" : "–", { sub: m.v != null && m.v <= 0 ? t("Over tijd · tik om te resetten") : m.v != null && m.v < 10 ? t("Bijna op · tik om te resetten") : "", on: m.v != null && m.v <= 0, onclick: m.btn ? () => { if (confirm(t("{x} resetten na vervangen of schoonmaken?", { x: m.lb }))) p.call("button", "press", { entity_id: m.btn.entity_id }); } : null }))}</ul>` : nothing}
+        <div class="vh">${t("Laatste schoonmaak en totaal")}</div>
+        <ul>${area != null ? li("mdi:texture-box", t("Laatste schoonmaak"), `${area} m² · ${Math.round(mins ?? 0)} min`) : nothing}${ok(x.s("total_cleaning_count")) ? li("mdi:counter", t("Totaal"), `${x.s("total_cleaning_count").state}× · ${x.s("total_cleaning_area")?.state ?? "?"} m² · ${Math.round(num(x.s("total_cleaning_time")?.state) ?? 0)} u`) : nothing}${li("mdi:history", t("Laatst gewijzigd"), relTime(s.last_changed))}</ul>
+        <div class="vh">${t("Standaard van de robot")}</div><div class="vs">${t("Voor Start en de app · wijzigt direct op de robot")}</div>
+        <ul>${sel(gMode, "mdi:spray-bottle", t("Modus"))}${sel(gFan, "mdi:fan", t("Zuigkracht"))}${sel(gWater, "mdi:water", t("Water"))}${sel(gInt, "mdi:tune-vertical", t("Intensiteit"))}</ul>
+        <div class="vh">${t("Instellingen")}</div>
+        <ul>${toggle("auto_empty", "mdi:delete-restore", t("Automatisch legen"))}${toggle("auto_wash", "mdi:water-sync", t("Automatisch wassen"))}${sel(x.sel("dry_duration"), "mdi:hair-dryer", t("Droogtijd"))}${toggle("do_not_disturb", "mdi:sleep", t("Niet storen"))}${toggle("child_lock", "mdi:lock-outline", t("Kinderslot"))}</ul>`);
     }
     case "humidifier": {
       const s = hass.states[pop.e.id], on = isOn(s), target = num(s.attributes.humidity), cur = num(s.attributes.current_humidity), ms = s.attributes.available_modes || [];
@@ -261,7 +307,7 @@ export function renderPopup(p, pop) {
         <ul>${li("mdi:history", t("Laatst bewogen"), relTime(s.last_changed))}</ul>`);
     }
     case "climate": {
-      const s = hass.states[pop.s.entity_id], target = num(s.attributes.temperature), cur = num(s.attributes.current_temperature), step = s.attributes.target_temp_step || 0.5;
+      const s = hass.states[pop.s.entity_id], target = setpoint(s), cur = num(s.attributes.current_temperature), step = s.attributes.target_temp_step || 0.5;
       const call = (svc, data = {}) => p.call("climate", svc, { entity_id: s.entity_id, ...data });
       const hv = s.attributes.hvac_modes || [], pr = s.attributes.preset_modes || [];
       const lbl = { heat: t("Verwarmen"), cool: t("Koelen"), auto: t("Auto"), heat_cool: t("Auto"), off: t("Uit"), dry: t("Drogen"), fan_only: t("Ventileren") };
@@ -296,11 +342,11 @@ export function renderPopup(p, pop) {
         const fmt = e => { const s = e && hass.states[e.id]; if (!s || unavailable(s)) return null; const v = hass.formatEntityState?.(s) ?? s.state;
           return v === s.state && /_program_/.test(v) ? v.split("_program_").pop().replace(/_/g, " ").replace(/^\w/, c => c.toUpperCase()) : v; };   // untranslated "dishcare_dishwasher_program_auto_2" → "Auto 2"
         const prog = fmt(a.program), door = a.door ? hass.states[a.door.id]?.state : null, canStop = a.stop && ["running", "waiting"].includes(st.st) && hass.states[a.stop.id] && hass.states[a.stop.id].state !== "unavailable";   // a button's normal state is "unknown"
-        const btns = [...(sw ? [{ label: sw.state === "on" ? t("Uitzetten") : t("Aanzetten"), on: sw.state === "on", go: () => p.call("switch", "toggle", { entity_id: a.switch.id }) }] : []), ...(canStop ? [{ label: t("Programma stoppen"), go: () => p.call("button", "press", { entity_id: a.stop.id }) }] : [])];
+        const btns = [...(sw && !noRemote(hass, a) ? [{ label: sw.state === "on" ? t("Uitzetten") : t("Aanzetten"), on: sw.state === "on", go: () => p.call("switch", "toggle", { entity_id: a.switch.id }) }] : []), ...(canStop ? [{ label: t("Programma stoppen"), go: () => p.call("button", "press", { entity_id: a.stop.id }) }] : [])];
         return wrap(roomName, title, st.label, html`
           ${btns.length ? modes(btns, "n2") : nothing}
           ${st.progress != null && ["running", "waiting"].includes(st.st) ? html`<div class="pbar" style="margin-top:14px;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden"><i style="display:block;height:100%;width:${Math.max(0, Math.min(100, st.progress))}%;background:#fff"></i></div>` : nothing}
-          <ul>${prog ? li("mdi:playlist-play", t("Programma"), prog, { onclick: () => p.moreInfo(a.program.id) }) : nothing}${st.progress != null && st.st !== "off" ? li("mdi:progress-clock", t("Voortgang"), `${Math.round(st.progress)}%`, { onclick: () => p.moreInfo(a.progress.id) }) : nothing}${st.end ? li("mdi:clock-end", t("Klaar om"), st.end.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }), { sub: left(st.end), onclick: () => p.moreInfo(a.finish.id) }) : nothing}${st.doneAt ? li("mdi:check", t("Klaar sinds"), relTime(st.doneAt.toISOString())) : nothing}${door ? li("mdi:door", t("Deur"), door === "open" ? t("Open") : door === "locked" ? t("Vergrendeld") : t("Dicht"), { on: door === "open", onclick: () => p.moreInfo(a.door.id) }) : nothing}${(a.extra || []).map(x => { const s = hass.states[x.id]; return li("mdi:toggle-switch-outline", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.call("switch", "toggle", { entity_id: x.id }) }); })}${(a.flags || []).map(x => { const s = hass.states[x.id]; return li("mdi:information-variant", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, unavailable(s) ? "–" : isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.moreInfo(x.id) }); })}${li("mdi:information-outline", t("Status"), fmt(a.op) || "–", { sub: relTime(hass.states[a.op.id]?.last_changed), onclick: () => p.moreInfo(a.op.id) })}</ul>`);
+          <ul>${prog ? li("mdi:playlist-play", t("Programma"), prog, { onclick: () => p.moreInfo(a.program.id) }) : nothing}${st.job && st.st !== "off" ? li("mdi:progress-wrench", t("Fase"), st.job, { onclick: () => p.moreInfo(a.job.id) }) : nothing}${st.progress != null && st.st !== "off" ? li("mdi:progress-clock", t("Voortgang"), `${Math.round(st.progress)}%`, { onclick: () => p.moreInfo(a.progress.id) }) : nothing}${st.end ? li("mdi:clock-end", t("Klaar om"), st.end.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }), { sub: left(st.end), onclick: () => p.moreInfo(a.finish.id) }) : nothing}${st.doneAt ? li("mdi:check", t("Klaar sinds"), relTime(st.doneAt.toISOString())) : nothing}${door ? li("mdi:door", t("Deur"), door === "open" ? t("Open") : door === "locked" ? t("Vergrendeld") : t("Dicht"), { on: door === "open", onclick: () => p.moreInfo(a.door.id) }) : nothing}${(a.extra || []).map(x => { const s = hass.states[x.id]; return li("mdi:toggle-switch-outline", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.call("switch", "toggle", { entity_id: x.id }) }); })}${(a.flags || []).map(x => { const s = hass.states[x.id]; return li("mdi:information-variant", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, unavailable(s) ? "–" : isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.moreInfo(x.id) }); })}${(mo => mo ? li("mdi:calendar-month", t("Deze maand"), mo.kw || t("{n} beurten", { n: mo.cy }), { sub: [mo.kw && mo.cy != null ? t("{n} beurten", { n: mo.cy }) : "", mo.eu].filter(Boolean).join(" · "), onclick: () => p.moreInfo(mo.cId) }) : nothing)(applianceMonth(hass, a))}${li("mdi:information-outline", t("Status"), fmt(a.op) || "–", { sub: relTime(hass.states[a.op.id]?.last_changed), onclick: () => p.moreInfo(a.op.id) })}</ul>`);
       }
       const ps = hass.states[a.power.id];
       return wrap(roomName, cfg.name || (hass.devices?.[a.device]?.name_by_user || hass.devices?.[a.device]?.name || t("Apparaat")), st.label, html`
@@ -378,6 +424,7 @@ export function renderPopup(p, pop) {
         <div class="form">
           <label class="f"><span>${t("Titel")}</span><input type="text" .value=${d.title || ""} placeholder=${isHome ? (p.config.home?.greeting || t("automatisch (Goedemorgen …)")) : (p.hass.areas?.[key]?.name || r.name)} @change=${e => upd({ title: e.target.value || undefined })}></label>
           <label class="f"><span>${t("Foto")}<small>${t("pad of URL")}</small></span><input type="text" .value=${d.image || ""} placeholder=${defImage} @change=${e => upd({ image: e.target.value || undefined })}></label>
+          ${key === "home" ? nothing : html`<label class="f"><span>${t("Kaartindeling")}<small>${t("standaard één rij; op tablets en brede schermen")}</small></span><div class="seg"><button class=${(d.rows || 1) === 1 ? "on" : ""} @click=${() => upd({ rows: undefined })}>${t("Eén rij")}</button><button class=${d.rows === 2 ? "on" : ""} @click=${() => upd({ rows: 2 })}>${t("Twee rijen")}</button></div></label>`}
         </div>
         <div class="prow" style="margin-top:18px"><span>${t("Kaarten")}</span><b>${t("{a} van {b} zichtbaar", { a: all.length - hid.size, b: all.length })}</b></div>
         <ul class="plist">${all.map((c, i) => html`<li class=${hid.has(c.key) ? "off" : ""}><ha-icon icon=${hid.has(c.key) ? "mdi:eye-off-outline" : "mdi:eye-outline"}></ha-icon><div>${c.label}<small>${c.key.includes(".") || c.key.startsWith("device:") ? c.key : ""}</small></div>
@@ -389,7 +436,7 @@ export function renderPopup(p, pop) {
         <div class="form lines">${(d.lines || []).map((l, i) => html`<div class="lrow"><input type="text" .value=${l.icon || ""} placeholder="mdi:text" @change=${e => upd({ lines: d.lines.map((x, j) => j === i ? { ...x, icon: e.target.value || undefined } : x) })}><input type="text" .value=${l.text || ""} placeholder=${t("template, bv. {{ states('sensor.x') }} °C")} @change=${e => upd({ lines: d.lines.map((x, j) => j === i ? { ...x, text: e.target.value } : x) })}><button @click=${() => upd({ lines: d.lines.filter((_, j) => j !== i) })}>×</button></div>`)}
           <button class="addline" @click=${() => upd({ lines: [...(d.lines || []), { icon: "mdi:text", text: "" }] })}>${t("+ eigen regel")}</button></div>
         <div class="modes n3" style="margin-top:18px">
-          <button class="on" @click=${() => p.savePage(key, { title: d.title, image: d.image, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined })}>${t("Opslaan")}</button>
+          <button class="on" @click=${() => p.savePage(key, { title: d.title, image: d.image, rows: key !== "home" && d.rows === 2 ? 2 : undefined, lines: (d.lines || []).filter(l => l.text).length ? d.lines.filter(l => l.text) : undefined, hidden: d.hidden.length ? d.hidden : undefined, order: d.order.length ? d.order : undefined, ticker: Object.values(d.ticker).some(v => v === false) ? Object.fromEntries(Object.entries(d.ticker).filter(([, v]) => v === false)) : undefined })}>${t("Opslaan")}</button>
           <button @click=${() => p.savePage(key, null)}>${t("Herstel")}</button>
           <button data-close>${t("Annuleren")}</button></div></div>`;
     }

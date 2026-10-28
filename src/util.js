@@ -62,3 +62,13 @@ export function navigate(path) {
 // buttons, scenes and events are "unknown" until first used: only a real "unavailable" counts as offline for them
 const STATELESS = ["button", "input_button", "scene", "event", "notify"];
 export const isDown = e => STATELESS.includes(domain(e.id)) ? e.state?.state === "unavailable" : unavailable(e.state);
+
+/** a thermostat target set from the panel shows at once and for ten seconds, until the device reports it (it is slow to) */
+const SETPOINTS = {};
+export const setpoint = s => {
+  const v = num(s.attributes.temperature), p = SETPOINTS[s.entity_id];
+  if (p) { if (Date.now() - p.t < 1e4 && p.v !== v) return p.v; delete SETPOINTS[s.entity_id]; }
+  return v;
+};
+export const markSetpoint = (id, v) => { SETPOINTS[id] = { v: +v, t: Date.now() }; };
+export const clearSetpoint = id => { delete SETPOINTS[id]; };

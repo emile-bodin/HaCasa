@@ -2,7 +2,9 @@
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { num, relTime, clock } from "./util.js";
-import { condText, condIcon } from "./cards.js";
+import { condText, condIcon, cardCfg, isHidden, applianceIcon } from "./cards.js";
+import { applianceState, applianceEnd } from "./extras2.js";
+import { deviceName } from "./model.js";
 
 /* ---------- persistent notifications (live subscription) ---------- */
 export function subscribeNotifications(hass, cb) {
@@ -45,11 +47,17 @@ export function keypad(p, pop) {
 export function idleScreen(p) {
   const w = p.home?.weather, h = p.home;
   const date = new Date().toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" });
-  return html`<div class="idle" @pointerdown=${() => p.wake()}>
+  // the content drifts a little each minute (screen burn-in) and is dimmer between 23:00 and 06:00
+  const min = Math.floor(Date.now() / 60000), rnd = k => { const v = Math.sin(min * 12.9898 + k * 78.233) * 43758.5453; return (v - Math.floor(v)) * 2 - 1; }, hr = new Date().getHours(), night = hr >= 23 || hr < 6;
+  return html`<div class="idle" style=${`--ix:${(rnd(1) * 8).toFixed(2)}vw;--iy:${(rnd(2) * 10).toFixed(2)}vh;--io:${night ? 0.35 : 1}`} @pointerdown=${() => p.wake(true)}>
     <div class="iclock">${clock()}</div>
     <div class="idate">${date}</div>
     ${w ? html`<div class="iwx"><ha-icon icon=${condIcon(w.state)}></ha-icon>${Math.round(num(w.attributes.temperature) ?? 0)}° · ${condText(w.state)}</div>` : nothing}
     <div class="iline">${[h?.temp != null ? t("{t}° binnen", { t: h.temp.toFixed(1) }) : "", h?.lightsOn?.length ? t("{n} lampen aan", { n: h.lightsOn.length }) : "", h?.doorsOpen?.length ? t("{n} deur open", { n: h.doorsOpen.length }) : "", h?.attention?.length ? t("{n} meldingen", { n: h.attention.length }) : ""].filter(Boolean).join(" · ")}</div>
+    ${p.rooms.flatMap(r => r.ents.appliances).filter(a => !a.plain && !isHidden(p, a.id) && /^mdi:(washing-machine|tumble-dryer)$/.test(applianceIcon(cardCfg(p, a.id).name || deviceName(p.hass, a.device)))).map(a => {
+      const c = cardCfg(p, a.id), st = applianceState(p.hass, a, c.threshold ?? 5), name = c.name || deviceName(p.hass, a.device);
+      return ["running", "waiting"].includes(st.st) ? { icon: c.icon || applianceIcon(name), name, label: st.label, left: applianceEnd(st) } : null;
+    }).filter(Boolean).map(x => html`<div class="iwx"><ha-icon icon=${x.icon}></ha-icon>${[x.name, x.label, x.left].filter(Boolean).join(" · ")}</div>`)}
   </div>`;
 }
 
@@ -66,7 +74,8 @@ export const extraStyles = `
   .kgrid button{height:56px;border:1px solid var(--line);border-radius:var(--r-sm);background:rgba(255,255,255,.1);color:#fff;font:inherit;font-size:20px;font-weight:600;cursor:pointer}
   .kgrid button.on{background:rgba(255,255,255,.4)}
   .klink{display:block;margin:12px auto 0;border:0;background:transparent;color:#fff;opacity:.7;font:inherit;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
-  .idle{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;animation:fadeIn 1.2s ease-out both;user-select:none}
+  .idle{position:absolute;inset:0;z-index:60;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;animation:fadeIn 1.2s ease-out both;user-select:none}
+  .idle>*{transform:translate(var(--ix,0),var(--iy,0));filter:brightness(var(--io,1));transition:transform 2s ease-in-out,filter 2s ease-in-out}
   .iclock{font-size:clamp(72px,16vw,160px);font-weight:700;letter-spacing:-4px;line-height:1;opacity:.9}
   .idate{font-size:18px;font-weight:500;opacity:.7;text-transform:capitalize}
   .iwx{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;letter-spacing:1px;text-transform:uppercase;opacity:.8;margin-top:14px}

@@ -2,12 +2,13 @@
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { icon, isOn, unavailable, num, relTime, shortDate, sinceText, domain } from "./util.js";
+import { icon, isOn, unavailable, num, relTime, shortDate, sinceText, domain, setpoint } from "./util.js";
 import { name, deviceName } from "./model.js";
-import { applianceState, applianceEnd, eventWhen, nextEvent } from "./extras2.js";
+import { applianceState, applianceEnd, applianceMonth, noRemote, eventWhen, nextEvent } from "./extras2.js";
 import { spark } from "./extras3.js";
 import { graphCard, stepGraph } from "./graph.js";
 import "./camsnap.js";
+import { siblings, maintenance, vacTask, vacStatus, BUSY } from "./vacuum.js";
 
 const HOLD_MS = 500;
 
@@ -40,7 +41,7 @@ export const bind = (el, handlers) => { for (const [k, fn] of Object.entries(han
 /* MDI names used in the code -> our own thin-line icon (dist/icons, dev/make-icons.mjs), so every card icon has one style.
    Anything not listed (or an icon the user picked) still renders as MDI. */
 const OWN = {
-  "mdi:thermometer": "thermometer", "mdi:water-outline": "water", "mdi:water-percent": "water", "mdi:water-alert-outline": "leak", "mdi:motion-sensor": "motion",
+  "mdi:cat": "litter_box", "mdi:thermometer": "thermometer", "mdi:water-outline": "water", "mdi:water-percent": "water", "mdi:water-alert-outline": "leak", "mdi:motion-sensor": "motion",
   "mdi:dishwasher": "dishwasher", "mdi:washing-machine": "washing_machine", "mdi:tumble-dryer": "dryer", "mdi:stove": "oven", "mdi:microwave": "microwave",
   "mdi:coffee-maker": "coffee", "mdi:water-boiler": "boiler", "mdi:power-plug-outline": "plug", "mdi:power-socket-eu": "plug", "mdi:television-play": "tv",
   "mdi:television-classic": "tv", "mdi:palette-outline": "sparkles", "mdi:checkbox-blank-circle-outline": "sensor", "mdi:smoke-detector-outline": "smoke",
@@ -200,7 +201,7 @@ const APPS = [
   [/spotify/i, "Spotify", "#1db954", "mdi:spotify"], [/disney/i, "Disney+", "#113ccf", "mdi:movie-star-outline"], [/amazonvideo|prime ?video|com\.amazon\.avod/i, "Prime Video", "#00a8e1", "mdi:filmstrip"],
   [/videoland/i, "Videoland", "#e3001b", "mdi:filmstrip"], [/npo/i, "NPO Start", "#ff6d00", "mdi:television-classic"], [/hbo|com\.wbd\.stream|^max$/i, "Max", "#002be7", "mdi:filmstrip"],
   [/skyshowtime/i, "SkyShowtime", "#5d2ec6", "mdi:filmstrip"], [/kodi/i, "Kodi", "#17b2e7", "mdi:kodi"], [/twitch/i, "Twitch", "#9146ff", "mdi:twitch"],
-  [/com\.apple\.tv|^tv$|apple ?tv/i, "Apple TV", "#555555", "mdi:apple"], [/ziggo/i, "Ziggo GO", "#f48c00", "mdi:television-classic"], [/kpn/i, "KPN TV", "#00c300", "mdi:television-classic"],
+  [/com\.apple\.tv|apple ?tv/i, "Apple TV", "#555555", "mdi:apple"], [/ziggo/i, "Ziggo GO", "#f48c00", "mdi:television-classic"], [/kpn/i, "KPN TV", "#00c300", "mdi:television-classic"],
 ];
 const LAUNCHER = /launcher|leanback|com\.google\.android\.tvlauncher|^home$|^startscherm$/i;
 export function appInfo(raw) {
@@ -286,7 +287,7 @@ const climateFoot = (p, s, target, mode) => {
 export function climateCard(p, s, title = t("Verwarming")) {
   if (!s) return nothing;
   title = cardCfg(p, s.entity_id).name || title;
-  const un = unavailable(s), target = num(s.attributes.temperature), cur = num(s.attributes.current_temperature);
+  const un = unavailable(s), target = setpoint(s), cur = num(s.attributes.current_temperature);
   const on = s.state !== "off" && !un, step = s.attributes.target_temp_step || 0.5;
   const set = (d) => ev => { ev.stopPropagation(); if (target != null) p.call("climate", "set_temperature", { entity_id: s.entity_id, temperature: +(target + d).toFixed(1) }); };
   const cfg = cardCfg(p, s.entity_id);
@@ -361,14 +362,20 @@ export function lockCard(p, e) {
   </div>`;
 }
 export function vacuumCard(p, e) {
-  const s = e.state, un = unavailable(s), cleaning = s?.state === "cleaning", batt = num(s?.attributes?.battery_level);
-  const st = { cleaning: t("Aan het stofzuigen"), docked: t("In het dock"), idle: t("Klaar"), paused: t("Gepauzeerd"), returning: t("Keert terug"), error: t("Fout") }[s?.state] || s?.state;
+  const s = e.state, un = unavailable(s), st = s?.state, cleaning = st === "cleaning", x = siblings(p.hass, e.id);
+  const batt = num(s?.attributes?.battery_level) ?? num(x.s("battery")?.state);       // the vacuum entity has no battery_level; the robot's battery sensor does
+  const busy = BUSY.includes(st), err = st === "error", area = num(x.s("cleaning_area")?.state), mins = num(x.s("cleaning_time")?.state), task = vacTask(x);
+  const room = task && task.on ? task.lbl : x.s("active_cleaning_target")?.state, due = maintenance(x).some(m => m.v != null && m.v <= 0);
+  const status = vacStatus(s) + (busy && room && room !== "None" ? " · " + room : "");
+  const foot = err ? x.s("error_message")?.state || "" : busy ? [area != null ? area + " m²" : "", mins != null ? Math.round(mins) + " min" : ""].filter(Boolean).join(" · ") : area != null ? t("laatst {a} m²", { a: area }) : "";
+  const bi = batt == null ? null : st === "docked" && x.s("battery") && batt < 100 ? "mdi:battery-charging" : batt >= 95 ? "mdi:battery" : batt < 10 ? "mdi:battery-outline" : "mdi:battery-" + Math.floor(batt / 10) * 10;
   const act = svc => ev => { ev.stopPropagation(); p.call("vacuum", svc, { entity_id: e.id }); };
-  return html`<div class=${classMap({ card: true, actions: true, on: cleaning, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "vacuum", e }) })}>
+  return html`<div class=${classMap({ card: true, actions: true, on: cleaning, unavailable: un, verr: err })} ${pressDir(p, { tap: () => p.openPopup({ type: "vacuum", e }) })}>
     ${un ? ua() : nothing}
-    <div class="n">${label(p, e)}</div>
-    <div class="s">${un ? t("Onbereikbaar") : st}</div>
-    <div class="lbl">${batt != null ? t("Batterij {n}%", { n: batt }) : ""}</div>
+    <div class="i">${icoFor(p, e.id, err ? "mdi:robot-vacuum-alert" : st === "docked" ? "mdi:robot-vacuum-variant" : "mdi:robot-vacuum", null)}</div>
+    <div class="n">${label(p, e)}${due && !un ? html`<i class="vdot" title=${t("Onderhoud nodig")}></i>` : nothing}</div>
+    <div class="s">${un ? t("Onbereikbaar") : status}</div>
+    <div class="lbl">${!err && bi ? html`<span class="vbat"><ha-icon icon=${bi}></ha-icon>${batt}%</span>` : nothing}${foot ? html`<span>${foot}</span>` : nothing}</div>
     <div class="ctl">
       <button @click=${act(cleaning ? "pause" : "start")} title=${cleaning ? t("Pauze") : t("Start")}><ha-icon icon=${cleaning ? "mdi:pause" : "mdi:play"}></ha-icon></button>
       <button @click=${act("return_to_base")} title=${t("Naar dock")}><ha-icon icon="mdi:home-import-outline"></ha-icon></button>
@@ -427,10 +434,10 @@ export function applianceCard(p, a) {
   const opS = a.op ? p.hass.states[a.op.id] : null, prog = a.program ? p.hass.states[a.program.id] : null;
   const line = a.op ? applianceEnd(st) || (opS ? sinceText(opS.last_changed) : "") : a.switch ? html`${isOn(a.switch.state) ? t("Stekker aan") : t("Stekker uit")}${dot()}${sinceText(a.switch.state?.last_changed)}` : "";
   const progName = prog && !unavailable(prog) ? String(p.hass.formatEntityState?.(prog) ?? prog.state).split(".").pop().split("_program_").pop().replace(/_/g, " ").replace(/([a-z])([A-Z0-9])/g, "$1 $2") : "";   // Home Connect enums: Dishcare.Dishwasher.Program.Auto2 or dishcare_dishwasher_program_auto_2 -> Auto 2
-  const foot = [progName, st.progress != null ? `${Math.round(st.progress)}%` : "", st.power != null ? `${Math.round(st.power)} W` : "", a.door && p.hass.states[a.door.id]?.state === "open" ? t("Deur open") : ""].filter(Boolean);
+  const foot = [progName, st.progress != null ? `${Math.round(st.progress)}%` : "", st.power > 0 ? `${Math.round(st.power)} W` : "", applianceMonth(p.hass, a)?.txt || "", a.door && p.hass.states[a.door.id]?.state === "open" ? t("Deur open") : ""].filter(Boolean);
   const acts = [];
   if (a.stop && !a.plain && ["running", "waiting"].includes(st.st)) acts.push({ icon: "mdi:stop", label: t("Stop"), run: () => p.call("button", "press", { entity_id: a.stop.id }) });
-  if (a.switch && a.op && !unavailable(a.switch.state)) acts.push({ icon: "mdi:power", label: isOn(a.switch.state) ? t("Uit") : t("Aan"), on: isOn(a.switch.state), run: () => p.call("switch", "toggle", { entity_id: a.switch.id }) });
+  if (a.switch && a.op && !unavailable(a.switch.state) && !noRemote(p.hass, a)) acts.push({ icon: "mdi:power", label: isOn(a.switch.state) ? t("Uit") : t("Aan"), on: isOn(a.switch.state), run: () => p.call("switch", "toggle", { entity_id: a.switch.id }) });
   if (!a.op && a.power) return plugCard(p, a, st, title, cfg, acts);
   return html`<div class=${classMap({ card: true, appl: acts.length > 0, on: APPLIANCE_ACTIVE.includes(st.st), running: st.st === "running", unavailable: st.st === "unknown" })}
       ${pressDir(p, { tap: () => p.openPopup({ type: "appliance", a }), hold: () => p.openPopup({ type: "appliance", a }) })}>
@@ -483,7 +490,41 @@ export function roomCameraCard(p, e) {
 }
 
 /** power strip: one card, one button per socket (tap toggles, hold = details) */
+/* ---------- litter box: a device whose switches are Clean / Empty / Deodorize / … becomes one card with a button per action ---------- */
+const LITTER_ROLES = ["clean", "empty", "smart", "deodorize", "auto", "odourless"];
+const LITTER_INFO = { clean: ["Reinigen", "Reinigen", "mdi:broom"], empty: ["Legen", "Legen", "mdi:delete-empty-outline"], smart: ["Slim reinigen", "Slim", "mdi:auto-fix"], deodorize: ["Ontgeuren", "Ontgeur", "mdi:spray"], auto: ["Auto-ontgeuren", "Auto", "mdi:spray-bottle"], odourless: ["Geurloos", "Geurloos", "mdi:leaf"] };
+const litterRole = s => {
+  const k = (s.id + " " + (s.state?.attributes?.friendly_name || s.reg?.name || "")).toLowerCase();
+  return /smart/.test(k) ? "smart" : /auto/.test(k) ? "auto" : /odou?rless|geurloos/.test(k) ? "odourless" : /empty|leeg/.test(k) ? "empty" : /deodor|deordr|ontgeur/.test(k) ? "deodorize" : /clean|reinig/.test(k) ? "clean" : null;
+};
+/** null unless this power strip is a litter box (named like one, or with clean + empty + deodorize switches) */
+export function litterBox(p, st) {
+  const hass = p.hass, d = hass.devices?.[st.device], nm = d?.name_by_user || d?.name || "", roles = st.switches.map(s => ({ s, r: litterRole(s) })), has = k => roles.some(x => x.r === k);
+  if (!(/kattenbak|litter|kattenbox|cat ?box/i.test(nm) || has("clean") && has("empty") && (has("deodorize") || has("odourless")))) return null;
+  const items = roles.map(x => {
+    const c = cardCfg(p, x.s.id), m = LITTER_INFO[x.r] || [label(p, x.s), label(p, x.s), "mdi:power-socket-eu"];
+    return { s: x.s, r: x.r, name: c.name || t(m[0]), short: c.name || t(m[1]), icon: c.icon || m[2] };
+  }).sort((a, b) => { const i = LITTER_ROLES.indexOf(a.r), j = LITTER_ROLES.indexOf(b.r); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j); });
+  const sens = Object.entries(hass.entities || {}).filter(([k, v]) => v.device_id === st.device && k.startsWith("sensor.")).map(([k]) => hass.states[k]).filter(Boolean);
+  const find = re => sens.find(z => re.test(z.entity_id) || re.test(z.attributes?.device_class || "")), wz = find(/weight|gewicht/), fz = find(/full/), lz = find(/lifetime/);
+  const v = wz && !unavailable(wz) ? num(wz.state) : null, kg = v == null ? null : wz.attributes.unit_of_measurement === "kg" ? v : v >= 100 ? v / 1000 : v;   // grams or kilograms
+  const full = !!fz && /^(true|on|1)$/i.test(String(fz.state)), running = k => items.some(x => x.r === k && isOn(x.s.state)), busy = running("clean") ? t("Reinigt…") : running("empty") ? t("Leegt…") : null;
+  return { items, title: nm ? nm.charAt(0).toUpperCase() + nm.slice(1) : t("Kattenbak"), status: busy || (full ? t("Afvalbak vol") : kg != null ? `${fmtVal(kg)} kg` : t("Klaar")), busy: !!busy, full, kg, wz, fz, lz };
+}
+function litterCard(p, st, K) {
+  const un = st.switches.every(e => unavailable(e.state)), c = cardCfg(p, st.id);
+  return html`<div class=${classMap({ card: true, pstrip: true, on: K.busy, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
+    ${un ? ua() : nothing}
+    <div class="i">${c.icon ? ico(c.icon) : ico("mdi:cat", "litter_box")}</div>
+    <div class="n">${c.name || K.title}</div>
+    <div class="s">${un ? t("Onbereikbaar") : K.status}</div>
+    <div class="socks">${K.items.slice(0, 4).map(x => html`<button class=${classMap({ on: isOn(x.s.state), unavailable: unavailable(x.s.state) })} title=${x.name}
+        ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: x.s.id }), hold: () => p.openPopup({ type: "switch", e: x.s }) })}>
+        <ha-icon icon=${x.icon}></ha-icon><small>${x.short}</small></button>`)}</div>
+  </div>`;
+}
 export function stripCard(p, st) {
+  const lit = litterBox(p, st); if (lit) return litterCard(p, st, lit);
   const on = st.switches.filter(e => isOn(e.state)).length, un = st.switches.every(e => unavailable(e.state));
   const title = cardCfg(p, st.id).name || deviceName(p.hass, st.device);
   return html`<div class=${classMap({ card: true, pstrip: true, on: on > 0, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>

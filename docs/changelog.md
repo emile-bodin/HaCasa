@@ -4,6 +4,8 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+## 1.0.1 · 2026-10-28
+
 - **Repository name:** links, the HACS path (`/hacsfiles/TomTe/tomte.js`, which is case-sensitive) and the update check use the repository's real name, `emile-bodin/TomTe`; the update check no longer compares the release URL case-sensitively.
 
 ## 1.0.0 · 2026-10-28
@@ -35,6 +37,7 @@ The first release of Tomte. It contains everything from HaCasa Nova up to its un
 - **Versions:** this project starts at 1.0.0.
 - **Renamed to Tomte** (the Scandinavian household spirit that watches over the house): the element is `<tomte-panel>`, the card `custom:tomte-card`, the bundle `tomte.js`, the panel `/tomte` (dev: `/tomte-dev`), the icon `tomte:logo` and the settings key `tomte` (dev: `tomte_dev`). Settings saved under the old `hacasa_nova` keys, personal and household, are read automatically while the new keys are empty; the old keys are never written or deleted. A new logo replaces the HaCasa one (`dev/make-logo.mjs`).
 - **Workflow:** `npm run deploy:dev` and `npm run deploy:prod` check (translations, syntax, a jsdom render smoke test), build, back up the bundle they replace and install it with a cache-busting loader; `deploy:prod` only runs from a clean `main` and tags the version; `rollback:dev` and `rollback:prod` restore the previous bundle; `npm run release -- <version>` writes the version and the changelog heading. See *Workflow* in the development guide.
+- **Loader:** `deploy:dev` and `deploy:prod` write a small `loader.js` next to the bundle (`/config/www/tomte/loader.js`, `/config/www/tomte-dev/loader.js`). Home Assistant serves `/local` with a 31-day browser cache, so a plain `module_url` to the bundle keeps showing an old build after a deploy. The loader asks the server for the bundle's ETag (`HEAD`, no cache) and imports the bundle with that as `?v=`, so a new build means a new URL and a browser reload is enough, with no Home Assistant restart. `configuration.yaml` now points `module_url` and `extra_module_url` at the loader. It replaces the original project's `dev/dev-loader.js` (which read `version.json`) and its `deploy-dev` script. HACS installs the bundle itself and has no loader; after an update, reload the browser.
 - **Translations:** English and German for everything above (German falls back to English where it is missing).
 
 ### Carried over from HaCasa Nova (unreleased after 3.0.5)

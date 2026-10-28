@@ -4,44 +4,39 @@
 
 # HaCasa Nova
 
-**The HaCasa reboot.** A room-first Home Assistant panel, built on the [Homio](https://github.com/iamtherufus/Homio) design by [iamtherufus](https://github.com/iamtherufus).
+A room-first Home Assistant panel, based on [HaCasa Nova](https://github.com/damianeickhoff/HaCasa) by Damian Eickhoff and the [Homio](https://github.com/iamtherufus/Homio) design by iamtherufus.
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories/)
 [![Release](https://img.shields.io/github/v/release/emile-bodin/HaCasa?style=flat-square&label=release)](https://github.com/emile-bodin/HaCasa/releases)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.4%2B-18BCF2?style=flat-square)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/github/license/emile-bodin/HaCasa?style=flat-square)](https://github.com/emile-bodin/HaCasa/blob/main/LICENSE)
 
-[Documentation](https://github.com/emile-bodin/HaCasa/tree/main/docs) · [Install](#install) · [Screenshots](#screenshots) · [HaCasa v2 (legacy)](https://github.com/damianeickhoff/HaCasa/tree/legacy)
-
-<a href="https://github.com/emile-bodin/HaCasa/tree/main/docs"><img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/demo/poster-play.webp" alt="HaCasa Nova: watch the 40-second demo" width="100%"></a>
-
-<sub>▶ Click to watch the 40-second demo</sub>
+[Documentation](https://github.com/emile-bodin/HaCasa/tree/main/docs) · [Install](#install) · [Screenshots](#screenshots)
 
 </div>
 
-> 🏠 **This is a standalone, personal project.** It started as a fork of [damianeickhoff/HaCasa](https://github.com/damianeickhoff/HaCasa) (HaCasa Nova) and has since been detached from it: it is maintained for my own household, follows its own versions (from `3.1.0`) and takes no changes from upstream. It is not affiliated with or supported by the original author; for the original panel, go to the [upstream repository](https://github.com/damianeickhoff/HaCasa).
->
-> What differs from HaCasa Nova 3.0.5 (see the [changelog](CHANGELOG.md)):
->
-> - **Settings in two layers:** one set for the whole household (stored in Home Assistant's system data, edited by administrators) and a personal layer that only holds what differs. Everything merges per field.
-> - **More device cards:** a robot vacuum card and popup (rooms, tasks, maintenance, dock), a litter box card, extra appliance details (SmartThings phases, month totals, remaining time) and an optional two-row room layout.
-> - **Small changes** to the idle screen, the attention list and the thermostat setpoint.
->
-> Credit for HaCasa Nova and for the Homio design goes to their authors; the original MIT license and copyright notice are kept (see [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md)).
+> 🏠 **A standalone, personal project.** This began as a fork of [damianeickhoff/HaCasa](https://github.com/damianeickhoff/HaCasa) and has been detached from it. I maintain it for my own household and give it its own versions (from `3.1.0`). It is not affiliated with or supported by the original author: for the original panel, go to [their repository](https://github.com/damianeickhoff/HaCasa). Everything good about the foundation is theirs. See [Thanks](#thanks).
 
-> ⚠️ **HaCasa Nova is a work in progress and needs testing.** This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/emile-bodin/HaCasa/issues/new/choose).
+> ⚠️ **Built for one home.** It is tested in the house it was made for and in the mock home (`dev/index.html`), nowhere else. Expect rough edges, try it next to your current dashboard rather than replacing it, and [open an issue](https://github.com/emile-bodin/HaCasa/issues/new/choose) if something breaks.
 
-## Why a reboot?
+## What it is
 
-HaCasa started as a set of button-card templates: a calm, good-looking dashboard that the whole household could use. It grew to almost 500 stars, and then it stalled, because every new device meant more YAML and every Home Assistant update risked breaking a template.
-
-**HaCasa Nova** keeps the idea and throws out the YAML. It is a single JavaScript file that reads your home straight from Home Assistant:
+HaCasa is a room-first panel for [Home Assistant](https://www.home-assistant.io/). It is a single JavaScript file that reads your home straight from Home Assistant:
 
 - **Your areas become rooms.** Every entity assigned to an area (directly or through its device) shows up on that room's page. Add a lamp in Home Assistant and it appears; no dashboard to edit.
-- **Everything is set up in the panel.** A four-step wizard on first open, then a settings page with tabs. Settings are stored per Home Assistant user, so they follow you to every device and survive updates.
+- **Everything is set up in the panel.** A four-step wizard on first open, then a settings page with tabs. Settings live in two layers: one for the **whole household** (set by an administrator, seen by everyone) and a **personal** layer that only holds what differs for you. They merge per field and survive updates.
 - **No dependencies.** No button-card, card-mod, layout-card or theme required.
 
-The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus: big photo backgrounds, frosted-glass cards, a pill navigation and a lot of breathing room. Nova rebuilds that design as a native panel and adds HaCasa's focus on being friendly for everyone in the house.
+The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus: big photo backgrounds, frosted-glass cards, a pill navigation and a lot of breathing room.
+
+## What this version adds
+
+Compared with HaCasa Nova 3.0.5 (details in the [changelog](CHANGELOG.md)):
+
+- **Household and personal settings**, with a scope picker in the edit bar and the settings header.
+- **A robot vacuum card and popup** (rooms, tasks, maintenance, dock), a **litter box card**, extra **appliance details** (SmartThings phases, month totals, remaining time) and an optional **two-row room layout**.
+- **Smaller changes** to the idle screen (it drifts and dims at night), the attention list (one line per dead device) and the thermostat setpoint (shown at once).
+- **A deploy workflow** with checks, a render smoke test, backups and rollback (see [Development](#development)).
 
 ## Features
 
@@ -55,9 +50,12 @@ The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus
 | **Popups** | Every card opens a detailed popup: brightness, colour and colour temperature, climate modes, media volume, history of the last 24 hours, and a shortcut to Home Assistant's own dialog. |
 | **Per-card settings** | Name, icon, tap and hold behaviour, bottom line, custom action buttons and template overrides per card, plus defaults per card type. |
 | **Extras** | Search, presence pill, alarm keypad, doorbell camera popup, light scene presets per room, guest and vacation modes, idle screen, Dutch, English and German. |
+| **Settings** | Household and personal layers, a setup wizard, export and import, a scope picker in the edit bar. |
 | **Phone and tablet** | Built for wall tablets and phones alike: the strip becomes a two-column grid on phones. |
 
 ## Screenshots
+
+<sub>Taken from HaCasa Nova 3.0.x; the newer cards are not in them yet.</sub>
 
 <table>
   <tr>
@@ -144,7 +142,7 @@ Put a photo per room in `/config/www/images/rooms/`, named after the area: `Livi
 
 That's it. Everything else lives in the panel: **More → Panel settings**.
 
-> 💡 **For the best experience**, make HaCasa Nova your start page and hide Home Assistant's sidebar. Both are one click per user; see [Best experience](https://github.com/emile-bodin/HaCasa/tree/main/docsbest-experience/) in the docs, which also has tips for wall tablets.
+> 💡 **For the best experience**, make HaCasa Nova your start page and hide Home Assistant's sidebar. Both are one click per user; see [Best experience](https://github.com/emile-bodin/HaCasa/blob/main/docs/best-experience.md) in the docs, which also has tips for wall tablets.
 
 ## Documentation
 
@@ -156,35 +154,32 @@ The full guide is at **[the docs folder](https://github.com/emile-bodin/HaCasa/t
 - **Fonts.** The panel uses [Hanken Grotesk](https://fonts.google.com/specimen/Hanken+Grotesk) from Google Fonts. Without internet access it falls back to the system font.
 - **Languages.** English, Dutch and German, following your Home Assistant language. Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/emile-bodin/HaCasa/tree/main/src/lang), see [CONTRIBUTING](https://github.com/emile-bodin/HaCasa/blob/main/CONTRIBUTING.md#translations).
 
-## Community
+## Contributing
 
-- **Bugs and ideas:** [open an issue](https://github.com/emile-bodin/HaCasa/issues/new/choose)
-- **Want to help?** See [CONTRIBUTING.md](https://github.com/emile-bodin/HaCasa/blob/main/CONTRIBUTING.md)
-
-## HaCasa v2 (legacy)
-
-The original button-card based HaCasa is kept on the [`legacy`](https://github.com/damianeickhoff/HaCasa/tree/legacy) branch, with its releases up to v2.1.3. It is no longer maintained.
+Bugs and ideas are welcome as [issues](https://github.com/emile-bodin/HaCasa/issues/new/choose); see [CONTRIBUTING.md](CONTRIBUTING.md) before sending a change. For the original v2 button-card HaCasa, see the [`legacy` branch](https://github.com/damianeickhoff/HaCasa/tree/legacy) of the original repository.
 
 ## Development
 
 ```bash
 npm install
 npm run watch            # rebuilds dist/hacasa-nova.js on every change
-npx http-server .. -p 8097 -c-1
-# open http://localhost:8097/<this folder>/dev/index.html
-npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one
+npm run deploy:dev       # check, build, smoke-test and install as the HaCasa-dev panel
+npm run deploy:prod      # the same from a clean main, installed as the HaCasa panel, and tags the version
+npm run rollback:dev     # (or rollback:prod) put the previous bundle back
 ```
 
-`dev/index.html` runs the panel outside Home Assistant against a mock home (`dev/mock-hass.js`); add `?lang=nl` for Dutch. `dev/card.html?fresh` shows the card wrapper with the first-run wizard. Icons are drawn by `dev/make-icons.mjs` and inlined into the bundle by `build.mjs`. See the [development guide](https://github.com/emile-bodin/HaCasa/tree/main/docsdevelopment/) for more.
+`dev/index.html` runs the panel outside Home Assistant against a mock home (`dev/mock-hass.js`); add `?lang=nl` for Dutch. `dev/smoke.mjs` renders the panel in jsdom and walks the settings layers. Icons are drawn by `dev/make-icons.mjs` and inlined into the bundle by `build.mjs`. The workflow (dev first, then production) is described in the [development guide](https://github.com/emile-bodin/HaCasa/blob/main/docs/development.md).
 
-## Credits
+## Thanks
 
-- **Design:** [Homio](https://github.com/iamtherufus/Homio) by [iamtherufus](https://github.com/iamtherufus). HaCasa Nova would not look the way it does without it.
-- **HaCasa:** created by [Damian Eickhoff](https://github.com/damianeickhoff). HaCasa logo by [Fredrik Persson](https://github.com/fredrikpersson92).
-- **Built with** [Lit](https://lit.dev). Icons are original, drawn for this project.
-- **Made with AI assistance.** HaCasa Nova was written together with an AI coding assistant ([Claude Code](https://claude.com/claude-code)). The design decisions, the testing and the maintenance are mine; much of the code was written by the AI under my direction, which is why you'll see it credited in the commit history. It is also what made bringing HaCasa back possible at all.
-- **And the community**, who kept asking about HaCasa long after it went quiet. This one is for you. 💜
+**Thank you, Damian Eickhoff.** HaCasa started as your button-card dashboard that a whole household could use, and you rebuilt it from scratch as HaCasa Nova, in the open and under an MIT license. This project would not exist without that work, your design decisions and the care you put into the details (the wizard, the cards, the documentation, the translations). I have changed it to suit my house, but the foundation, the idea and most of the code are yours. Thank you for sharing it.
+
+- **Design:** [Homio](https://github.com/iamtherufus/Homio) by [iamtherufus](https://github.com/iamtherufus). The panel would not look the way it does without it.
+- **HaCasa and HaCasa Nova:** created by [Damian Eickhoff](https://github.com/damianeickhoff) with an AI coding assistant. HaCasa logo by [Fredrik Persson](https://github.com/fredrikpersson92).
+- **This version:** maintained by [emile-bodin](https://github.com/emile-bodin); the changes in it were written together with [Claude Code](https://claude.com/claude-code).
+- **Built with** [Lit](https://lit.dev). Icons are original, drawn for the project.
+- **And everyone** who kept asking about HaCasa after the first version went quiet.
 
 ## License
 
-[MIT](https://github.com/emile-bodin/HaCasa/blob/main/LICENSE). The Homio design credit and the license notices of what is bundled are in [NOTICE.md](https://github.com/emile-bodin/HaCasa/blob/main/NOTICE.md).
+[MIT](LICENSE), with the original copyright notice kept. The Homio design credit and the license notices of what is bundled are in [NOTICE.md](NOTICE.md).

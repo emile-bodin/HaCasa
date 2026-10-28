@@ -10,20 +10,14 @@ hide:
 
 # HaCasa Nova
 
-<p class="tag">The HaCasa reboot. A room-first Home Assistant panel, built on the <a href="https://github.com/iamtherufus/Homio">Homio</a> design by iamtherufus.</p>
+<p class="tag">A room-first Home Assistant panel, based on HaCasa Nova by Damian Eickhoff and the <a href="https://github.com/iamtherufus/Homio">Homio</a> design by iamtherufus.</p>
 
 [Install it](installation.md){ .md-button .md-button--primary } [View on GitHub](https://github.com/emile-bodin/HaCasa){ .md-button }
 
 </div>
 
-<div id="demo" class="video">
-<video controls autoplay muted loop playsinline preload="metadata" poster="assets/screenshots/home.png">
-  <source src="assets/demo/hacasa-nova-demo.mp4" type="video/mp4">
-</video>
-</div>
-
-!!! danger "Work in progress"
-    HaCasa Nova is a work in progress and needs testing. This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/emile-bodin/HaCasa/issues/new/choose).
+!!! warning "Built for one home"
+    This panel is tested in the house it was made for and in the mock home, nowhere else. Expect rough edges, try it next to your current dashboard rather than replacing it, and [report what you run into](https://github.com/emile-bodin/HaCasa/issues/new/choose).
 
 ## What it is
 
@@ -31,9 +25,9 @@ HaCasa Nova is a full-screen panel for [Home Assistant](https://www.home-assista
 
 It is a single JavaScript file. There is no YAML dashboard to maintain and nothing else to install: no button-card, no card-mod, no layout-card. Add a device to an area in Home Assistant and it shows up in the right room by itself.
 
-## Why "Nova"?
+## Where it comes from
 
-The original **HaCasa** was a button-card dashboard that grew to almost 500 stars on GitHub before it was archived in 2025. *Casa nova* means "new house", and a nova is an old star that suddenly shines again. That is what this is: HaCasa, rebuilt from scratch on the beautiful [Homio](https://github.com/iamtherufus/Homio) design by **iamtherufus**.
+This is a standalone project that began as a fork of **HaCasa Nova** by Damian Eickhoff, which rebuilt the original button-card HaCasa as a native panel on the [Homio](https://github.com/iamtherufus/Homio) design. Thank you, Damian: the idea, the design decisions and most of the code are yours. This version keeps your MIT license and adds household and personal settings, a robot vacuum card, a litter box card, more appliance details and a two-row room layout. For the original, see [damianeickhoff/HaCasa](https://github.com/damianeickhoff/HaCasa).
 
 ## Highlights
 

@@ -13,15 +13,15 @@ Both use the same settings, so you can switch later.
 
     1. Open **HACS** in Home Assistant.
     2. Open the menu (⋮, top right) and choose **Custom repositories**.
-    3. Add `https://github.com/emile-bodin/tomte` with type **Dashboard**.
+    3. Add `https://github.com/emile-bodin/TomTe` with type **Dashboard**.
     4. Search for **Tomte**, open it and choose **Download**.
     5. Reload the browser when HACS asks.
 
-    HACS installs the file at `/config/www/community/Tomte/tomte.js`, which Home Assistant serves as `/hacsfiles/tomte/tomte.js`. HACS also adds it as a dashboard resource.
+    HACS installs the file at `/config/www/community/TomTe/tomte.js`, which Home Assistant serves as `/hacsfiles/TomTe/tomte.js`. HACS also adds it as a dashboard resource.
 
 === "Manual"
 
-    1. Download `tomte.js` from the [latest release](https://github.com/emile-bodin/tomte/releases/latest).
+    1. Download `tomte.js` from the [latest release](https://github.com/emile-bodin/TomTe/releases/latest).
     2. Copy it to `/config/www/tomte/tomte.js`.
     3. Its URL is `/local/tomte/tomte.js`. Use that instead of the `/hacsfiles/…` URL below.
     4. For the card variant, add it as a resource yourself: **Settings → Dashboards → ⋮ → Resources → Add resource**, type *JavaScript module*.
@@ -33,14 +33,14 @@ Add this to `configuration.yaml` and restart Home Assistant:
 ```yaml
 frontend:
   extra_module_url:
-    - /hacsfiles/tomte/tomte.js   # loads the Tomte logo icon for the sidebar
+    - /hacsfiles/TomTe/tomte.js   # loads the Tomte logo icon for the sidebar
 
 panel_custom:
   - name: tomte-panel
     url_path: tomte
     sidebar_title: Tomte
     sidebar_icon: tomte:logo
-    module_url: /hacsfiles/tomte/tomte.js
+    module_url: /hacsfiles/TomTe/tomte.js
 ```
 
 | key | value |

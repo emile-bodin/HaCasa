@@ -4,8 +4,8 @@ Thanks for wanting to help! Tomte is a beta maintained by one person, so small, 
 
 ## Where to go
 
-- **Bug?** Open an [issue](https://github.com/emile-bodin/tomte/issues/new/choose) with your Home Assistant version, browser and any red lines from the browser console (F12).
-- **Question or idea?** Open an [issue](https://github.com/emile-bodin/tomte/issues/new/choose) and say what you would like to see.
+- **Bug?** Open an [issue](https://github.com/emile-bodin/TomTe/issues/new/choose) with your Home Assistant version, browser and any red lines from the browser console (F12).
+- **Question or idea?** Open an [issue](https://github.com/emile-bodin/TomTe/issues/new/choose) and say what you would like to see.
 
 ## Development
 
@@ -17,7 +17,7 @@ npx http-server .. -p 8097 -c-1
 npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one
 ```
 
-`dev/index.html` runs the panel against a mock home; add `?lang=nl` for Dutch. More in the [development guide](https://github.com/emile-bodin/tomte/tree/main/docs/development/).
+`dev/index.html` runs the panel against a mock home; add `?lang=nl` for Dutch. More in the [development guide](https://github.com/emile-bodin/TomTe/tree/main/docs/development/).
 
 ## Pull requests
 

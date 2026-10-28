@@ -2,8 +2,8 @@ site_name: Tomte
 site_description: The Tomte reboot. A room-first Home Assistant panel, built on the Homio design by iamtherufus.
 site_url: https://emile-bodin.github.io/Tomte/
 site_author: Damian Eickhoff
-repo_url: https://github.com/emile-bodin/tomte
-repo_name: emile-bodin/tomte
+repo_url: https://github.com/emile-bodin/TomTe
+repo_name: emile-bodin/TomTe
 edit_uri: edit/main/docs/
 copyright: Tomte · MIT · design based on <a href="https://github.com/iamtherufus/Homio">Homio</a> by iamtherufus
 
@@ -81,5 +81,5 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/emile-bodin/tomte
+      link: https://github.com/emile-bodin/TomTe
       name: GitHub

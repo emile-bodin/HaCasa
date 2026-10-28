@@ -49,7 +49,7 @@ const ctx = await esbuild.context({
   sourcemap: watch ? "inline" : false,
   outfile: `${outdir}/${name}.js`,
   legalComments: "eof",
-  banner: { js: `/*! Tomte ${version} · MIT · https://github.com/emile-bodin/tomte */` },
+  banner: { js: `/*! Tomte ${version} · MIT · https://github.com/emile-bodin/TomTe */` },
   plugins: [icons, stamp],
 });
 

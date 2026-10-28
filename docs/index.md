@@ -12,12 +12,12 @@ hide:
 
 <p class="tag">A room-first Home Assistant panel, based on <a href="https://github.com/damianeickhoff/HaCasa">HaCasa Nova</a> by Damian Eickhoff and the <a href="https://github.com/iamtherufus/Homio">Homio</a> design by iamtherufus.</p>
 
-[Install it](installation.md){ .md-button .md-button--primary } [View on GitHub](https://github.com/emile-bodin/tomte){ .md-button }
+[Install it](installation.md){ .md-button .md-button--primary } [View on GitHub](https://github.com/emile-bodin/TomTe){ .md-button }
 
 </div>
 
 !!! warning "Built for one home"
-    This panel is tested in the house it was made for and in the mock home, nowhere else. Expect rough edges, try it next to your current dashboard rather than replacing it, and [report what you run into](https://github.com/emile-bodin/tomte/issues/new/choose).
+    This panel is tested in the house it was made for and in the mock home, nowhere else. Expect rough edges, try it next to your current dashboard rather than replacing it, and [report what you run into](https://github.com/emile-bodin/TomTe/issues/new/choose).
 
 ## What it is
 
@@ -66,4 +66,4 @@ The name is the Scandinavian *tomte*, the household spirit that quietly watches 
 - **[Best experience](best-experience.md)**: start page, hidden sidebar, wall tablets.
 - **[Cards](cards.md)**: what every card does and how to change it.
 - **[Settings](settings.md)**: a tour of the settings page.
-- **[Issues](https://github.com/emile-bodin/tomte/issues)**: bugs, questions and ideas.
+- **[Issues](https://github.com/emile-bodin/TomTe/issues)**: bugs, questions and ideas.

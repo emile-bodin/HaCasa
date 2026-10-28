@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Tomte: the Tomte reboot, a room-first Home Assistant panel built on the Homio design.",
   "license": "MIT",
-  "repository": "github:emile-bodin/tomte",
+  "repository": "github:emile-bodin/TomTe",
   "scripts": {
     "build": "node build.mjs",
     "build:dev": "node build.mjs --dev",

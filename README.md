@@ -1,23 +1,23 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/logo/tomte-banner.svg" alt="Tomte" width="420">
+<img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/logo/tomte-banner.svg" alt="Tomte" width="420">
 
 # Tomte
 
 A room-first Home Assistant panel, based on [HaCasa Nova](https://github.com/damianeickhoff/HaCasa) by Damian Eickhoff and the [Homio](https://github.com/iamtherufus/Homio) design by iamtherufus.
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories/)
-[![Release](https://img.shields.io/github/v/release/emile-bodin/tomte?style=flat-square&label=release)](https://github.com/emile-bodin/tomte/releases)
+[![Release](https://img.shields.io/github/v/release/emile-bodin/TomTe?style=flat-square&label=release)](https://github.com/emile-bodin/TomTe/releases)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.4%2B-18BCF2?style=flat-square)](https://www.home-assistant.io/)
-[![License](https://img.shields.io/github/license/emile-bodin/tomte?style=flat-square)](https://github.com/emile-bodin/tomte/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/emile-bodin/TomTe?style=flat-square)](https://github.com/emile-bodin/TomTe/blob/main/LICENSE)
 
-[Documentation](https://github.com/emile-bodin/tomte/tree/main/docs) · [Install](#install) · [Screenshots](#screenshots)
+[Documentation](https://github.com/emile-bodin/TomTe/tree/main/docs) · [Install](#install) · [Screenshots](#screenshots)
 
 </div>
 
 > 🏠 **A standalone, personal project.** Tomte began as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCasa) by Damian Eickhoff, was detached from it and renamed. I maintain it for my own household and give it its own versions (starting at `1.0.0`). It is not affiliated with or supported by the original author: for HaCasa Nova itself, go to [their repository](https://github.com/damianeickhoff/HaCasa). Everything good about the foundation is theirs. See [Thanks](#thanks).
 
-> ⚠️ **Built for one home.** It is tested in the house it was made for and in the mock home (`dev/index.html`), nowhere else. Expect rough edges, try it next to your current dashboard rather than replacing it, and [open an issue](https://github.com/emile-bodin/tomte/issues/new/choose) if something breaks.
+> ⚠️ **Built for one home.** It is tested in the house it was made for and in the mock home (`dev/index.html`), nowhere else. Expect rough edges, try it next to your current dashboard rather than replacing it, and [open an issue](https://github.com/emile-bodin/TomTe/issues/new/choose) if something breaks.
 
 ## What it is
 
@@ -59,24 +59,24 @@ Compared with HaCasa Nova 3.0.5 and the work after it (details in the [changelog
 
 <table>
   <tr>
-    <td width="50%"><img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/screenshots/room.png" alt="Room page"><br><sub><b>Room page</b> · photo, climate and a strip of cards</sub></td>
-    <td width="50%"><img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/screenshots/kitchen.png" alt="Kitchen"><br><sub><b>Appliances and plugs</b> · power strips, dishwasher programme and progress</sub></td>
+    <td width="50%"><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/room.png" alt="Room page"><br><sub><b>Room page</b> · photo, climate and a strip of cards</sub></td>
+    <td width="50%"><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/kitchen.png" alt="Kitchen"><br><sub><b>Appliances and plugs</b> · power strips, dishwasher programme and progress</sub></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/screenshots/popup-light.png" alt="Light popup"><br><sub><b>Light popup</b> · brightness, colour and colour temperature</sub></td>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/screenshots/popup-climate.png" alt="Climate popup"><br><sub><b>Climate popup</b> · target, modes, presets, every room's temperature</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/popup-light.png" alt="Light popup"><br><sub><b>Light popup</b> · brightness, colour and colour temperature</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/popup-climate.png" alt="Climate popup"><br><sub><b>Climate popup</b> · target, modes, presets, every room's temperature</sub></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/screenshots/sensors.png" alt="Sensors page"><br><sub><b>Sensors</b> · attention first, then every room</sub></td>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/screenshots/energy.png" alt="Energy page"><br><sub><b>Energy</b> · now, today per hour, biggest consumers</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/sensors.png" alt="Sensors page"><br><sub><b>Sensors</b> · attention first, then every room</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/energy.png" alt="Energy page"><br><sub><b>Energy</b> · now, today per hour, biggest consumers</sub></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/screenshots/settings.png" alt="Settings"><br><sub><b>Settings</b> · everything in the panel, stored per user</sub></td>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/screenshots/wizard.png" alt="Setup wizard"><br><sub><b>First run</b> · a four-step setup</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/settings.png" alt="Settings"><br><sub><b>Settings</b> · everything in the panel, stored per user</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/wizard.png" alt="Setup wizard"><br><sub><b>First run</b> · a four-step setup</sub></td>
   </tr>
 </table>
 
-<img src="https://raw.githubusercontent.com/emile-bodin/tomte/main/docs/assets/screenshots/phones.png" alt="Tomte on phones" width="100%">
+<img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/phones.png" alt="Tomte on phones" width="100%">
 
 ## Install
 
@@ -86,16 +86,16 @@ You need Home Assistant **2024.4 or newer**. Tomte can run as its own sidebar pa
 
 1. Open **HACS** in Home Assistant.
 2. Open the menu (⋮, top right) and choose **Custom repositories**.
-3. Add `https://github.com/emile-bodin/tomte` with type **Dashboard**.
+3. Add `https://github.com/emile-bodin/TomTe` with type **Dashboard**.
 4. Search for **Tomte**, open it and choose **Download**.
 5. Reload your browser when HACS asks.
 
 <details>
 <summary>Manual download (without HACS)</summary>
 
-1. Download `tomte.js` from the [latest release](https://github.com/emile-bodin/tomte/releases/latest).
+1. Download `tomte.js` from the [latest release](https://github.com/emile-bodin/TomTe/releases/latest).
 2. Copy it to `/config/www/tomte/tomte.js`.
-3. Use `/local/tomte/tomte.js` wherever the steps below say `/hacsfiles/tomte/tomte.js`.
+3. Use `/local/tomte/tomte.js` wherever the steps below say `/hacsfiles/TomTe/tomte.js`.
 
 </details>
 
@@ -106,14 +106,14 @@ Add this to `configuration.yaml` and restart Home Assistant:
 ```yaml
 frontend:
   extra_module_url:
-    - /hacsfiles/tomte/tomte.js   # loads the Tomte logo icon for the sidebar
+    - /hacsfiles/TomTe/tomte.js   # loads the Tomte logo icon for the sidebar
 
 panel_custom:
   - name: tomte-panel
     url_path: tomte
     sidebar_title: Tomte
     sidebar_icon: tomte:logo
-    module_url: /hacsfiles/tomte/tomte.js
+    module_url: /hacsfiles/TomTe/tomte.js
 ```
 
 **Tomte** now appears in the sidebar with the Tomte logo. Open it and the setup wizard starts.
@@ -142,21 +142,21 @@ Put a photo per room in `/config/www/images/rooms/`, named after the area: `Livi
 
 That's it. Everything else lives in the panel: **More → Panel settings**.
 
-> 💡 **For the best experience**, make Tomte your start page and hide Home Assistant's sidebar. Both are one click per user; see [Best experience](https://github.com/emile-bodin/tomte/blob/main/docs/best-experience.md) in the docs, which also has tips for wall tablets.
+> 💡 **For the best experience**, make Tomte your start page and hide Home Assistant's sidebar. Both are one click per user; see [Best experience](https://github.com/emile-bodin/TomTe/blob/main/docs/best-experience.md) in the docs, which also has tips for wall tablets.
 
 ## Documentation
 
-The full guide is at **[the docs folder](https://github.com/emile-bodin/tomte/tree/main/docs)**: installation, the setup wizard, every card and its settings, the built-in pages, the optional theme for the rest of Home Assistant, and troubleshooting.
+The full guide is at **[the docs folder](https://github.com/emile-bodin/TomTe/tree/main/docs)**: installation, the setup wizard, every card and its settings, the built-in pages, the optional theme for the rest of Home Assistant, and troubleshooting.
 
 ## Good to know
 
 - **Admin features.** Template cards and your own ticker lines use Home Assistant's template renderer, installing updates calls `update.install`, and the System page asks the Supervisor for host info. These need an administrator account; for other users those parts stay empty.
 - **Fonts.** The panel uses [Hanken Grotesk](https://fonts.google.com/specimen/Hanken+Grotesk) from Google Fonts. Without internet access it falls back to the system font.
-- **Languages.** English, Dutch and German, following your Home Assistant language. Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/emile-bodin/tomte/tree/main/src/lang), see [CONTRIBUTING](https://github.com/emile-bodin/tomte/blob/main/CONTRIBUTING.md#translations).
+- **Languages.** English, Dutch and German, following your Home Assistant language. Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/emile-bodin/TomTe/tree/main/src/lang), see [CONTRIBUTING](https://github.com/emile-bodin/TomTe/blob/main/CONTRIBUTING.md#translations).
 
 ## Contributing
 
-Bugs and ideas are welcome as [issues](https://github.com/emile-bodin/tomte/issues/new/choose); see [CONTRIBUTING.md](CONTRIBUTING.md) before sending a change. For the original v2 button-card Tomte, see the [`legacy` branch](https://github.com/damianeickhoff/HaCasa/tree/legacy) of the original repository.
+Bugs and ideas are welcome as [issues](https://github.com/emile-bodin/TomTe/issues/new/choose); see [CONTRIBUTING.md](CONTRIBUTING.md) before sending a change. For the original v2 button-card Tomte, see the [`legacy` branch](https://github.com/damianeickhoff/HaCasa/tree/legacy) of the original repository.
 
 ## Development
 
@@ -169,7 +169,7 @@ npm run rollback:dev     # (or rollback:prod) put the previous bundle back
 npm run release -- 1.0.1 # write the version and the changelog heading, commit (from a clean main)
 ```
 
-`dev/index.html` runs the panel outside Home Assistant against a mock home (`dev/mock-hass.js`); add `?lang=nl` for Dutch. `dev/smoke.mjs` renders the panel in jsdom and walks the settings layers. Icons are drawn by `dev/make-icons.mjs` and inlined into the bundle by `build.mjs`. The workflow (dev first, then production) is described in the [development guide](https://github.com/emile-bodin/tomte/blob/main/docs/development.md).
+`dev/index.html` runs the panel outside Home Assistant against a mock home (`dev/mock-hass.js`); add `?lang=nl` for Dutch. `dev/smoke.mjs` renders the panel in jsdom and walks the settings layers. Icons are drawn by `dev/make-icons.mjs` and inlined into the bundle by `build.mjs`. The workflow (dev first, then production) is described in the [development guide](https://github.com/emile-bodin/TomTe/blob/main/docs/development.md).
 
 ## Thanks
 

@@ -1,6 +1,6 @@
 # Theme for Home Assistant
 
-Tomte does not need a theme. If you want the rest of Home Assistant to match, the repository includes an optional theme, [`theme/tomte.yaml`](https://github.com/emile-bodin/tomte/blob/main/theme/tomte.yaml). It puts your home photo behind the sidebar, header and views, and turns cards and dialogs into the same frosted glass.
+Tomte does not need a theme. If you want the rest of Home Assistant to match, the repository includes an optional theme, [`theme/tomte.yaml`](https://github.com/emile-bodin/TomTe/blob/main/theme/tomte.yaml). It puts your home photo behind the sidebar, header and views, and turns cards and dialogs into the same frosted glass.
 
 It needs [card-mod](https://github.com/thomasloven/lovelace-card-mod) (HACS) and is dark only.
 

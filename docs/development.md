@@ -3,7 +3,7 @@
 Tomte is written with [Lit](https://lit.dev) and bundled with [esbuild](https://esbuild.github.io) into one file.
 
 ```bash
-git clone https://github.com/emile-bodin/tomte.git
+git clone https://github.com/emile-bodin/TomTe.git
 cd Tomte
 npm install
 npm run watch            # rebuilds dist/tomte.js on every change

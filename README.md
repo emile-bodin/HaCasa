@@ -153,7 +153,7 @@ Bugs and ideas are welcome as [issues](https://github.com/emile-bodin/TomTe/issu
 npm install
 npm run watch            # rebuilds dist/tomte.js on every change
 npm run deploy:dev       # check, build, smoke-test and install as the Tomte-dev panel (bundle + loader.js)
-npm run deploy:prod      # the same from a clean main, installed as the Tomte panel, and tags the version
+npm run deploy:prod      # the same from a clean main, installed as the Tomte panel
 npm run rollback:dev     # (or rollback:prod) put the previous bundle back
 npm run release -- 1.0.1 # write the version and the changelog heading, commit (from a clean main)
 ```

@@ -1,7 +1,7 @@
 // `npm run deploy:dev` / `npm run deploy:prod`: check, build and install Tomte into Home Assistant.
 //
 //   dev   builds the current branch as tomte-dev -> /config/www/tomte-dev        (panel /tomte-dev)
-//   prod  builds `main` as tomte                -> /config/www/tomte             (panel /tomte), tags the version
+//   prod  builds `main` as tomte                -> /config/www/tomte             (panel /tomte)
 //
 // Both run the same checks first (translations, syntax, a render smoke test), back up the bundle they replace in
 // .deploy-backups/<variant>/ and install the loader.js that build.mjs writes next to the bundle: /local is cached for 31 days, the loader
@@ -53,9 +53,3 @@ if (existsSync(current)) {
 copyFileSync(bundle, current);
 copyFileSync(`${dist}/loader.js`, join(target, "loader.js"));   // built next to the bundle by build.mjs
 console.log(`deployed ${version} (${branch}${dirty ? ", with uncommitted changes" : ""}) to ${target}; reload the browser`);
-
-if (variant === "prod") {
-  const tag = `v${version}`;
-  try { git(`rev-parse -q --verify refs/tags/${tag}`); console.log(`tag ${tag} already exists; not moved`); }
-  catch { git(`tag -a ${tag} -m "Tomte ${version}"`); console.log(`tagged ${tag} (push it with: git push origin ${tag})`); }
-}

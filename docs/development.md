@@ -94,7 +94,7 @@ Pull requests are welcome.
 
 1. Bump `version` in `package.json` and add the changes to `CHANGELOG.md`.
 2. `npm run build` and commit `dist/tomte.js`.
-3. Tag `vX.Y.Z` and push the tag: the release workflow publishes the GitHub release.
+3. Push `main`: the release workflow creates the tag and the GitHub release.
 
 ## Workflow: dev, then production
 
@@ -105,8 +105,8 @@ This repository is a standalone project with two panels in Home Assistant: **Tom
 3. **Changelog.** Describe the change under `## Unreleased` in `CHANGELOG.md` as you go, in the same commit as the change.
 4. **Merge** the branch into `main` (a pull request on GitHub, or locally).
 5. **Release.** On a clean `main`: `npm run release -- 1.0.1`. It writes the version into `package.json` and the lock file, turns `## Unreleased` into `## 1.0.1 · <date>` and commits. Patch for fixes, minor for new features, major for breaking changes of the stored settings.
-6. **Production.** `npm run deploy:prod` refuses to run unless you are on a clean `main` (`--force` skips that), runs the same checks, installs into `/config/www/tomte` and tags the commit `v1.0.1`. Then `git push origin main --tags`. `npm run rollback:prod` restores the previous production bundle.
-7. **GitHub release.** Pushing the tag starts `.github/workflows/release.yml`: it checks that the tag matches `package.json`, runs the translation check, rebuilds and compares `dist/` with what is committed, runs the smoke test, and publishes a release `Tomte <version>` with `dist/tomte.js` and `dist/loader.js` attached and the matching section of `CHANGELOG.md` as the notes. Re-run it for an existing tag with *Actions → Release → Run workflow*.
+6. **Production.** `npm run deploy:prod` refuses to run unless you are on a clean `main` (`--force` skips that), runs the same checks, installs into `/config/www/tomte`. `npm run rollback:prod` restores the previous production bundle. Then push `main` (GitHub Desktop is enough, no tag has to be pushed from your computer).
+7. **GitHub release.** Every push to `main` starts `.github/workflows/release.yml`. When `package.json`'s version has no release yet, it runs the translation check, rebuilds and compares `dist/` with what is committed, runs the smoke test, and creates the tag `v<version>` and a release `Tomte <version>` on GitHub, with `dist/tomte.js` and `dist/loader.js` attached and the matching section of `CHANGELOG.md` as the notes. A push without a new version does nothing. It also runs for a pushed `v*` tag (re-publishes that release) and by hand (*Actions → Release → Run workflow*, optionally with a tag such as `v1.1.0`).
 
 **The loader.** `build.mjs` writes `loader.js` next to the bundle (`dist/loader.js`, `dist-dev/loader.js`; the release workflow attaches `dist/loader.js` to the GitHub release next to `dist/tomte.js`, so a manual install can use it), the deploy scripts install it, and `module_url` (and `extra_module_url`) in `configuration.yaml` point at it, not at the bundle. Home Assistant serves `/local` with a 31-day browser cache, so without it a deployed build would not show until the cache expires. The loader asks the server for the bundle's ETag and imports the bundle under that `?v=`, so after a deploy a browser reload is enough. HACS installs have no loader (they use the bundle directly): reload the browser after an update.
 

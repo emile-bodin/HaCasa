@@ -25,4 +25,4 @@ execSync("node build.mjs", { stdio: "inherit" });   // dist/ is tracked: the rel
 copyFileSync("CHANGELOG.md", "docs/changelog.md");   // the docs site shows a copy of the changelog
 git("add package.json package-lock.json CHANGELOG.md docs/changelog.md dist");
 git(`-c user.name="$(git config user.name || echo release)" -c user.email="$(git config user.email || echo release@local)" commit -q -m "Release ${version}"`);
-console.log(`released ${version}. Next: npm run deploy:prod (builds, installs and tags v${version}), then git push origin main --tags (the tag publishes the GitHub release with tomte.js and loader.js)`);
+console.log(`released ${version}. Next: npm run deploy:prod (builds and installs it), then push main: the Release workflow on GitHub creates tag v${version} and the release with tomte.js and loader.js`);

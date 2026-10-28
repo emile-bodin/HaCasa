@@ -4,6 +4,7 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **The release workflow creates the tag itself:** pushing `main` is enough. When `package.json`'s version has no GitHub release yet, `.github/workflows/release.yml` creates the tag `v<version>` and the release (with `tomte.js`, `loader.js` and the changelog section) on GitHub; later pushes do nothing, and it still runs for a pushed `v*` tag or by hand. `npm run deploy:prod` no longer makes a local tag (a local tag that GitHub Desktop did not push left the release missing, and would clash with the tag the workflow creates).
 ## 1.1.0 · 2026-10-28
 
 - **Claude Code usage card:** a card with the 5-hour session and the weekly limit of Claude Code as two meters (percentage used, time until the reset, a tick for how far the window has run; amber from 70 %, red from 90 %, *ahead of schedule* when you use more than the elapsed time allows, *outdated* after 30 minutes without an update). The popup adds the pace, the last update and the history of both windows. The data comes from sensors in Home Assistant (`sensor.claude_5_h_session`, `sensor.claude_week`, optionally the two reset sensors), found by name or chosen under the new **Settings → Claude Code** tab; the card is added with **Edit → Add card → Tomte cards → Claude Code**, which only lists it when the sensors exist. Covered by the smoke test (card, colours, popup, picker, settings tab); the mock home has the sensors.

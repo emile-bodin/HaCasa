@@ -199,8 +199,9 @@ var Rs=Object.defineProperty;var Us=(t,e,a)=>e in t?Rs(t,e,{enumerable:!0,config
   </div>`}var Yi=["clean","empty","smart","deodorize","auto","odourless"],Yo={clean:["Reinigen","mdi:broom"],empty:["Legen","mdi:delete-empty-outline"],smart:["Slim reinigen","mdi:auto-fix"],deodorize:["Ontgeuren","mdi:spray"],auto:["Auto-ontgeuren","mdi:spray-bottle"],odourless:["Geurloos","mdi:leaf"]},qo=t=>{let e=(t.id+" "+(t.state?.attributes?.friendly_name||t.reg?.name||"")).toLowerCase();return/smart/.test(e)?"smart":/auto/.test(e)?"auto":/odou?rless|geurloos/.test(e)?"odourless":/empty|leeg/.test(e)?"empty":/deodor|deordr|ontgeur/.test(e)?"deodorize":/clean|reinig/.test(e)?"clean":null};function $a(t,e){let a=t.hass,i=a.devices?.[e.device],r=i?.name_by_user||i?.name||"",s=e.switches.map(b=>({s:b,r:qo(b)})),o=b=>s.some(_=>_.r===b);if(!(/kattenbak|litter|kattenbox|cat ?box/i.test(r)||o("clean")&&o("empty")&&(o("deodorize")||o("odourless"))))return null;let l=s.map(b=>{let _=R(t,b.s.id),f=Yo[b.r]||[X(t,b.s),"mdi:power-socket-eu"];return{s:b.s,r:b.r,name:_.name||n(f[0]),icon:_.icon||f[1]}}).sort((b,_)=>{let f=Yi.indexOf(b.r),S=Yi.indexOf(_.r);return(f<0?99:f)-(S<0?99:S)}),c=Object.entries(a.entities||{}).filter(([b,_])=>_.device_id===e.device&&b.startsWith("sensor.")).map(([b])=>a.states[b]).filter(Boolean),p=b=>c.find(_=>b.test(_.entity_id)||b.test(_.attributes?.device_class||"")),u=p(/weight|gewicht/),g=p(/full/),v=p(/lifetime/),k=u&&!H(u)?E(u.state):null,w=k==null?null:u.attributes.unit_of_measurement==="kg"?k:k>=100?k/1e3:k,C=!!g&&/^(true|on|1)$/i.test(String(g.state)),x=b=>l.some(_=>_.r===b&&W(_.s.state)),y=x("clean")?n("Reinigt\u2026"):x("empty")?n("Leegt\u2026"):null;return{items:l,title:r?r.charAt(0).toUpperCase()+r.slice(1):n("Kattenbak"),status:y||(C?n("Afvalbak vol"):w!=null?`${is(w)} kg`:n("Klaar")),busy:!!y,full:C,kg:w,wz:u,fz:g,lz:v}}function ns(t,e){let a=$a(t,e),i=e.switches.every(p=>H(p.state)),r=R(t,e.id),s=e.switches.filter(p=>W(p.state)).length,o=r.name||(a?a.title:we(t.hass,e.device)),l=i?n("Onbereikbaar"):a?a.status:s?n("{n} van {m} aan",{n:s,m:e.switches.length}):n("Alles uit"),c=a?a.items.slice(0,4).map(p=>({e:p.s,name:p.name,icon:p.icon})):e.switches.map((p,u)=>({e:p,name:R(t,p.id).name||String(u+1),icon:R(t,p.id).icon||"mdi:power-socket-eu"}));return d`<div class=${T({card:!0,pstrip:!0,litter:!!a,on:a?a.busy:s>0,unavailable:i})} ${Q(t,{tap:()=>t.openPopup({type:"strip",st:e}),hold:()=>t.openPopup({type:"strip",st:e})})}>
     ${i?me():h}
     ${a?d`<div class="i">${r.icon?te(r.icon):te("mdi:cat","litter_box")}</div>`:h}
+    ${a&&!i?d`<div class="c">${l}</div>`:h}
     <div class="n">${o}</div>
-    <div class="s">${l}</div>
+    ${a&&!i?h:d`<div class="s">${l}</div>`}
     <div class="socks">${c.map(p=>d`<button class=${T({on:W(p.e.state),unavailable:H(p.e.state)})} title=${p.name} aria-label=${p.name}
         ${Q(t,{tap:()=>t.call("switch","toggle",{entity_id:p.e.id}),hold:()=>t.openPopup({type:"switch",e:p.e})})}>
         <ha-icon icon=${p.icon}></ha-icon>${a?h:d`<small>${p.name}</small>`}</button>`)}</div>
@@ -991,11 +992,10 @@ var Rs=Object.defineProperty;var Us=(t,e,a)=>e in t?Rs(t,e,{enumerable:!0,config
   .card .socks button.unavailable{opacity:.35}
   .card .socks button ha-icon{--mdc-icon-size:20px}
   .card .socks button small{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.8;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  /* litter box: the same power strip card, icon buttons only (no label under the icon, at any width) and a taller socket row */
+  /* litter box: the same power strip card, icon buttons only (no label under the icon, at any width) and a taller socket row; the state (weight, cleaning, bin full) sits in the corner like a light's percentage, so the title stays */
   .card.litter{--bh-sock:44px}
   .card.litter .socks button small{display:none}
   .card.litter .n{-webkit-line-clamp:1}
-  @media (min-width:901px){ .strip.rows2.compact .card.litter .n{display:none} }   /* two rows, cards under 160px: the cat icon and the status are enough, the title would run into the buttons */
   /* appliance: stop / power row at the bottom */
   .card.appl,.card.acts{--reserve:calc(var(--bh) + var(--bg))}
   .card.appl .ctl.row{position:absolute;left:var(--cp);right:var(--cp);bottom:var(--cp);width:auto;display:flex;gap:6px;grid-auto-rows:auto}

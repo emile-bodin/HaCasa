@@ -359,11 +359,10 @@ export const styles = css`
   .card .socks button.unavailable{opacity:.35}
   .card .socks button ha-icon{--mdc-icon-size:20px}
   .card .socks button small{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.8;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  /* litter box: the same power strip card, icon buttons only (no label under the icon, at any width) and a taller socket row */
+  /* litter box: the same power strip card, icon buttons only (no label under the icon, at any width) and a taller socket row; the state (weight, cleaning, bin full) sits in the corner like a light's percentage, so the title stays */
   .card.litter{--bh-sock:44px}
   .card.litter .socks button small{display:none}
   .card.litter .n{-webkit-line-clamp:1}
-  @media (min-width:901px){ .strip.rows2.compact .card.litter .n{display:none} }   /* two rows, cards under 160px: the cat icon and the status are enough, the title would run into the buttons */
   /* appliance: stop / power row at the bottom */
   .card.appl,.card.acts{--reserve:calc(var(--bh) + var(--bg))}
   .card.appl .ctl.row{position:absolute;left:var(--cp);right:var(--cp);bottom:var(--cp);width:auto;display:flex;gap:6px;grid-auto-rows:auto}

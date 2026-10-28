@@ -521,8 +521,9 @@ export function stripCard(p, st) {
   return html`<div class=${classMap({ card: true, pstrip: true, litter: !!K, on: K ? K.busy : on > 0, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
     ${un ? ua() : nothing}
     ${K ? html`<div class="i">${c.icon ? ico(c.icon) : ico("mdi:cat", "litter_box")}</div>` : nothing}
+    ${K && !un ? html`<div class="c">${status}</div>` : nothing}
     <div class="n">${title}</div>
-    <div class="s">${status}</div>
+    ${K && !un ? nothing : html`<div class="s">${status}</div>`}
     <div class="socks">${btns.map(x => html`<button class=${classMap({ on: isOn(x.e.state), unavailable: unavailable(x.e.state) })} title=${x.name} aria-label=${x.name}
         ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: x.e.id }), hold: () => p.openPopup({ type: "switch", e: x.e }) })}>
         <ha-icon icon=${x.icon}></ha-icon>${K ? nothing : html`<small>${x.name}</small>`}</button>`)}</div>

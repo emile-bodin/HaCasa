@@ -24,4 +24,4 @@ for (const f of ["package.json", "package-lock.json"]) {
 execSync("node build.mjs", { stdio: "inherit" });   // dist/ is tracked: the release commit carries the build of that version
 git("add package.json package-lock.json CHANGELOG.md dist");
 git(`-c user.name="$(git config user.name || echo release)" -c user.email="$(git config user.email || echo release@local)" commit -q -m "Release ${version}"`);
-console.log(`released ${version}. Next: npm run deploy:prod (builds, installs and tags v${version}), then git push origin main --tags`);
+console.log(`released ${version}. Next: npm run deploy:prod (builds, installs and tags v${version}), then git push origin main --tags (the tag publishes the GitHub release with tomte.js and loader.js)`);

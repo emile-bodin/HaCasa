@@ -7,7 +7,7 @@ import { featureStyles } from "./features.js";
 import { searchStyles } from "./search.js";
 import { extra3Styles } from "./extras3.js";
 import { graphStyles } from "./graph.js";
-import { claudeStyles } from "./claude.js";
+import { usageStyles } from "./usage.js";
 
 // Started from our own Homio-style mockup; scoped to the panel host.
 export const styles = css`
@@ -875,7 +875,7 @@ export const styles = css`
   ${unsafeCSS(searchStyles)}
   ${unsafeCSS(extra3Styles)}
   ${unsafeCSS(graphStyles)}
-  ${unsafeCSS(claudeStyles)}
+  ${unsafeCSS(usageStyles)}
   /* unavailable: controls are hidden, so center what is left */
   .card.unavailable{grid-template-columns:1fr;grid-template-rows:1fr max-content max-content 1fr;grid-template-areas:"." "n" "s" ".";justify-items:center;text-align:center;padding:0 40px}
   .card.unavailable .i,.card.unavailable .c,.card.unavailable .lbl,.card.unavailable .prog,.card.unavailable hcn-cam-snap{display:none}

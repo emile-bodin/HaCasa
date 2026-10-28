@@ -1,5 +1,5 @@
-// Claude Code usage card: the 5-hour session and the weekly limit, read from the sensors of a Claude usage integration
-// (percentages with the moment each window resets). Added to a page through Bewerken → Kaart toevoegen → Claude Code.
+// AI usage cards (Claude Code, ChatGPT): the 5-hour session and the weekly limit, read from the sensors of a usage integration
+// (percentages with the moment each window resets). Added to a page through Bewerken → Kaart toevoegen → Tomte cards.
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { t } from "./i18n.js";
@@ -10,13 +10,19 @@ import { loadGraph, line } from "./graph.js";
 const WINDOWS = { session: { ms: 5 * 3600000, label: "Sessie (5 uur)", attr: "session_resets_at" }, week: { ms: 7 * 86400000, label: "Week", attr: "weekly_resets_at" } };
 const WARN = 70, CRIT = 90, STALE_MS = 30 * 60000, PACE_SLACK = 10;
 
-/** the four sensors: from Settings → Claude Code, else found by name (sensor.claude_5_h_session, sensor.claude_week, …) */
-export function claudeSensors(p) {
-  const set = p.config.home?.claude || {}, ids = Object.keys(p.hass?.states || {}).filter(id => id.startsWith("sensor.") && /claude/i.test(id));
+/** the providers: the card key (also the key of the settings under `home`), the name on the card and the word in the entity ids */
+export const USAGE_PROVIDERS = {
+  claude: { name: "Claude Code", icon: "mdi:creation", match: /claude/i },
+  chatgpt: { name: "ChatGPT", icon: "mdi:chat-processing-outline", match: /chatgpt/i },
+};
+
+/** the four sensors of a provider: from Settings → AI usage, else found by name (sensor.claude_5_h_session, sensor.chatgpt_week, …) */
+export function usageSensors(p, prov) {
+  const set = p.config.home?.[prov] || {}, ids = Object.keys(p.hass?.states || {}).filter(id => id.startsWith("sensor.") && USAGE_PROVIDERS[prov].match.test(id));
   const find = (win, reset) => ids.find(id => (win === "session" ? /(session|5_?h)/ : /week/).test(id) && /reset/.test(id) === reset) || null;
   return { session: set.session || find("session", false), week: set.week || find("week", false), sessionReset: set.sessionReset || find("session", true), weekReset: set.weekReset || find("week", true) };
 }
-export const claudeAvailable = p => { const s = claudeSensors(p); return !!(s.session || s.week); };
+export const usageAvailable = (p, prov) => { const s = usageSensors(p, prov); return !!(s.session || s.week); };
 
 /** the moment a window resets: the sensor's attribute (a timestamp), else the reset sensor's text ("17:50" or "29/10 00:00") */
 function resetAt(p, state, resetId, attr) {
@@ -38,8 +44,8 @@ export function span(ms) {
 }
 
 /** everything the card and the popup show about one window */
-export function claudeWindow(p, kind) {
-  const sensors = claudeSensors(p), id = sensors[kind], w = WINDOWS[kind];
+export function usageWindow(p, prov, kind) {
+  const sensors = usageSensors(p, prov), id = sensors[kind], w = WINDOWS[kind];
   if (!id) return null;
   const s = p.hass.states[id], down = !s || unavailable(s), pct = down ? null : num(s.state);
   const reset = down ? null : resetAt(p, s, sensors[kind + "Reset"], w.attr), left = reset ? reset - Date.now() : null;
@@ -51,17 +57,17 @@ export function claudeWindow(p, kind) {
 }
 const pctText = v => v == null ? "–" : `${Math.round(v)} %`;
 
-export function claudeCard(p) {
-  const wins = ["session", "week"].map(k => claudeWindow(p, k)).filter(Boolean);
+export function usageCard(p, prov) {
+  const wins = ["session", "week"].map(k => usageWindow(p, prov, k)).filter(Boolean);
   if (!wins.length) return null;
-  const cfg = cardCfg(p, "claude"), down = wins.every(w => w.down), stale = wins.some(w => w.stale), over = wins.some(w => w.pace === "over");
+  const P = USAGE_PROVIDERS[prov], cfg = cardCfg(p, prov), down = wins.every(w => w.down), stale = wins.some(w => w.stale), over = wins.some(w => w.pace === "over");
   const corner = wins.find(w => w.status)?.status || (stale ? t("verouderd") : over ? t("boven schema") : "");
   const worst = wins.reduce((a, w) => (w.pct ?? 0) > (a ?? 0) ? w.pct : a, null);
-  return html`<div class=${classMap({ card: true, claude: true, unavailable: down, stale, over, on: worst >= CRIT })} ${pressDir(p, { tap: () => p.openPopup({ type: "claude" }) })}>
+  return html`<div class=${classMap({ card: true, usage: true, unavailable: down, stale, over, on: worst >= CRIT })} ${pressDir(p, { tap: () => p.openPopup({ type: "usage", provider: prov }) })}>
     ${down ? ua() : nothing}
-    <div class="i">${icoFor(p, "claude", "mdi:creation", null)}</div>
+    <div class="i">${icoFor(p, prov, P.icon, null)}</div>
     <div class="c">${corner}</div>
-    <div class="n">${cfg.name || "Claude Code"}</div>
+    <div class="n">${cfg.name || P.name}</div>
     <div class="s">${wins.map(w => html`<div class=${"cm " + w.level}>
       <span class="cl">${w.label}${w.left != null ? html`<em>${t("reset over {t}", { t: span(w.left) })}</em>` : nothing}</span><b>${pctText(w.pct)}</b>
       <i class="bar"><u style=${`width:${Math.min(100, w.pct ?? 0)}%`}></u>${w.elapsed != null ? html`<s style=${`left:${(w.elapsed * 100).toFixed(1)}%`} title=${t("Verstreken deel van het venster")}></s>` : nothing}</i></div>`)}</div>
@@ -69,10 +75,10 @@ export function claudeCard(p) {
 }
 
 /** body of the popup: the numbers, whether the pace is on schedule, and the history of both windows */
-export function claudePopup(p, li) {
-  const wins = ["session", "week"].map(k => claudeWindow(p, k)).filter(Boolean);
+export function usagePopup(p, prov, li) {
+  const wins = ["session", "week"].map(k => usageWindow(p, prov, k)).filter(Boolean);
   const hist = (w, hours) => {
-    const key = "claude:" + w.kind, h = p.graphHist?.[key];
+    const key = `usage:${prov}:${w.kind}`, h = p.graphHist?.[key];
     if (w.id && (!h || Date.now() - h.at > 5 * 60000 || h.hours !== hours)) loadGraph(p, { id: key, entity: w.id, hours });
     return html`<div class="vs">${w.label} · ${hours === 24 ? t("Afgelopen 24 uur") : t("Afgelopen {n} dagen", { n: hours / 24 })}</div><div class="cgraph">${line(h?.pts || [])}</div>`;
   };
@@ -85,22 +91,22 @@ export function claudePopup(p, li) {
     ${wins.map(w => hist(w, w.kind === "week" ? 168 : 24))}`;
 }
 
-export const claudeStyles = `
-  /* ===== Claude Code card: two meters (session, week) with a tick for where the window's time stands ===== */
-  .card.claude .s{display:grid;gap:10px;margin-top:6px;color:inherit}
-  .card.claude .cm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;align-items:baseline}
-  .card.claude .cl{font-size:12px;color:var(--fg-2);letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .card.claude .cl em{font-style:normal;margin-left:8px;opacity:.65;font-size:11px}
-  .card.claude .cm b{font-size:16px;font-weight:700;letter-spacing:-.4px;color:var(--fg)}
-  .card.claude .bar{grid-column:1/-1;position:relative;display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.14)}
-  .card.claude .bar u{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:#fff;transition:width .6s ease}
-  .card.claude .cm.warn .bar u{background:#f2b63a}
-  .card.claude .cm.crit .bar u{background:#f27a5c}
-  .card.claude .cm.crit b{color:#f27a5c}
-  .card.claude .bar s{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:rgba(255,255,255,.8)}
-  .card.claude.over .c,.card.claude.stale .c{color:#f2b63a}
+export const usageStyles = `
+  /* ===== AI usage cards (Claude Code, ChatGPT): two meters (session, week) with a tick for where the window's time stands ===== */
+  .card.usage .s{display:grid;gap:10px;margin-top:6px;color:inherit}
+  .card.usage .cm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;align-items:baseline}
+  .card.usage .cl{font-size:12px;color:var(--fg-2);letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card.usage .cl em{font-style:normal;margin-left:8px;opacity:.65;font-size:11px}
+  .card.usage .cm b{font-size:16px;font-weight:700;letter-spacing:-.4px;color:var(--fg)}
+  .card.usage .bar{grid-column:1/-1;position:relative;display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.14)}
+  .card.usage .bar u{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:#fff;transition:width .6s ease}
+  .card.usage .cm.warn .bar u{background:#f2b63a}
+  .card.usage .cm.crit .bar u{background:#f27a5c}
+  .card.usage .cm.crit b{color:#f27a5c}
+  .card.usage .bar s{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:rgba(255,255,255,.8)}
+  .card.usage.over .c,.card.usage.stale .c{color:#f2b63a}
   .popup .cgraph{height:56px;margin:4px 0 14px}
   .popup .cgraph svg{display:block;width:100%;height:100%;overflow:visible}
-  @media (min-width:901px){ :where(.strip.rows2.compact) .card.claude .cl em{display:none} :where(.strip.rows2.compact) .card.claude .s{gap:7px} }
-  @media (max-width:900px){ .card.claude .cl em{display:none} .card.claude .s{gap:8px;margin-top:4px} .card.claude .cm b{font-size:14px} .card.claude .cl{font-size:11px} }
+  @media (min-width:901px){ :where(.strip.rows2.compact) .card.usage .cl em{display:none} :where(.strip.rows2.compact) .card.usage .s{gap:7px} }
+  @media (max-width:900px){ .card.usage .cl em{display:none} .card.usage .s{gap:8px;margin-top:4px} .card.usage .cm b{font-size:14px} .card.usage .cl{font-size:11px} }
 `;

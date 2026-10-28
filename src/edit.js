@@ -9,7 +9,7 @@ import { domain, num, unavailable } from "./util.js";
 import { cardFor, homeCards, findCard } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 import { scopePicker } from "./settings.js";
-import { claudeAvailable } from "./claude.js";
+import { usageAvailable } from "./usage.js";
 
 export const canEdit = p => !!p.hass?.user?.is_admin;
 /** entity domains that have a card */
@@ -134,7 +134,8 @@ export const CARD_TYPES = [
   { id: "homeclimate", group: "panel", label: "Thermostaat (thuis)", sub: "de hoofdthermostaat", icon: "mdi:home-thermometer-outline", key: "climate" },
   { id: "scenes", group: "panel", label: "Scènes", sub: "scèneknoppen van een ruimte", icon: "mdi:palette-outline", roomKey: "scenes" },
   { id: "presets", group: "panel", label: "Lichtscènes", sub: "opgeslagen lichtstanden van een ruimte", icon: "mdi:lightbulb-group-outline", roomKey: "presets" },
-  { id: "claude", group: "panel", label: "Claude Code", sub: "gebruik: sessie en week", icon: "mdi:creation", key: "claude", avail: claudeAvailable },
+  { id: "claude", group: "panel", label: "Claude Code", sub: "gebruik: sessie en week", icon: "mdi:creation", key: "claude", avail: p => usageAvailable(p, "claude") },
+  { id: "chatgpt", group: "panel", label: "ChatGPT", sub: "gebruik: sessie en week", icon: "mdi:chat-processing-outline", key: "chatgpt", avail: p => usageAvailable(p, "chatgpt") },
   { id: "group", group: "panel", label: "Groep", sub: "meerdere lampen of stekkers als één kaart", icon: "mdi:shape-outline" },
   { id: "graph", group: "panel", label: "Grafiek", sub: "verloop van een sensor", icon: "mdi:chart-line" },
   { id: "tpl", group: "own", label: "Template", sub: "uit je eigen bibliotheek", icon: "mdi:code-braces" },
@@ -159,7 +160,7 @@ export function addPopup(p, pop) {
     const pc = p.pageCfg(key);
     if ((pc.hidden || []).includes(k)) { await p.setHidden(key, k, false); p.popup = null; return; }
     if (have.has(k)) { p.showToast(t("Deze kaart staat al op deze pagina")); return; }
-    const exists = k === "claude" ? claudeAvailable(p) : isHome ? homeCards(p, p.home).some(c => c.key === k) : !!findCard(p, k, key);
+    const exists = k === "claude" || k === "chatgpt" ? usageAvailable(p, k) : isHome ? homeCards(p, p.home).some(c => c.key === k) : !!findCard(p, k, key);
     if (!exists) { p.showToast(t("Deze kaart is nog niet ingesteld: zie Instellingen → Startpagina")); return; }
     await addKey(p, key, k);
   };

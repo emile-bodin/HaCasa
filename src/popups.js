@@ -15,7 +15,7 @@ import { fetchHistory } from "./extras2.js";
 import { addPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, graphCandidates, hoursLabel } from "./edit.js";
 import { templateOf } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
-import { claudePopup } from "./claude.js";
+import { usagePopup, USAGE_PROVIDERS } from "./usage.js";
 import { siblings, maintenance, vacTask, vacStatus, VAC_LABELS, BUSY } from "./vacuum.js";
 
 const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
@@ -380,8 +380,8 @@ export function renderPopup(p, pop) {
       return wrap(t("Lampen"), home.lightsOn.length ? t("{n} aan", { n: home.lightsOn.length }) : t("Alles uit"), t("van {n} lampen", { n: home.lights.length }), html`
         ${home.lightsOn.length ? modes([{ label: t("Alles uit"), go: () => p.call("light", "turn_off", { entity_id: home.lightsOn.map(e => e.id) }) }], "n2") : nothing}
         <ul>${[...home.lightsOn, ...home.lights.filter(e => !isOn(e.state))].map(e => li("mdi:lightbulb-outline", name(hass, e), isOn(e.state) ? `${Math.round((e.state.attributes.brightness || 255) / 2.55)}%` : t("Uit"), { on: isOn(e.state), sub: e.room.name, svg: "lamp", onclick: () => p.call("light", "toggle", { entity_id: e.id }) }))}</ul>`);
-    case "claude":
-      return wrap(t("Gebruik"), "Claude Code", t("Sessie (5 uur)") + " · " + t("Week"), claudePopup(p, li));
+    case "usage":
+      return wrap(t("Gebruik"), USAGE_PROVIDERS[pop.provider].name, t("Sessie (5 uur)") + " · " + t("Week"), usagePopup(p, pop.provider, li));
     case "waste":
       return wrap(t("Afval"), home.waste[0] ? `${home.waste[0].label} ${wasteWhen(home.waste[0])}` : t("Geen data"), t("Ophaaldagen"), html`
         <ul>${home.waste.map((w, i) => li("mdi:trash-can-outline", html`<i class="dot" style="background:${wasteColor(w.label)}"></i>${w.label}`, wasteWhen(w), { on: i === 0, sub: w.days > 7 && w.date ? new Date(w.date).toLocaleDateString(locale(), { weekday: "long" }) : "" }))}</ul>`);

@@ -4,6 +4,7 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **ChatGPT usage card:** the Claude Code usage card is now one *AI usage* card for two providers, and ChatGPT is the second one: the same two meters (5-hour session, weekly limit), colours, pace hint, popup and history, from `sensor.chatgpt_5_h_session`, `sensor.chatgpt_week` and the optional reset sensors, found by name. Add it with **Edit → Add card → Tomte cards → ChatGPT** (only listed when the sensors exist). **Settings → Claude Code** became **Settings → AI usage** with a section per provider; the stored settings (`home.claude`, `home.chatgpt`) and the existing `claude` card key stay as they were, so nothing has to be redone. The code moved from `src/claude.js` to `src/usage.js`; the smoke test and the mock home cover both providers.
 - **The release workflow creates the tag itself:** pushing `main` is enough. When `package.json`'s version has no GitHub release yet, `.github/workflows/release.yml` creates the tag `v<version>` and the release (with `tomte.js`, `loader.js` and the changelog section) on GitHub; later pushes do nothing, and it still runs for a pushed `v*` tag or by hand. `npm run deploy:prod` no longer makes a local tag (a local tag that GitHub Desktop did not push left the release missing, and would clash with the tag the workflow creates).
 ## 1.1.0 · 2026-10-28
 

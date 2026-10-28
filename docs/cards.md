@@ -191,19 +191,19 @@ Waste pickups work with the Afvalbeheer and Afvalwijzer integrations and any sen
 
 Door, window and motion cards can take the same layout: set **Bottom** to *graph (on/off line)* in the card's ⋯ settings (or for all of them under **Settings → Card defaults**). The line then steps between off and on over the last 24 hours, with today's total on the bottom line.
 
-## Claude Code
+## Claude Code and ChatGPT usage
 
-A card with your Claude Code usage: the **5-hour session** and the **weekly limit** as two meters, with the percentage used, when each window resets and a tick on the bar for how far the window's time has run. A meter turns amber from 70 % and red from 90 %. When you have used more than the elapsed part of the window allows (10 points ahead), the corner says *ahead of schedule*; when the sensors have not updated for half an hour it says *outdated*. Tap it for the popup: both windows with their reset time, the pace, when the data was last updated and the history of the last 24 hours (session) and 7 days (week).
+Two cards with your AI usage, **Claude Code** and **ChatGPT**, built the same way: the **5-hour session** and the **weekly limit** as two meters, with the percentage used, when each window resets and a tick on the bar for how far the window's time has run. A meter turns amber from 70 % and red from 90 %. When you have used more than the elapsed part of the window allows (10 points ahead), the corner says *ahead of schedule*; when the sensors have not updated for half an hour it says *outdated*. Tap a card for the popup: both windows with their reset time, the pace, when the data was last updated and the history of the last 24 hours (session) and 7 days (week).
 
-The numbers come from sensors in Home Assistant, from a Claude usage integration or your own template sensors:
+The numbers come from sensors in Home Assistant, from a usage integration or your own template sensors, per provider:
 
 | sensor | what |
 |---|---|
-| `sensor.claude_5_h_session` | percentage used in the 5-hour window; its `session_resets_at` attribute is the reset time |
-| `sensor.claude_week` | percentage used of the weekly limit; its `weekly_resets_at` attribute is the reset time |
-| `sensor.claude_5_h_reset`, `sensor.claude_week_reset` | optional: the reset as text (`17:50`, `29/10 00:00`), used when the attribute is missing |
+| `sensor.claude_5_h_session`, `sensor.chatgpt_5_h_session` | percentage used in the 5-hour window; its `session_resets_at` attribute is the reset time |
+| `sensor.claude_week`, `sensor.chatgpt_week` | percentage used of the weekly limit; its `weekly_resets_at` attribute is the reset time |
+| `sensor.claude_5_h_reset`, `sensor.claude_week_reset` (and the same for `chatgpt`) | optional: the reset as text (`17:50`, `29/10 00:00`), used when the attribute is missing |
 
-The card finds them by name (an entity id with `claude`, then `session`/`5h` or `week`). If yours are named differently, pick them under **Settings → Claude Code**. Add the card with **Edit → Add card → Tomte cards → Claude Code**; the entry only shows when such sensors exist. Name and icon can be changed like on any card (⋯ → Card settings).
+The cards find the sensors by name (an entity id with `claude` or `chatgpt`, then `session`/`5h` or `week`). If yours are named differently, pick them under **Settings → AI usage**. Add a card with **Edit → Add card → Tomte cards → Claude Code** (or **ChatGPT**); an entry only shows when its sensors exist. Name and icon can be changed like on any card (⋯ → Card settings).
 
 ## Light scenes
 

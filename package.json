@@ -3,7 +3,7 @@
   "version": "1.0.2",
   "private": true,
   "type": "module",
-  "description": "Tomte: the Tomte reboot, a room-first Home Assistant panel built on the Homio design.",
+  "description": "Tomte: a room-first Home Assistant panel, based on HaCasa Nova and the Homio design.",
   "license": "MIT",
   "repository": "github:emile-bodin/TomTe",
   "scripts": {

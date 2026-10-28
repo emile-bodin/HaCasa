@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <!-- Source of docs/assets/social-preview.png (GitHub social preview, 1280x640). Render: npx @resvg/resvg-js-cli docs/assets/social-preview.svg docs/assets/social-preview.png -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b3340"/><stop offset="1" stop-color="#171b22"/></linearGradient>
+    <radialGradient id="glow" cx=".78" cy=".45" r=".6"><stop offset="0" stop-color="#f27a5c" stop-opacity=".22"/><stop offset="1" stop-color="#f27a5c" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+  <g transform="translate(885 120) scale(.68)"><path fill="#f27a5c" d="M62 392C98 246 168 104 270 54C318 32 372 52 398 108C402 118 396 124 388 118C356 96 330 130 324 178C316 250 358 330 438 392ZM40 392H460V436A28 28 0 0 1 432 464H68A28 28 0 0 1 40 436ZM222 464H278V420A28 28 0 0 0 222 420Z"/></g>
+  <g font-family="Hanken Grotesk, Helvetica Neue, Helvetica, Arial, sans-serif">
+    <text x="90" y="300" font-size="150" font-weight="700" letter-spacing="-4" fill="#fff">tomte</text>
+    <text x="94" y="372" font-size="40" font-weight="500" fill="#e8e3ea">A room-first panel for Home Assistant.</text>
+    <text x="94" y="426" font-size="30" fill="#9aa3b2">Rooms with photos, a card for every device,</text>
+    <text x="94" y="466" font-size="30" fill="#9aa3b2">household and personal settings.</text>
+    <text x="94" y="570" font-size="26" fill="#7b8494">Based on HaCasa Nova by Damian Eickhoff and the Homio design</text>
+  </g>
+</svg>

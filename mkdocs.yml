@@ -1,5 +1,5 @@
 site_name: Tomte
-site_description: The Tomte reboot. A room-first Home Assistant panel, built on the Homio design by iamtherufus.
+site_description: A room-first Home Assistant panel, based on HaCasa Nova by Damian Eickhoff and the Homio design by iamtherufus.
 site_url: https://emile-bodin.github.io/Tomte/
 site_author: Damian Eickhoff
 repo_url: https://github.com/emile-bodin/TomTe

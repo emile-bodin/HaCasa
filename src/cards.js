@@ -300,7 +300,7 @@ export function climateCard(p, s, title = t("Verwarming")) {
   const action = s.attributes.hvac_action ? ({ heating: t("Verwarmt"), cooling: t("Koelt"), idle: t("Rust"), off: t("Uit"), drying: t("Droogt"), fan: t("Ventileert") }[s.attributes.hvac_action] || s.attributes.hvac_action) : on ? ({ heat: t("Verwarmen"), cool: t("Koelen"), auto: t("Auto"), heat_cool: t("Auto"), dry: t("Drogen"), fan_only: t("Ventileren") }[s.state] || s.state) : t("Uit");
   const lo = num(s.attributes.min_temp) ?? 7, hi = num(s.attributes.max_temp) ?? 35, v = target != null ? Math.max(0, Math.min(100, (target - lo) / (hi - lo) * 100)) : 0;
   const setTo = val => p.call("climate", "set_temperature", { entity_id: s.entity_id, temperature: +val.toFixed(1) });
-  return html`<div class=${classMap({ card: true, climate: true, on, unavailable: un })}
+  return html`<div class=${classMap({ card: true, hero: true, climate: true, on, unavailable: un })}
       ${pressDir(p, { tap: () => p.openPopup({ type: "climate", s }) })}>
     ${un ? ua() : nothing}
     <div class="i">${icoFor(p, s.entity_id, "mdi:radiator", "heating")}</div>
@@ -415,7 +415,7 @@ function plugCard(p, a, st, title, cfg, acts) {
   else if (mode === "cost") bottom = price ? html`<div class="lbl cost"><span>${h?.today != null ? html`${t("Vandaag")} <b>${eur(h.today * price)}</b>` : ""}${!on && W > 0.5 ? html`${h?.today != null ? dot() : nothing}${t("Sluipverbruik")} <b>${eur(W * 24 * 30 / 1000 * price)}</b> / ${t("maand")}` : nothing}</span></div>` : html`<div class="lbl"><span>${t("Stel een kWh-prijs in bij Energie")}</span></div>`;
   else if (mode === "bars") bottom = h?.rows ? html`<div class="lbl bars">${h.rows.map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(9, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : html`<div class="lbl"><span>…</span></div>`;
   else if (mode === "spark" && h?.peak) bottom = html`<div class="lbl"><span>${t("piek {w} W om {t}", { w: h.peak.v, t: new Date(h.peak.t).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) })}</span></div>`;
-  return html`<div class=${classMap({ card: true, plug: true, appl: acts.length > 0, hasspk: mode === "spark" && !!h?.spark?.length, on, unavailable: st.st === "unknown", ...infoCls(cfg) })}
+  return html`<div class=${classMap({ card: true, hero: true, plug: true, appl: acts.length > 0, hasspk: mode === "spark" && !!h?.spark?.length, on, unavailable: st.st === "unknown", ...infoCls(cfg) })}
       ${pressDir(p, pressFor(p, a.id, sw ? () => p.call("switch", "toggle", { entity_id: sw.id }) : null, () => p.openPopup({ type: "appliance", a })))}>
     ${st.st === "unknown" ? ua() : nothing}
     <div class="i">${ico(cfg.icon || "mdi:power-plug-outline", "plug")}</div>
@@ -493,7 +493,7 @@ export function roomCameraCard(p, e) {
 /** power strip: one card, one button per socket (tap toggles, hold = details) */
 /* ---------- litter box: a device whose switches are Clean / Empty / Deodorize / … becomes one card with a button per action ---------- */
 const LITTER_ROLES = ["clean", "empty", "smart", "deodorize", "auto", "odourless"];
-const LITTER_INFO = { clean: ["Reinigen", "Reinigen", "mdi:broom"], empty: ["Legen", "Legen", "mdi:delete-empty-outline"], smart: ["Slim reinigen", "Slim", "mdi:auto-fix"], deodorize: ["Ontgeuren", "Ontgeur", "mdi:spray"], auto: ["Auto-ontgeuren", "Auto", "mdi:spray-bottle"], odourless: ["Geurloos", "Geurloos", "mdi:leaf"] };
+const LITTER_INFO = { clean: ["Reinigen", "mdi:broom"], empty: ["Legen", "mdi:delete-empty-outline"], smart: ["Slim reinigen", "mdi:auto-fix"], deodorize: ["Ontgeuren", "mdi:spray"], auto: ["Auto-ontgeuren", "mdi:spray-bottle"], odourless: ["Geurloos", "mdi:leaf"] };   // [name, icon]: the card shows icons only, the name is the tooltip and the popup row
 const litterRole = s => {
   const k = (s.id + " " + (s.state?.attributes?.friendly_name || s.reg?.name || "")).toLowerCase();
   return /smart/.test(k) ? "smart" : /auto/.test(k) ? "auto" : /odou?rless|geurloos/.test(k) ? "odourless" : /empty|leeg/.test(k) ? "empty" : /deodor|deordr|ontgeur/.test(k) ? "deodorize" : /clean|reinig/.test(k) ? "clean" : null;
@@ -503,8 +503,8 @@ export function litterBox(p, st) {
   const hass = p.hass, d = hass.devices?.[st.device], nm = d?.name_by_user || d?.name || "", roles = st.switches.map(s => ({ s, r: litterRole(s) })), has = k => roles.some(x => x.r === k);
   if (!(/kattenbak|litter|kattenbox|cat ?box/i.test(nm) || has("clean") && has("empty") && (has("deodorize") || has("odourless")))) return null;
   const items = roles.map(x => {
-    const c = cardCfg(p, x.s.id), m = LITTER_INFO[x.r] || [label(p, x.s), label(p, x.s), "mdi:power-socket-eu"];
-    return { s: x.s, r: x.r, name: c.name || t(m[0]), short: c.name || t(m[1]), icon: c.icon || m[2] };
+    const c = cardCfg(p, x.s.id), m = LITTER_INFO[x.r] || [label(p, x.s), "mdi:power-socket-eu"];
+    return { s: x.s, r: x.r, name: c.name || t(m[0]), icon: c.icon || m[1] };
   }).sort((a, b) => { const i = LITTER_ROLES.indexOf(a.r), j = LITTER_ROLES.indexOf(b.r); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j); });
   const sens = Object.entries(hass.entities || {}).filter(([k, v]) => v.device_id === st.device && k.startsWith("sensor.")).map(([k]) => hass.states[k]).filter(Boolean);
   const find = re => sens.find(z => re.test(z.entity_id) || re.test(z.attributes?.device_class || "")), wz = find(/weight|gewicht/), fz = find(/full/), lz = find(/lifetime/);
@@ -512,29 +512,21 @@ export function litterBox(p, st) {
   const full = !!fz && /^(true|on|1)$/i.test(String(fz.state)), running = k => items.some(x => x.r === k && isOn(x.s.state)), busy = running("clean") ? t("Reinigt…") : running("empty") ? t("Leegt…") : null;
   return { items, title: nm ? nm.charAt(0).toUpperCase() + nm.slice(1) : t("Kattenbak"), status: busy || (full ? t("Afvalbak vol") : kg != null ? `${fmtVal(kg)} kg` : t("Klaar")), busy: !!busy, full, kg, wz, fz, lz };
 }
-function litterCard(p, st, K) {
-  const un = st.switches.every(e => unavailable(e.state)), c = cardCfg(p, st.id);
-  return html`<div class=${classMap({ card: true, pstrip: true, on: K.busy, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
-    ${un ? ua() : nothing}
-    <div class="i">${c.icon ? ico(c.icon) : ico("mdi:cat", "litter_box")}</div>
-    <div class="n">${c.name || K.title}</div>
-    <div class="s">${un ? t("Onbereikbaar") : K.status}</div>
-    <div class="socks">${K.items.slice(0, 4).map(x => html`<button class=${classMap({ on: isOn(x.s.state), unavailable: unavailable(x.s.state) })} title=${x.name}
-        ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: x.s.id }), hold: () => p.openPopup({ type: "switch", e: x.s }) })}>
-        <ha-icon icon=${x.icon}></ha-icon><small>${x.short}</small></button>`)}</div>
-  </div>`;
-}
+/** one card for every power strip: a litter box (K) only brings its own title, status and icon-only buttons */
 export function stripCard(p, st) {
-  const lit = litterBox(p, st); if (lit) return litterCard(p, st, lit);
-  const on = st.switches.filter(e => isOn(e.state)).length, un = st.switches.every(e => unavailable(e.state));
-  const title = cardCfg(p, st.id).name || deviceName(p.hass, st.device);
-  return html`<div class=${classMap({ card: true, pstrip: true, on: on > 0, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
+  const K = litterBox(p, st), un = st.switches.every(e => unavailable(e.state)), c = cardCfg(p, st.id), on = st.switches.filter(e => isOn(e.state)).length;
+  const title = c.name || (K ? K.title : deviceName(p.hass, st.device));
+  const status = un ? t("Onbereikbaar") : K ? K.status : on ? t("{n} van {m} aan", { n: on, m: st.switches.length }) : t("Alles uit");
+  const btns = K ? K.items.slice(0, 4).map(x => ({ e: x.s, name: x.name, icon: x.icon })) : st.switches.map((e, i) => ({ e, name: cardCfg(p, e.id).name || String(i + 1), icon: cardCfg(p, e.id).icon || "mdi:power-socket-eu" }));
+  return html`<div class=${classMap({ card: true, pstrip: true, litter: !!K, on: K ? K.busy : on > 0, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
     ${un ? ua() : nothing}
+    ${K ? html`<div class="i">${c.icon ? ico(c.icon) : ico("mdi:cat", "litter_box")}</div>` : nothing}
+    ${K && !un ? html`<div class="c">${status}</div>` : nothing}
     <div class="n">${title}</div>
-    <div class="s">${un ? t("Onbereikbaar") : on ? t("{n} van {m} aan", { n: on, m: st.switches.length }) : t("Alles uit")}</div>
-    <div class="socks">${st.switches.map((e, i) => html`<button class=${classMap({ on: isOn(e.state), unavailable: unavailable(e.state) })} title=${label(p, e)}
-        ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: e.id }), hold: () => p.openPopup({ type: "switch", e }) })}>
-        <ha-icon icon=${cardCfg(p, e.id).icon || "mdi:power-socket-eu"}></ha-icon><small>${cardCfg(p, e.id).name || (i + 1)}</small></button>`)}</div>
+    ${K && !un ? nothing : html`<div class="s">${status}</div>`}
+    <div class="socks">${btns.map(x => html`<button class=${classMap({ on: isOn(x.e.state), unavailable: unavailable(x.e.state) })} title=${x.name} aria-label=${x.name}
+        ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: x.e.id }), hold: () => p.openPopup({ type: "switch", e: x.e }) })}>
+        <ha-icon icon=${x.icon}></ha-icon>${K ? nothing : html`<small>${x.name}</small>`}</button>`)}</div>
   </div>`;
 }
 
@@ -570,7 +562,7 @@ export function valueCard(p, e) {
   const s = e.state, un = unavailable(s), v = num(s?.state), unit = s?.attributes?.unit_of_measurement || "", dc = s?.attributes?.device_class;
   const mdi = s?.attributes?.icon || (dc === "temperature" ? "mdi:thermometer" : dc === "humidity" ? "mdi:water-percent" : ["power", "energy"].includes(dc) ? "mdi:flash-outline" : dc === "battery" ? "mdi:battery" : dc === "illuminance" ? "mdi:brightness-6" : "mdi:gauge");
   const corner = ovr(p, e.id, "state") ?? (DC_LABEL[dc] ? t(DC_LABEL[dc]) : "");
-  return html`<div class=${classMap({ card: true, value: true, unavailable: un, acts: hasActs(p, e.id), ...infoCls(cardCfg(p, e.id)) })} ${pressDir(p, pressFor(p, e.id, null, () => p.openPopup({ type: "value", e })))}>
+  return html`<div class=${classMap({ card: true, value: true, hero: !un && v != null, unavailable: un, acts: hasActs(p, e.id), ...infoCls(cardCfg(p, e.id)) })} ${pressDir(p, pressFor(p, e.id, null, () => p.openPopup({ type: "value", e })))}>
     ${un ? ua() : nothing}
     <div class="i">${icoFor(p, e.id, mdi)}</div>
     ${corner ? html`<div class="c">${corner}</div>` : nothing}

@@ -56,6 +56,7 @@ nav:
   - Configuration:
       - Settings: settings.md
       - Card settings: card-settings.md
+      - Card layout: card-layout.md
       - Theme for Home Assistant: theme.md
   - Help:
       - Troubleshooting: troubleshooting.md

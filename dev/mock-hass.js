@@ -10,7 +10,8 @@ const FLOOR_OF = { living_room: "ground_floor", kitchen: "ground_floor", backyar
 
 export function makeHass(onChange) {
   const areas = {};
-  for (const n of ["Living room", "Kitchen", "Bedroom", "Dressing room", "Landing", "Attic", "Backyard", "Bathroom", "Hallway"]) {
+  const LAB = new URLSearchParams(location.search).has("lab");   // ?lab: a room of awkward cards for the layout audit (dev/layout-audit.mjs)
+  for (const n of ["Living room", "Kitchen", "Bedroom", "Dressing room", "Landing", "Attic", "Backyard", "Bathroom", "Hallway", ...(LAB ? ["Test lab"] : [])]) {
     const id = n.toLowerCase().replace(/ /g, "_"); areas[id] = { area_id: id, name: n, picture: null, floor_id: FLOOR_OF[id] || null };
   }
   const devices = {}, entities = {}, states = {};
@@ -143,6 +144,45 @@ export function makeHass(onChange) {
   add("sensor.p1_energy_today", null, "6.8", { unit_of_measurement: "kWh" });
   add("automation.night_mode", null, "unavailable", { friendly_name: "Night mode" });
 
+  if (LAB) {   // long names, unavailable devices, every kind of card in its awkward states
+    const L = "A very long name that has to be clamped to two lines without pushing anything over the controls";
+    add("light.lab_long_on", "test_lab", "on", { friendly_name: L, brightness: 140, supported_color_modes: ["brightness"] });
+    add("light.lab_long_off", "test_lab", "off", { friendly_name: L, supported_color_modes: ["onoff"] });
+    add("light.lab_unavailable", "test_lab", "unavailable", { friendly_name: "Unavailable light" });
+    add("switch.lab_switch_long", "test_lab", "on", { friendly_name: L });
+    const dLabPlug = dev("dev_lab_plug", "test_lab"); devices[dLabPlug].name = "Coffee machine with a long name";
+    add("switch.lab_plug", null, "on", { friendly_name: "Coffee machine plug", current_power_w: 120 }, { device: dLabPlug });
+    add("sensor.lab_plug_power", null, "120", { unit_of_measurement: "W", device_class: "power", friendly_name: "Coffee machine power" }, { device: dLabPlug });
+    // litter boxes: the device is named like one, its switches are Clean / Empty / Smart / Deodorize; one idle, one cleaning, one with a long name, one unreachable
+    for (const [k, nm, st] of [["a", "Kattenbak", "off"], ["b", "Kattenbak boven", "off"], ["c", "Kattenbak van de logeerkamer met een heel lange naam", "off"], ["d", "Kattenbak onbereikbaar", "unavailable"]]) {
+      const d = dev("dev_litter_" + k, "test_lab"); devices[d].name = nm;
+      for (const [r, label] of [["clean", "Clean"], ["empty", "Empty"], ["smart", "Smart clean"], ["deodorize", "Deodorize"]])
+        add(`switch.litter_${k}_${r}`, null, k === "b" && r === "clean" ? "on" : st, { friendly_name: `${nm} ${label}` }, { device: d });
+      add(`sensor.litter_${k}_weight`, null, st === "unavailable" ? "unavailable" : "4.2", { friendly_name: `${nm} weight`, device_class: "weight", unit_of_measurement: "kg" }, { device: d });
+    }
+    // litter boxes: the device is named like one, its switches are Clean / Empty / Smart / Deodorize; idle, cleaning, long name, unreachable
+    for (const [k, nm, st] of [["a", "Kattenbak", "off"], ["b", "Kattenbak boven", "off"], ["c", "Kattenbak van de logeerkamer met een heel lange naam", "off"], ["d", "Kattenbak onbereikbaar", "unavailable"]]) {
+      const d = dev("dev_litter_" + k, "test_lab"); devices[d].name = nm;
+      for (const [r, label] of [["clean", "Clean"], ["empty", "Empty"], ["smart", "Smart clean"], ["deodorize", "Deodorize"]])
+        add(`switch.litter_${k}_${r}`, null, k === "b" && r === "clean" ? "on" : st, { friendly_name: `${nm} ${label}` }, { device: d });
+      add(`sensor.litter_${k}_weight`, null, st === "unavailable" ? "unavailable" : "4.2", { friendly_name: `${nm} weight`, device_class: "weight", unit_of_measurement: "kg" }, { device: d });
+    }
+    add("climate.lab_long", "test_lab", "heat", { friendly_name: L, temperature: 21, current_temperature: 19.5, hvac_action: "heating", hvac_modes: ["off", "heat", "auto"], preset_modes: ["home", "away"], preset_mode: "home" });
+    add("climate.lab_unavailable", "test_lab", "unavailable", { friendly_name: "Unavailable thermostat" });
+    add("media_player.lab_art", "test_lab", "playing", { friendly_name: L, media_title: "A track title that is far too long to fit on one line of the card", media_artist: "An artist with a long name", volume_level: .4, entity_picture: "/images/rooms/lounge.png" });
+    add("media_player.lab_idle", "test_lab", "idle", { friendly_name: "Idle speaker with a long name", volume_level: .2 });
+    add("media_player.lab_unavailable", "test_lab", "unavailable", { friendly_name: "Unavailable speaker" });
+    add("cover.lab_long", "test_lab", "open", { friendly_name: L, current_position: 60 });
+    add("cover.lab_unavailable", "test_lab", "unavailable", { friendly_name: "Unavailable blind" });
+    add("fan.lab_long", "test_lab", "on", { friendly_name: L, percentage: 60, preset_modes: ["low", "high"] });
+    add("lock.lab_long", "test_lab", "locked", { friendly_name: L });
+    add("vacuum.lab_unavailable", "test_lab", "unavailable", { friendly_name: "Unavailable vacuum" });
+    add("humidifier.lab_long", "test_lab", "on", { friendly_name: L, humidity: 50, current_humidity: 44, available_modes: ["auto", "sleep"] });
+    add("sensor.lab_temp", null, "21.3", { friendly_name: "Temperature", device_class: "temperature", unit_of_measurement: "°C" });
+    add("sensor.lab_long_value", null, "1234.5", { friendly_name: L, device_class: "power", unit_of_measurement: "W" });
+    add("sensor.lab_text_value", null, "A text state that is quite long", { friendly_name: "Text sensor" });
+    add("sensor.lab_unavailable_value", null, "unavailable", { friendly_name: "Unavailable sensor", device_class: "temperature", unit_of_measurement: "°C" });
+  }
   const notifications = [{ notification_id: "update_available", title: "Update available", message: "Home Assistant 2026.10.1 is available.", created_at: ago(40) }];
   const hass = {
     user: { id: "u1", name: "Alex", is_admin: true },

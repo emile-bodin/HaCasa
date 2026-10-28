@@ -1,9 +1,10 @@
 import { TAG, SUFFIX } from "./util.js";
+const CARD = "tomte-card" + SUFFIX;                      // custom:tomte-card (dev build: custom:tomte-card-dev)
 // Lovelace card wrapper: lets the panel live in a dashboard (panel view) instead of panel_custom.
-// Install the bundle as a dashboard resource, add a dashboard with one card:  type: custom:hacasa-nova-card
+// Install the bundle as a dashboard resource, add a dashboard with one card:  type: custom:tomte-card
 // Routing inside the card uses the URL hash (#/<room>), so the dashboard URL itself never changes.
 // Optional: a `config:` object in the card config is used like config.json (users can still override it in the panel settings).
-class HacasaNovaCard extends HTMLElement {
+class TomteCard extends HTMLElement {
   setConfig(config) {
     this._config = config || {};
     this._ensure();
@@ -21,7 +22,7 @@ class HacasaNovaCard extends HTMLElement {
     const el = document.createElement(TAG);
     el.hashMode = true;
     el.classList.add("in-card");
-    el.panel = { url_path: location.pathname.split("/")[1] || "hacasa" };
+    el.panel = { url_path: location.pathname.split("/")[1] || "tomte" };
     if (this._hass) el.hass = this._hass;
     root.append(style, el);
     this._el = el;
@@ -30,6 +31,6 @@ class HacasaNovaCard extends HTMLElement {
   static getStubConfig() { return {}; }
   static getConfigElement() { return undefined; }
 }
-if (!customElements.get(TAG + "-card")) customElements.define(TAG + "-card", HacasaNovaCard);
+if (!customElements.get(CARD)) customElements.define(CARD, TomteCard);
 window.customCards = window.customCards || [];
-if (!window.customCards.some(c => c.type === TAG + "-card")) window.customCards.push({ type: TAG + "-card", name: "HaCasa Nova" + (SUFFIX ? " (dev)" : ""), description: "The HaCasa Nova home panel inside a dashboard. Use it as the only card in a view of type panel.", preview: false });
+if (!window.customCards.some(c => c.type === CARD)) window.customCards.push({ type: CARD, name: "Tomte" + (SUFFIX ? " (dev)" : ""), description: "The Tomte home panel inside a dashboard. Use it as the only card in a view of type panel.", preview: false });

@@ -1,17 +1,17 @@
 // Render smoke test: loads a built bundle into jsdom, renders a room and the settings page against a made-up home and
-// walks the settings layers (household + personal). Exits 1 on any failure. `node dev/smoke.mjs dist-dev/hacasa-nova-dev.js hacasa-nova-dev`
+// walks the settings layers (household + personal). Exits 1 on any failure. `node dev/smoke.mjs dist-dev/tomte-dev.js tomte-panel-dev`
 import { JSDOM } from "jsdom";
 import { readFileSync } from "node:fs";
 
-const [file = "dist-dev/hacasa-nova-dev.js", tag = "hacasa-nova-dev"] = process.argv.slice(2);
-const dom = new JSDOM("<!doctype html><body></body>", { url: "http://localhost/hacasa/", runScripts: "outside-only", pretendToBeVisual: true });
+const [file = "dist-dev/tomte-dev.js", tag = "tomte-panel-dev"] = process.argv.slice(2);
+const dom = new JSDOM("<!doctype html><body></body>", { url: "http://localhost/tomte/", runScripts: "outside-only", pretendToBeVisual: true });
 const w = dom.window;
 w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} });
 w.ResizeObserver = class { observe() {} disconnect() {} }; w.IntersectionObserver = class { observe() {} disconnect() {} };
 w.fetch = async () => ({ ok: false, headers: { get: () => null } });
 const origWarn = console.warn; console.warn = () => {};
 w.eval(`window.__errs=[]; window.addEventListener('error',e=>window.__errs.push(String(e.message)));`);
-const code = readFileSync(file, "utf8").replaceAll("import.meta.url", '"http://localhost/local/hacasa/bundle.js"');
+const code = readFileSync(file, "utf8").replaceAll("import.meta.url", '"http://localhost/local/tomte/bundle.js"');
 const fails = [];
 const check = (ok, what) => { console.log(`${ok ? "ok  " : "FAIL"} ${what}`); if (!ok) fails.push(what); };
 try { w.eval(code); } catch (e) { console.log("FAIL bundle does not load:", e.message); process.exit(1); }
@@ -29,17 +29,20 @@ const states = {
 const reg = (id, dev) => ({ entity_id: id, area_id: "huiskamer", device_id: dev });
 const entities = Object.fromEntries(Object.keys(states).map(id => [id, reg(id, /robbie/.test(id) ? "dv1" : /cat_/.test(id) ? "dv2" : undefined)]));
 const devices = { dv1: { id: "dv1", name: "Robbie", serial_number: "T2280" }, dv2: { id: "dv2", name: "Kattenbak" } };
-const sets = [], store = { sys: { v: 2, meta: { rev: 3 }, config: { pages: { huiskamer: { hidden: ["light.zzz"], title: "Huis" } } } }, user: { setupDone: true, pages: { huiskamer: { order: ["b", "a"] } } } };
+// settings start under the OLD key names (hacasa_nova*): the panel must read them and then write the new ones (tomte*)
+const dev = /-dev$/.test(tag), NEW = dev ? "tomte_dev" : "tomte", OLD = dev ? "hacasa_nova_dev" : "hacasa_nova";
+const sets = [], data = { sys: { [OLD]: { v: 2, meta: { rev: 3 }, config: { pages: { huiskamer: { hidden: ["light.zzz"], title: "Huis" } } } } }, user: { [OLD]: { setupDone: true, pages: { huiskamer: { order: ["b", "a"] } } } } };
+const store = { get sys() { return data.sys[NEW] ?? data.sys[OLD]; }, get user() { return data.user[NEW] ?? data.user[OLD]; } };
 const el = w.document.createElement(tag);
 el.hass = { states, entities, devices, areas: { huiskamer: { area_id: "huiskamer", name: "Huiskamer" } }, floors: {}, user: { name: "Test", is_admin: true }, language: "nl", locale: { language: "nl" }, themes: {}, config: { unit_system: {} },
   callWS: async m => {
-    if (m.type === "frontend/get_system_data") return { value: store.sys };
-    if (m.type === "frontend/get_user_data") return { value: store.user };
-    if (m.type === "frontend/set_system_data") { store.sys = m.value; sets.push("sys"); return null; }
-    if (m.type === "frontend/set_user_data") { store.user = m.value; sets.push("user"); return null; }
+    if (m.type === "frontend/get_system_data") return { value: data.sys[m.key] ?? null };
+    if (m.type === "frontend/get_user_data") return { value: data.user[m.key] ?? null };
+    if (m.type === "frontend/set_system_data") { data.sys[m.key] = m.value; sets.push(`sys:${m.key}`); return null; }
+    if (m.type === "frontend/set_user_data") { data.user[m.key] = m.value; sets.push(`user:${m.key}`); return null; }
     return null;
   }, callService: async () => {}, connection: { subscribeMessage: () => Promise.resolve(() => {}), subscribeEvents: () => Promise.resolve(() => {}) }, formatEntityState: s => s.state };
-el.route = { path: "/huiskamer", prefix: "/hacasa" }; el.panel = { url_path: "hacasa" }; el.narrow = false;
+el.route = { path: "/huiskamer", prefix: "/tomte" }; el.panel = { url_path: "tomte" }; el.narrow = false;
 w.document.body.appendChild(el);
 const settle = async (ms = 400) => { await new Promise(r => setTimeout(r, ms)); await el.updateComplete; };
 await settle(1500);
@@ -56,13 +59,15 @@ await settle(200);
 check(/Schoonmaken/.test(html()) && /Onderhoud/.test(html()), "vacuum popup");
 el.popup = null;
 
+check(sets.includes(`user:${NEW}`), "personal settings are copied from the old key to the new one"); check(!sets.some(k => k.endsWith(`:${OLD}`)), "the old keys are never written");
 await el.setHidden("huiskamer", "light.a", true);
+check(sets.includes(`sys:${NEW}`) && JSON.stringify(data.sys[OLD].config.pages.huiskamer.hidden) === JSON.stringify(["light.zzz"]), "household save goes to the new key and leaves the old one untouched");
 check(JSON.stringify(store.sys.config.pages.huiskamer) === JSON.stringify({ hidden: ["light.zzz", "light.a"], title: "Huis" }), "household save stores the change");
 check(store.user.pages === undefined, "household save drops the personal difference for that page");
 await el.setScope("user"); await el.setHidden("huiskamer", "light.b", true);
 check(el.scope === "user" && store.user.pages.huiskamer.hidden.includes("light.b") && store.sys.config.pages.huiskamer.hidden.length === 2, "personal save stays personal");
 
-el.route = { path: "/instellingen", prefix: "/hacasa" };
+el.route = { path: "/instellingen", prefix: "/tomte" };
 await settle(300);
 check(/Opslag/.test(html()) && /Huis: /.test(html()), "settings page shows the storage section");
 check(w.__errs.length === 0, `no errors thrown (${w.__errs.join("; ") || "none"})`);

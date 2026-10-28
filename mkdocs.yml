@@ -1,15 +1,15 @@
-site_name: HaCasa Nova
-site_description: The HaCasa reboot. A room-first Home Assistant panel, built on the Homio design by iamtherufus.
-site_url: https://emile-bodin.github.io/HaCasa/
+site_name: Tomte
+site_description: The Tomte reboot. A room-first Home Assistant panel, built on the Homio design by iamtherufus.
+site_url: https://emile-bodin.github.io/Tomte/
 site_author: Damian Eickhoff
-repo_url: https://github.com/emile-bodin/HaCasa
-repo_name: emile-bodin/HaCasa
+repo_url: https://github.com/emile-bodin/tomte
+repo_name: emile-bodin/tomte
 edit_uri: edit/main/docs/
-copyright: HaCasa Nova · MIT · design based on <a href="https://github.com/iamtherufus/Homio">Homio</a> by iamtherufus
+copyright: Tomte · MIT · design based on <a href="https://github.com/iamtherufus/Homio">Homio</a> by iamtherufus
 
 theme:
   name: material
-  logo: assets/logo/hacasa-mark-white.svg
+  logo: assets/logo/tomte-mark-white.svg
   favicon: assets/logo/favicon.svg
   font:
     text: Hanken Grotesk
@@ -81,5 +81,5 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/emile-bodin/HaCasa
+      link: https://github.com/emile-bodin/tomte
       name: GitHub

@@ -1,8 +1,8 @@
-// Bundles src/panel.js into one self-contained file, dist/hacasa-nova.js (HACS serves a single file),
+// Bundles src/panel.js into one self-contained file, dist/tomte.js (HACS serves a single file),
 // with the SVG icons from icons/ inlined as data: URLs. Also writes version.json for cache-busting.
 // `node build.mjs --watch` rebuilds on change.
-// `node build.mjs --dev` builds the dev variant into dist-dev/hacasa-nova-dev.js: element <hacasa-nova-dev>,
-// card custom:hacasa-nova-dev-card and its own settings key, so it runs next to the HACS install.
+// `node build.mjs --dev` builds the dev variant into dist-dev/tomte-dev.js: element <tomte-panel-dev>,
+// card custom:tomte-card-dev and its own settings key, so it runs next to the HACS install.
 import * as esbuild from "esbuild";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 
@@ -11,7 +11,7 @@ const dev = process.argv.includes("--dev");
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 const version = pkg.version + (dev ? "-dev" : "");
 const outdir = dev ? "dist-dev" : "dist";
-const name = dev ? "hacasa-nova-dev" : "hacasa-nova";
+const name = dev ? "tomte-dev" : "tomte";
 mkdirSync(outdir, { recursive: true });
 
 const icons = {
@@ -34,7 +34,7 @@ const stamp = {
       if (result.errors.length) return;
       const v = Date.now().toString(36);
       writeFileSync(`${outdir}/version.json`, JSON.stringify({ v, version, built: new Date().toISOString() }));
-      console.log(`[hacasa-nova] built ${version} v=${v}`);
+      console.log(`[tomte] built ${version} v=${v}`);
     });
   },
 };
@@ -49,7 +49,7 @@ const ctx = await esbuild.context({
   sourcemap: watch ? "inline" : false,
   outfile: `${outdir}/${name}.js`,
   legalComments: "eof",
-  banner: { js: `/*! HaCasa Nova ${version} · MIT · https://github.com/emile-bodin/HaCasa */` },
+  banner: { js: `/*! Tomte ${version} · MIT · https://github.com/emile-bodin/tomte */` },
   plugins: [icons, stamp],
 });
 

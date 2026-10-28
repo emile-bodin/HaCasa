@@ -19,7 +19,7 @@ jobs:
         run: npm run i18n:check
       - run: npm run build
       - name: dist is up to date
-        run: git diff --exit-code -- dist/hacasa-nova.js || (echo "Run npm run build and commit dist/hacasa-nova.js" && exit 1)
+        run: git diff --exit-code -- dist/tomte.js || (echo "Run npm run build and commit dist/tomte.js" && exit 1)
 
   hacs:
     runs-on: ubuntu-latest

@@ -1,6 +1,6 @@
 # Room photos
 
-Photos are what make HaCasa Nova feel like your home. Each room page, and the home view, shows a full-screen photo behind the cards.
+Photos are what make Tomte feel like your home. Each room page, and the home view, shows a full-screen photo behind the cards.
 
 ## Where the panel looks
 

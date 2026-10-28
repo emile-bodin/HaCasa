@@ -20,7 +20,7 @@ export async function hourlyToday(hass, statisticId) {
     const r = await hass.callWS({ type: "recorder/statistics_during_period", start_time: start.toISOString(), statistic_ids: [statisticId], period: "hour", types: ["change", "sum"] });
     const rows = r?.[statisticId] || [];
     return rows.map(x => ({ t: new Date(x.start), v: x.change ?? 0 }));
-  } catch (e) { console.warn("[hacasa-nova] statistics unavailable", e); return null; }
+  } catch (e) { console.warn("[tomte] statistics unavailable", e); return null; }
 }
 export const bars = (rows, unit = "kWh") => {
   if (!rows) return html`<div class="sub">${t("Geen geschiedenis beschikbaar")}</div>`;

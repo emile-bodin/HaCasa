@@ -6,8 +6,8 @@ import { join } from "node:path";
 const variant = process.argv[2];
 if (!["dev", "prod"].includes(variant)) { console.error("usage: node dev/rollback.mjs dev|prod"); process.exit(1); }
 const local = existsSync("deploy.local.json") ? JSON.parse(readFileSync("deploy.local.json", "utf8")) : {};
-const target = process.env.HACASA_TARGET || local[variant] || { dev: "/config/www/hacasa-nova-dev", prod: "/config/www/hacasa-nova" }[variant];
-const name = variant === "dev" ? "hacasa-nova-dev" : "hacasa-nova", dir = join(".deploy-backups", variant);
+const target = process.env.TOMTE_TARGET || local[variant] || { dev: "/config/www/tomte-dev", prod: "/config/www/tomte" }[variant];
+const name = variant === "dev" ? "tomte-dev" : "tomte", dir = join(".deploy-backups", variant);
 const files = existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith(".js")).sort() : [];
 if (!files.length) { console.error(`No backups in ${dir}.`); process.exit(1); }
 const last = files[files.length - 1], live = join(target, `${name}.js`);

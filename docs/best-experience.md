@@ -1,16 +1,16 @@
 # Best experience
 
-HaCasa Nova looks and works best when it fills the whole screen and is the first thing you see. Three small changes get you there.
+Tomte looks and works best when it fills the whole screen and is the first thing you see. Three small changes get you there.
 
 ## 1. Make it your start page
 
-Open HaCasa Nova and go to **More → Panel settings → General → HA start page**, then press **Make HaCasa Nova the start page**. From then on Home Assistant opens on HaCasa Nova instead of the Overview.
+Open Tomte and go to **More → Panel settings → General → HA start page**, then press **Make Tomte the start page**. From then on Home Assistant opens on Tomte instead of the Overview.
 
 This is a setting per user, so do it once for every person in the house (and on their own login).
 
 ## 2. Hide Home Assistant's sidebar
 
-HaCasa Nova has its own navigation, so Home Assistant's sidebar on the left only takes up room.
+Tomte has its own navigation, so Home Assistant's sidebar on the left only takes up room.
 
 1. Open your **profile**: click your name at the bottom of the sidebar.
 2. Turn on **Always hide the sidebar**.

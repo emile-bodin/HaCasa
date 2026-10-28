@@ -13,7 +13,7 @@ export async function fetchEvents(hass, calendars, days = 2) {
     const out = [];
     for (const [cal, v] of Object.entries(r?.response || {})) for (const ev of v.events || []) out.push({ ...ev, cal, start: new Date(ev.start), end: new Date(ev.end), allDay: !ev.start.includes("T") });
     return out.sort((a, b) => a.start - b.start);
-  } catch (e) { console.warn("[hacasa-nova] calendar.get_events failed", e); return []; }
+  } catch (e) { console.warn("[tomte] calendar.get_events failed", e); return []; }
 }
 export const eventWhen = ev => {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -100,7 +100,7 @@ export async function fetchHistory(hass, entityId, hours = 24) {
   try {
     const r = await hass.callWS({ type: "history/history_during_period", start_time: start.toISOString(), entity_ids: [entityId], minimal_response: true, no_attributes: true });
     return (r?.[entityId] || []).map(x => ({ s: x.s, t: new Date((x.lu || x.lc) * 1000) })).reverse();
-  } catch (e) { console.warn("[hacasa-nova] history failed", e); return null; }
+  } catch (e) { console.warn("[tomte] history failed", e); return null; }
 }
 export const timeline = (rows, kind) => {
   if (rows == null) return html`<div class="sub">${t("Geen geschiedenis beschikbaar")}</div>`;

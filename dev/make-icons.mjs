@@ -1,5 +1,5 @@
 // Run from the project folder: node dev/make-icons.mjs  (writes icons/*.svg, inlined into the bundle by build.mjs; dev/icons.html shows the whole set)
-// Generates thin stroke icons for HaCasa Nova (50x50 viewBox, ~1.8px strokes).
+// Generates thin stroke icons for Tomte (50x50 viewBox, ~1.8px strokes).
 import { writeFileSync } from "node:fs";
 const S = sz => `fill="none" stroke="#fff" stroke-width="${(1.8 * sz / 50).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round"`; // same on-screen weight whatever the viewBox
 // Measured content boxes (svg.getBBox in a browser). The viewBox is fitted to the drawing so each icon

@@ -1,11 +1,11 @@
 {
-  "name": "hacasa-nova",
+  "name": "tomte",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "HaCasa Nova: the HaCasa reboot, a room-first Home Assistant panel built on the Homio design.",
+  "description": "Tomte: the Tomte reboot, a room-first Home Assistant panel built on the Homio design.",
   "license": "MIT",
-  "repository": "github:emile-bodin/HaCasa",
+  "repository": "github:emile-bodin/tomte",
   "scripts": {
     "build": "node build.mjs",
     "build:dev": "node build.mjs --dev",
@@ -16,7 +16,7 @@
     "deploy:prod": "node dev/deploy.mjs prod",
     "rollback:dev": "node dev/rollback.mjs dev",
     "rollback:prod": "node dev/rollback.mjs prod",
-    "smoke": "node dev/smoke.mjs dist-dev/hacasa-nova-dev.js hacasa-nova-dev",
+    "smoke": "node dev/smoke.mjs dist-dev/tomte-dev.js tomte-panel-dev",
     "release": "node dev/release.mjs"
   },
   "dependencies": {

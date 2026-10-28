@@ -1,4 +1,4 @@
-// HaCasa Nova: a Home Assistant custom panel (panel_custom) that builds a home view and one
+// Tomte: a Home Assistant custom panel (panel_custom) that builds a home view and one
 // page per area, straight from the area/device/entity registries.
 import { t, locale, setLang, pickLang } from "./i18n.js";
 import { LitElement, html, nothing } from "lit";
@@ -33,7 +33,7 @@ const BUILD = Math.floor(Date.now() / 3600000).toString(36);   // changes every 
 const FONT = "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap";
 const DEFAULT_CONFIG = { rooms: "auto", roomImage: "/local/images/rooms/{slug}.jpg", homeImage: "/local/images/rooms/home.jpg", maxRooms: 9, home: {}, more: [] };
 
-class HacasaNova extends LitElement {
+class TomtePanel extends LitElement {
   static styles = styles;
   static properties = {
     hass: { attribute: false }, narrow: { type: Boolean }, route: { attribute: false }, panel: { attribute: false },
@@ -90,7 +90,7 @@ class HacasaNova extends LitElement {
     try {
       const res = await fetch(new URL("../config.json?" + Date.now(), BASE), { cache: "no-store" });
       if (res.ok) this.fileConfig = await res.json();
-    } catch (e) { console.warn("[hacasa-nova] config.json not loaded, using defaults", e); }
+    } catch (e) { console.warn("[tomte] config.json not loaded, using defaults", e); }
     this.applyConfig();
   }
   /** user settings; a config.json next to the panel is imported into them once (so updates never overwrite anything) */
@@ -98,7 +98,7 @@ class HacasaNova extends LitElement {
     let u = await loadUserConfig(this.hass);
     if (this.fileConfig && Object.keys(this.fileConfig).length && !u?.importedAt) {
       u = { ...mergeConfig(this.fileConfig, u || {}), importedAt: new Date().toISOString(), setupDone: true };
-      try { await saveUserConfig(this.hass, u); console.info("[hacasa-nova] config.json imported into the user settings"); } catch (e) { console.warn("[hacasa-nova] could not store the imported config.json", e); }
+      try { await saveUserConfig(this.hass, u); console.info("[tomte] config.json imported into the user settings"); } catch (e) { console.warn("[tomte] could not store the imported config.json", e); }
     }
     const g = await loadSharedConfig(this.hass);
     this.globalConfig = g?.config || null; this.globalMeta = g?.meta || null;
@@ -126,7 +126,7 @@ class HacasaNova extends LitElement {
   exportSettings() {
     const { saveScope, ...all } = this.globalConfig ? mergeConfig(this.globalConfig, this.userConfig || {}) : (this.userConfig || {});
     const blob = new Blob([JSON.stringify(all, null, 2)], { type: "application/json" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "hacasa-nova-settings.json"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "tomte-settings.json"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   /** merge a JSON file (export or an old config.json) into the settings */
   importSettings(file) {
@@ -209,7 +209,7 @@ class HacasaNova extends LitElement {
     const target = domain === "climate" && service === "set_temperature" && data?.entity_id && data.temperature != null;
     if (target) { markSetpoint(data.entity_id, data.temperature); this.requestUpdate(); setTimeout(() => this.requestUpdate(), 10100); }
     try { return await this.hass.callService(domain, service, data); }
-    catch (e) { if (target) { clearSetpoint(data.entity_id); this.requestUpdate(); } const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[hacasa-nova] service failed", domain, service, data, e); this.showToast(msg); throw e; }
+    catch (e) { if (target) { clearSetpoint(data.entity_id); this.requestUpdate(); } const msg = e?.message || e?.error?.message || (typeof e === "string" ? e : t("Opdracht mislukt")); console.warn("[tomte] service failed", domain, service, data, e); this.showToast(msg); throw e; }
   }
   showToast(msg, ms = 4000, cls = "") { this.toast = msg; this.toastCls = cls; clearTimeout(this._toastT); this._toastT = setTimeout(() => { this.toast = null; }, ms); }
   openPopup(pop) { this.popup = pop; }
@@ -266,7 +266,7 @@ class HacasaNova extends LitElement {
     if (!this.canShare) return;
     const shared = mergeConfig(this.globalConfig || {}, pick(this.userConfig, false));
     if (!Object.keys(shared).length) { this.showToast(t("Er is niets om te delen")); return; }
-    try { await this.hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY + "_backup", value: { at: new Date().toISOString(), config: this.userConfig || {} } }); } catch (e) { console.warn("[hacasa-nova] backup before sharing failed", e); }
+    try { await this.hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY + "_backup", value: { at: new Date().toISOString(), config: this.userConfig || {} } }); } catch (e) { console.warn("[tomte] backup before sharing failed", e); }
     await this.saveGlobal(shared);
     this.userConfig = { ...pick(this.userConfig, true), saveScope: "global" }; await saveUserConfig(this.hass, this.userConfig);
     this.applyConfig(); if (this.draft) this.draft = cloneConfig(this.draftBase());
@@ -329,7 +329,7 @@ class HacasaNova extends LitElement {
     const pages = { ...(this.userConfig.pages || {}) };
     const next = tpls.map(x => { if (x.room === "none") return x; const page = x.room || "home", pc = { ...(pages[page] || {}) }, key = `tpl:${x.id}:legacy`;
       pc.add = [...new Set([...(pc.add || []), key])]; pages[page] = pc; return { ...x, room: "none" }; });
-    console.info("[hacasa-nova] template cards moved to the pages' add lists");
+    console.info("[tomte] template cards moved to the pages' add lists");
     this.saveUser({ templates: next, pages }, true);
   }
   tickerOn(key, items) {
@@ -482,7 +482,7 @@ class HacasaNova extends LitElement {
       const r = await this.hass.callWS({ type: "history/history_during_period", start_time: start.toISOString(), entity_ids: [id], minimal_response: false, no_attributes: false, significant_changes_only: false });
       const rows = (r?.[id] || []).map(x => ({ act: x.a?.hvac_action, t: (x.lu || x.lc) * 1000 }));
       rows.forEach((x, i) => { if (x.act != null) known = true; if (!(x.act in min)) return; const a = Math.max(from, x.t), b = rows[i + 1]?.t ?? now; if (b > a) min[x.act] += (b - a) / 60000; });
-    } catch (e) { console.warn("[hacasa-nova] climate history failed", e); }
+    } catch (e) { console.warn("[tomte] climate history failed", e); }
     this.climateHist = { ...(this.climateHist || {}), [id]: { at: Date.now(), heat: Math.round(min.heating), cool: Math.round(min.cooling), known } };
     this._chBusy.delete(id);
   }
@@ -526,7 +526,7 @@ class HacasaNova extends LitElement {
       ${this._prevBg ? html`<div class="bg out" style="--bg:url(&quot;${this._prevBg}&quot;)"></div>` : nothing}
       ${keyed(bg || "plain", isPage ? html`<div class="bg plain"></div>` : html`<div class=${classMap({ bg: true, grad: !this.bgOk(bg) })} style=${this.bgStyle(bg, room?.slug)}></div>`)}
       <nav class=${classMap({ nav: true, open: this.drawer, srch: !!this.searchOpen })}>
-        <a class="logo" @click=${() => this.go(null)}><span class="mark"><img class="ico logo" src=${icon("hacasa")} alt="HaCasa"></span>${brandTitle(this.config.title || t("Thuis") + ".")}</a>
+        <a class="logo" @click=${() => this.go(null)}><span class="mark"><img class="ico logo" src=${icon("tomte")} alt="Tomte"></span>${brandTitle(this.config.title || t("Thuis") + ".")}</a>
         ${this.renderLinks(room, isPage)}
         ${h.persons.length ? html`<div class="people pill" title=${t("Wie is thuis")} @click=${() => this.openPopup({ type: "people" })}><ha-icon icon="mdi:account-group-outline"></ha-icon><span class="pc">${h.home}<small>/${h.persons.length}</small></span></div>` : nothing}
         ${alarm ? html`<div class=${classMap({ alarm: true, pill: true, armed, [alarmCls]: true })} @click=${() => this.openPopup({ type: "alarm" })}><ha-icon icon=${alarm.state === "triggered" ? "mdi:shield-alert" : alarm.state === "arming" || alarm.state === "pending" ? "mdi:shield-sync" : armed ? "mdi:shield-home" : "mdi:shield-home-outline"}></ha-icon><span class="al">${alarmLbl}</span><i></i></div>` : html`<span></span>`}
@@ -645,8 +645,8 @@ class HacasaNova extends LitElement {
     if (h.doorsOpen.length) items.push({ k: "doors", icon: "mdi:door-open", title: h.doorsOpen.map(e => name(this.hass, e)).join(", "), text: h.doorsOpen.length === 1 ? t("Staat open") : t("Staan open") });
     for (const m of modeList(this).filter(m => m.on)) items.push({ k: "modes", icon: m.icon || "mdi:account-switch-outline", title: m.label, text: t("Actief") });
     items.push(...this.applianceItems(this.rooms.flatMap(r => r.ents.appliances)));
-    const su = selfUpdate(this);   // a newer HaCasa Nova: first in the row, tap = what's new (+ install via HACS)
-    if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("HaCasa Nova {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
+    const su = selfUpdate(this);   // a newer Tomte: first in the row, tap = what's new (+ install via HACS)
+    if (su) items.unshift({ k: "update", icon: "mdi:arrow-up-circle-outline", title: t("Tomte {v}", { v: String(su.to).replace(/^v/, "") }), text: t("update beschikbaar · tik voor wat er nieuw is"), tap: su.open });
     const editing = this.editing("home"), cards = editing ? [editStrip(this, "home")] : this.applyPage("home", homeCards(this, h)).map(c => c.tpl);
     return html`
       ${this.renderTitle(h.temp, t(this.pageCfg("home").title || this.config.home?.greeting || "") || greeting(), "", this.tickerOn("home", items), html`${this.renderPills(h)}${quickRow(this)}`, "home", this.renderWx(h.weather), h.hum)}
@@ -727,7 +727,7 @@ class HacasaNova extends LitElement {
   }
 }
 
-if (!customElements.get(TAG)) customElements.define(TAG, HacasaNova);
+if (!customElements.get(TAG)) customElements.define(TAG, TomtePanel);
 import "./card.js";
 import "./iconset.js";
 /** room name inside a sentence: lower-cased, except in German where nouns keep their capital */

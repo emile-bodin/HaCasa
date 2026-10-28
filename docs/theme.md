@@ -1,6 +1,6 @@
 # Theme for Home Assistant
 
-HaCasa Nova does not need a theme. If you want the rest of Home Assistant to match, the repository includes an optional theme, [`theme/hacasa-nova.yaml`](https://github.com/emile-bodin/HaCasa/blob/main/theme/hacasa-nova.yaml). It puts your home photo behind the sidebar, header and views, and turns cards and dialogs into the same frosted glass.
+Tomte does not need a theme. If you want the rest of Home Assistant to match, the repository includes an optional theme, [`theme/tomte.yaml`](https://github.com/emile-bodin/tomte/blob/main/theme/tomte.yaml). It puts your home photo behind the sidebar, header and views, and turns cards and dialogs into the same frosted glass.
 
 It needs [card-mod](https://github.com/thomasloven/lovelace-card-mod) (HACS) and is dark only.
 
@@ -13,9 +13,9 @@ It needs [card-mod](https://github.com/thomasloven/lovelace-card-mod) (HACS) and
       themes: !include_dir_merge_named themes
     ```
 
-2. Copy `hacasa-nova.yaml` to `/config/themes/hacasa-nova/hacasa-nova.yaml`.
+2. Copy `tomte.yaml` to `/config/themes/tomte/tomte.yaml`.
 3. **Developer tools → YAML → Themes** (reload).
-4. **Profile → Theme → HaCasa Nova**.
+4. **Profile → Theme → Tomte**.
 
 The theme uses `/local/images/rooms/home.jpg` as background. Change the `url()` near the top of the file to use another photo.
 

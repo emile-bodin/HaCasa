@@ -1,7 +1,7 @@
-# "HaCasa Nova": makes the rest of Home Assistant look like the HaCasa Nova panel.
+# "Tomte": makes the rest of Home Assistant look like the Tomte panel.
 #
-# Install: copy to /config/themes/hacasa-nova/hacasa-nova.yaml (themes: !include_dir_merge_named themes in configuration.yaml),
-# reload themes (Developer tools > YAML > Themes), then Profile > Theme > "HaCasa Nova".
+# Install: copy to /config/themes/tomte/tomte.yaml (themes: !include_dir_merge_named themes in configuration.yaml),
+# reload themes (Developer tools > YAML > Themes), then Profile > Theme > "Tomte".
 #
 # One continuous photo (the panel's home image with its dark overlay) sits behind the
 # sidebar, the header and the view. Sidebar, header, cards and dialogs are frosted glass
@@ -11,8 +11,8 @@
 # Font everywhere: add to configuration.yaml under lovelace: resources:
 #   - url: https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700
 #     type: css
-HaCasa Nova:
-  card-mod-theme: HaCasa Nova
+Tomte:
+  card-mod-theme: Tomte
 
   # ----- the photo behind everything (fixed, so sidebar + view line up) ----- #
   card-mod-root: |

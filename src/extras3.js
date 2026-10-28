@@ -12,7 +12,7 @@ export async function fetchNumeric(hass, ids, hours = 1) {
     const out = {};
     for (const id of ids) out[id] = (r?.[id] || []).map(x => ({ t: (x.lu || x.lc) * 1000, v: num(x.s) })).filter(x => x.v != null);
     return out;
-  } catch (e) { console.warn("[hacasa-nova] history failed", e); return {}; }
+  } catch (e) { console.warn("[tomte] history failed", e); return {}; }
 }
 /** tiny area sparkline; rows = [{t, v}] */
 export const spark = (rows, w = 160, h = 30) => {
@@ -60,7 +60,7 @@ export async function batteryEta(hass, ids, days = 30) {
       out[id] = slope < -0.03 ? { days: Math.round(cur / -slope), slope } : { days: null, slope };
     }
     return out;
-  } catch (e) { console.warn("[hacasa-nova] statistics failed", e); return {}; }
+  } catch (e) { console.warn("[tomte] statistics failed", e); return {}; }
 }
 export const etaText = eta => !eta ? "" : eta.days == null ? t("Stabiel") : eta.days > 365 ? t("> 1 jaar") : eta.days <= 1 ? t("Bijna leeg") : t("Nog ~{n} dagen", { n: eta.days });
 

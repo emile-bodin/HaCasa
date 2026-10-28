@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: An idea for HaCasa Nova
+about: An idea for Tomte
 labels: enhancement
 ---
 

@@ -1,6 +1,6 @@
 # Security
 
-HaCasa Nova runs in the Home Assistant frontend with the rights of the logged-in user. It has no server part of its own and stores its settings in Home Assistant's per-user frontend storage.
+Tomte runs in the Home Assistant frontend with the rights of the logged-in user. It has no server part of its own and stores its settings in Home Assistant's per-user frontend storage.
 
 ## Reporting a vulnerability
 
@@ -10,4 +10,4 @@ You'll get a reply as soon as possible. Once a fix is released, the report can b
 
 ## Supported versions
 
-Only the latest release of HaCasa Nova receives fixes. HaCasa v2 (the [`legacy`](https://github.com/damianeickhoff/HaCasa/tree/legacy) branch) is no longer maintained.
+Only the latest release of Tomte receives fixes. HaCasa v2 (the [`legacy`](https://github.com/damianeickhoff/HaCasa/tree/legacy) branch) is no longer maintained.

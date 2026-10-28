@@ -2,7 +2,7 @@
 
 ## Design
 
-The look of HaCasa Nova is based on [Homio](https://github.com/iamtherufus/Homio) by iamtherufus, used under the MIT License:
+The look of Tomte (and of HaCasa Nova, the project it started from) is based on [Homio](https://github.com/iamtherufus/Homio) by iamtherufus, used under the MIT License:
 
     MIT License
 
@@ -28,4 +28,4 @@ The look of HaCasa Nova is based on [Homio](https://github.com/iamtherufus/Homio
 
 ## Lit
 
-The bundled `dist/hacasa-nova.js` includes [Lit](https://lit.dev) (BSD-3-Clause, Google LLC). Its license notice is kept at the end of that file.
+The bundled `dist/tomte.js` includes [Lit](https://lit.dev) (BSD-3-Clause, Google LLC). Its license notice is kept at the end of that file.

@@ -1,15 +1,15 @@
 # Troubleshooting
 
 ??? question "The sidebar entry shows an empty page"
-    - Check `module_url` in `configuration.yaml`: open the URL in your browser (`http://homeassistant.local:8123/hacsfiles/HaCasa/hacasa-nova.js`). You should see JavaScript, not a 404.
-    - `name` must be exactly `hacasa-nova`.
+    - Check `module_url` in `configuration.yaml`: open the URL in your browser (`http://homeassistant.local:8123/hacsfiles/tomte/tomte.js`). You should see JavaScript, not a 404.
+    - `name` must be exactly `tomte-panel`.
     - Restart Home Assistant after changing `panel_custom`, then reload the browser.
 
 ??? question "The sidebar icon is empty"
-    `sidebar_icon: hacasa:logo` needs the file loaded at startup: add it under `frontend: extra_module_url` (see [Installation](installation.md#2a-sidebar-panel)) and restart. Or use an `mdi:` icon instead.
+    `sidebar_icon: tomte:logo` needs the file loaded at startup: add it under `frontend: extra_module_url` (see [Installation](installation.md#2a-sidebar-panel)) and restart. Or use an `mdi:` icon instead.
 
-??? question "Custom element doesn't exist: hacasa-nova-card"
-    The dashboard resource is missing. HACS adds it automatically in storage-mode dashboards; otherwise add `/hacsfiles/HaCasa/hacasa-nova.js` as a *JavaScript module* under **Settings → Dashboards → ⋮ → Resources**, then reload.
+??? question "Custom element doesn't exist: tomte-card"
+    The dashboard resource is missing. HACS adds it automatically in storage-mode dashboards; otherwise add `/hacsfiles/tomte/tomte.js` as a *JavaScript module* under **Settings → Dashboards → ⋮ → Resources**, then reload.
 
 ??? question "A device is missing from a room"
     Rooms are areas. Check that the entity, or its device, is assigned to that area in Home Assistant. Entities with the *diagnostic* or *config* category are left out on purpose. A card hidden via its card settings is listed under **Settings → Card settings**.
@@ -30,4 +30,4 @@
     **Settings → General → Language**. *Automatic* follows the language of your Home Assistant profile; anything other than Dutch or German shows English.
 
 ??? question "Something else"
-    Found a bug or have a question? Open an [issue on GitHub](https://github.com/emile-bodin/HaCasa/issues/new/choose) with your Home Assistant version, the browser and any red lines from the browser console (F12).
+    Found a bug or have a question? Open an [issue on GitHub](https://github.com/emile-bodin/tomte/issues/new/choose) with your Home Assistant version, the browser and any red lines from the browser console (F12).

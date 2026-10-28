@@ -7,20 +7,23 @@ import { domain, slug, SUFFIX, VERSION, relTime } from "./util.js";
 import { QUICK_TYPES, QUICK_DOMAINS, triggerCandidates, selfUpdate } from "./features.js";
 import { GRAPH_HOURS } from "./graph.js";
 
-export const USER_DATA_KEY = "hacasa_nova" + (SUFFIX ? "_dev" : "");
+export const USER_DATA_KEY = "tomte" + (SUFFIX ? "_dev" : "");
 
-// carried over once when the key is empty: pre-release names, or (dev build) a copy of the real settings
-const OLD_USER_DATA_KEYS = SUFFIX ? ["hacasa_nova"] : ["kamer_panel", "homio_panel"];
+// carried over once when the key is empty: the names this panel had before it was called Tomte (hacasa_nova), pre-release
+// names, or (dev build) a copy of the real settings
+const OLD_USER_DATA_KEYS = SUFFIX ? ["hacasa_nova_dev", "tomte"] : ["hacasa_nova", "kamer_panel", "homio_panel"];
+// household settings: the old key is read while the new one is still empty (the first administrator save writes the new key)
+const OLD_SYSTEM_DATA_KEYS = SUFFIX ? ["hacasa_nova_dev"] : ["hacasa_nova"];
 export async function loadUserConfig(hass) {
   try {
     const r = await hass.callWS({ type: "frontend/get_user_data", key: USER_DATA_KEY });
     if (r?.value) return r.value;
     for (const key of OLD_USER_DATA_KEYS) {
       const o = await hass.callWS({ type: "frontend/get_user_data", key });
-      if (o?.value) { await hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value: o.value }); console.info(`[hacasa-nova] settings migrated from ${key}`); return o.value; }
+      if (o?.value) { await hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value: o.value }); console.info(`[tomte] settings migrated from ${key}`); return o.value; }
     }
     return null;
-  } catch (e) { console.warn("[hacasa-nova] user data not available", e); return null; }
+  } catch (e) { console.warn("[tomte] user data not available", e); return null; }
 }
 export const saveUserConfig = (hass, value) => hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value });
 
@@ -80,10 +83,12 @@ export const personalPaths = own => Object.entries(pick(own, false)).flatMap(([k
 /** household settings live in HA's system data (readable by everyone, writable by administrators) */
 export async function loadSharedConfig(hass) {
   try {
-    const r = await hass.callWS({ type: "frontend/get_system_data", key: USER_DATA_KEY });
-    const v = r?.value;
-    return v && typeof v === "object" && v.config && Object.keys(v.config).length ? v : null;
-  } catch (e) { console.warn("[hacasa-nova] shared settings not available", e); return false; }   // false = could not read: keep what we have
+    for (const key of [USER_DATA_KEY, ...OLD_SYSTEM_DATA_KEYS]) {
+      const v = (await hass.callWS({ type: "frontend/get_system_data", key }))?.value;
+      if (v && typeof v === "object" && v.config && Object.keys(v.config).length) return v;
+    }
+    return null;
+  } catch (e) { console.warn("[tomte] shared settings not available", e); return false; }   // false = could not read: keep what we have
 }
 export const saveSharedConfig = (hass, value) => hass.callWS({ type: "frontend/set_system_data", key: USER_DATA_KEY, value });
 
@@ -177,11 +182,11 @@ export function renderSettings(p) {
         ${field(t("Media-achtergrond"), text(d.mediaIdleImage, v => set("mediaIdleImage", v), "/local/images/music/idle-media.gif"), t("op mediakaarten als er niets speelt; leeg = geen"))}`)}
       ${sec(t("Gedrag"), "", html`
         ${field(t("Batterij-grens"), number(d.home?.lowBattery ?? 20, v => setHome("lowBattery", v)), t("onder dit percentage in Aandacht"))}
-        ${field(t("Controleren op updates"), check(!d.noUpdateCheck, v => set("noUpdateCheck", v ? undefined : true)), t("melding op de startpagina als er een nieuwe HaCasa Nova is (alleen voor beheerders)"))}
+        ${field(t("Controleren op updates"), check(!d.noUpdateCheck, v => set("noUpdateCheck", v ? undefined : true)), t("melding op de startpagina als er een nieuwe Tomte is (alleen voor beheerders)"))}
         ${field(t("Lichtscènes"), check(!d.noPresets, v => set("noPresets", v ? undefined : true)), t("kaart in elke kamer met lampen: sla lampstanden op en roep ze terug"))}
         <div class="f"><span>${t("Slaapstand na")}<small>${t("minuten zonder aanraking; 0 = uit")}</small></span><div class="row" style="grid-template-columns:1fr max-content;margin:0">${number(d.idleMinutes ?? 0, v => set("idleMinutes", v))}<button @click=${() => p.showIdle()}>${t("Nu tonen")}</button></div></div>
         <div class="f"><span>${t("Installatiehulp")}<small>${t("opnieuw doorlopen; wijzigt alleen wat je invult")}</small></span><button @click=${() => p.openPopup({ type: "wizard", step: 0 })}>${t("Opnieuw starten")}</button></div>
-        ${p.hashMode ? nothing : html`<div class="f"><span>${t("Startpagina van HA")}<small>${t("Home Assistant opent dan met dit panel (per gebruiker)")}</small></span><button class=${p.isDefault ? "on" : ""} @click=${() => p.setDefault(!p.isDefault)}>${p.isDefault ? t("HaCasa Nova is de startpagina") : t("Maak HaCasa Nova de startpagina")}</button></div>`}`)}`,
+        ${p.hashMode ? nothing : html`<div class="f"><span>${t("Startpagina van HA")}<small>${t("Home Assistant opent dan met dit panel (per gebruiker)")}</small></span><button class=${p.isDefault ? "on" : ""} @click=${() => p.setDefault(!p.isDefault)}>${p.isDefault ? t("Tomte is de startpagina") : t("Maak Tomte de startpagina")}</button></div>`}`)}`,
 
     paginas: sec(t("Pagina's"), t("per pagina: titel, foto, kaarten (tonen, verbergen, volgorde) en de meldingenregel"), html`
       <ul class="rooms">${["home", ...p.rooms.map(r => r.id)].map(key => { const pc = d.pages?.[key] || {}; const n = (pc.hidden || []).length, o = (pc.order || []).length, tk = Object.values(pc.ticker || {}).filter(v => v === false).length;
@@ -300,7 +305,7 @@ export function renderSettings(p) {
   };
 
   return html`<section class="settings page">
-    <header class="phead"><div><h1>${t("Instellingen")}</h1><div class="psub">${t("Opgeslagen per gebruiker in Home Assistant. Leeg laten = automatisch of de waarde uit config.json.")} · HaCasa Nova ${VERSION}${(su => su ? html` · <a class="upd" @click=${su.open}>${t("{v} beschikbaar", { v: String(su.to).replace(/^v/, "") })}</a>` : nothing)(selfUpdate(p))}</div></div>
+    <header class="phead"><div><h1>${t("Instellingen")}</h1><div class="psub">${t("Opgeslagen per gebruiker in Home Assistant. Leeg laten = automatisch of de waarde uit config.json.")} · Tomte ${VERSION}${(su => su ? html` · <a class="upd" @click=${su.open}>${t("{v} beschikbaar", { v: String(su.to).replace(/^v/, "") })}</a>` : nothing)(selfUpdate(p))}</div></div>
       <div class="actions">
         ${scopePicker(p)}${p.saved ? html`<span class="ok">${t("Opgeslagen")}</span>` : dirty ? html`<span class="dirty"><ha-icon icon="mdi:circle-medium"></ha-icon>${t("Niet opgeslagen")}</span>` : nothing}
         <button class=${dirty ? "primary pulse" : "primary"} @click=${() => p.saveSettings()}>${t("Opslaan")}</button>

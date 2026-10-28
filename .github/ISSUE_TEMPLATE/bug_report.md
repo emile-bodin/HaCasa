@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Something in HaCasa Nova does not work as expected
+about: Something in Tomte does not work as expected
 labels: bug
 ---
 
@@ -15,7 +15,7 @@ labels: bug
 2.
 
 **Setup**
-- HaCasa Nova version (Panel settings, top of the page):
+- Tomte version (Panel settings, top of the page):
 - Home Assistant version:
 - Panel (`panel_custom`) or dashboard card:
 - Browser / device:

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HaCasa Nova – dev</title>
+<title>Tomte – dev</title>
 <!-- Home Assistant provides <ha-icon>; outside HA we shim it with iconify's mdi set. -->
 <script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
 <style>html,body{margin:0;height:100%;background:#222}</style>
@@ -21,9 +21,9 @@
     });
   }
   import { makeHass } from "./mock-hass.js";
-  await import("../dist/hacasa-nova.js?v=" + Date.now());
+  await import("../dist/tomte.js?v=" + Date.now());
 
-  const el = document.createElement("hacasa-nova");
+  const el = document.createElement("tomte-panel");
   // dev config: images are served from the www root by http-server, not /local
   // dev config: photos come from /images/rooms/ under the served folder (not part of the repo; rooms without one get a gradient)
   const img = n => `/images/rooms/${n}.png`;
@@ -39,14 +39,14 @@
   };
   el.loadConfig = async () => { el.applyConfig(); };   // keep the dev config (acts as config.json)
   el.hass = makeHass(h => { el.hass = { ...h }; });
-  el.panel = { url_path: "hacasa" };
+  el.panel = { url_path: "tomte" };
   el.hass.userData = {};
   el.addEventListener("hass-toggle-menu", () => console.log("[mock] hass-toggle-menu"));
-  const route = () => ({ prefix: "/hacasa", path: location.hash.replace(/^#/, "") || "/" });
+  const route = () => ({ prefix: "/tomte", path: location.hash.replace(/^#/, "") || "/" });
   el.route = route();
-  // the panel navigates with history.pushState("/hacasa/<room>"); map that back to a hash for the dev server
+  // the panel navigates with history.pushState("/tomte/<room>"); map that back to a hash for the dev server
   const origPush = history.pushState.bind(history);
-  history.pushState = (s, t, url) => { location.hash = String(url).replace(/^\/hacasa/, "") || "/"; };
+  history.pushState = (s, t, url) => { location.hash = String(url).replace(/^\/tomte/, "") || "/"; };
   addEventListener("hashchange", () => { el.route = route(); });
   // screenshot helpers: ?shot hides the first-run hint, ?popup=light:light.floor_lamp (or ?popup=weather) opens a popup
   const q = new URLSearchParams(location.search);
@@ -54,7 +54,7 @@
   if (q.has("shot")) {
     el.fileConfig.hintSeen = true;
     // animations jump to their end state, so a capture never lands mid-fade
-    customElements.whenDefined("hacasa-nova").then(() => el.updateComplete).then(() => {
+    customElements.whenDefined("tomte-panel").then(() => el.updateComplete).then(() => {
       const st = document.createElement("style");
       st.textContent = "*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important}";
       el.shadowRoot.append(st);

@@ -73,16 +73,12 @@ export function graphCard(p, g) {
 }
 
 export const graphStyles = `
-  /* ===== graph card: the line fills the band under the icon, text block stays where every card has it ===== */
-  .card.graph .gl{position:absolute;left:var(--cp);right:var(--cp);top:calc(var(--cp) + 36px + 6px);height:36px;pointer-events:none}
+  /* ===== graph card: the line fills the band under the icon, text block stays where every card has it =====
+     --gl-h / --gl-gap / --gl-nmt: height of the band, its gap under the icon, and the space above the name (compact values: styles.js) */
+  .card.graph{--gl-h:36px;--gl-gap:6px;--gl-nmt:58px;--gl-dot:7px}
+  .card.graph .gl{position:absolute;left:var(--cp);right:var(--cp);top:calc(var(--cp) + var(--ib) + var(--gl-gap));height:var(--gl-h);pointer-events:none}
   .card.graph .gl svg{display:block;width:100%;height:100%;overflow:visible}
-  .card.graph .gl .now{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
-  .card.graph .n{margin-top:58px}
+  .card.graph .gl .now{position:absolute;width:var(--gl-dot);height:var(--gl-dot);margin:calc(var(--gl-dot) / -2) 0 0 calc(var(--gl-dot) / -2);border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+  .card.graph .n{margin-top:var(--gl-nmt)}
   .card.graph.unavailable .gl{display:none}
-  @media (max-width:900px){
-    .card.graph .gl{top:calc(var(--cp) + 26px + 4px);height:22px}
-    .card.graph .gl .now{width:6px;height:6px;margin:-3px 0 0 -3px}
-    .card.graph .n{margin-top:32px}
-    .card.graph .s{display:none}   /* phones: the 132px card has no room for the average line under the chart */
-  }
 `;

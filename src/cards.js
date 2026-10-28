@@ -300,7 +300,7 @@ export function climateCard(p, s, title = t("Verwarming")) {
   const action = s.attributes.hvac_action ? ({ heating: t("Verwarmt"), cooling: t("Koelt"), idle: t("Rust"), off: t("Uit"), drying: t("Droogt"), fan: t("Ventileert") }[s.attributes.hvac_action] || s.attributes.hvac_action) : on ? ({ heat: t("Verwarmen"), cool: t("Koelen"), auto: t("Auto"), heat_cool: t("Auto"), dry: t("Drogen"), fan_only: t("Ventileren") }[s.state] || s.state) : t("Uit");
   const lo = num(s.attributes.min_temp) ?? 7, hi = num(s.attributes.max_temp) ?? 35, v = target != null ? Math.max(0, Math.min(100, (target - lo) / (hi - lo) * 100)) : 0;
   const setTo = val => p.call("climate", "set_temperature", { entity_id: s.entity_id, temperature: +val.toFixed(1) });
-  return html`<div class=${classMap({ card: true, climate: true, on, unavailable: un })}
+  return html`<div class=${classMap({ card: true, hero: true, climate: true, on, unavailable: un })}
       ${pressDir(p, { tap: () => p.openPopup({ type: "climate", s }) })}>
     ${un ? ua() : nothing}
     <div class="i">${icoFor(p, s.entity_id, "mdi:radiator", "heating")}</div>
@@ -415,7 +415,7 @@ function plugCard(p, a, st, title, cfg, acts) {
   else if (mode === "cost") bottom = price ? html`<div class="lbl cost"><span>${h?.today != null ? html`${t("Vandaag")} <b>${eur(h.today * price)}</b>` : ""}${!on && W > 0.5 ? html`${h?.today != null ? dot() : nothing}${t("Sluipverbruik")} <b>${eur(W * 24 * 30 / 1000 * price)}</b> / ${t("maand")}` : nothing}</span></div>` : html`<div class="lbl"><span>${t("Stel een kWh-prijs in bij Energie")}</span></div>`;
   else if (mode === "bars") bottom = h?.rows ? html`<div class="lbl bars">${h.rows.map(r => html`<i class=${classMap({ on: r.v > 0.01 })} style="height:${Math.max(9, r.v / (h.maxH || 1) * 100)}%"></i>`)}</div>` : html`<div class="lbl"><span>…</span></div>`;
   else if (mode === "spark" && h?.peak) bottom = html`<div class="lbl"><span>${t("piek {w} W om {t}", { w: h.peak.v, t: new Date(h.peak.t).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) })}</span></div>`;
-  return html`<div class=${classMap({ card: true, plug: true, appl: acts.length > 0, hasspk: mode === "spark" && !!h?.spark?.length, on, unavailable: st.st === "unknown", ...infoCls(cfg) })}
+  return html`<div class=${classMap({ card: true, hero: true, plug: true, appl: acts.length > 0, hasspk: mode === "spark" && !!h?.spark?.length, on, unavailable: st.st === "unknown", ...infoCls(cfg) })}
       ${pressDir(p, pressFor(p, a.id, sw ? () => p.call("switch", "toggle", { entity_id: sw.id }) : null, () => p.openPopup({ type: "appliance", a })))}>
     ${st.st === "unknown" ? ua() : nothing}
     <div class="i">${ico(cfg.icon || "mdi:power-plug-outline", "plug")}</div>
@@ -570,7 +570,7 @@ export function valueCard(p, e) {
   const s = e.state, un = unavailable(s), v = num(s?.state), unit = s?.attributes?.unit_of_measurement || "", dc = s?.attributes?.device_class;
   const mdi = s?.attributes?.icon || (dc === "temperature" ? "mdi:thermometer" : dc === "humidity" ? "mdi:water-percent" : ["power", "energy"].includes(dc) ? "mdi:flash-outline" : dc === "battery" ? "mdi:battery" : dc === "illuminance" ? "mdi:brightness-6" : "mdi:gauge");
   const corner = ovr(p, e.id, "state") ?? (DC_LABEL[dc] ? t(DC_LABEL[dc]) : "");
-  return html`<div class=${classMap({ card: true, value: true, unavailable: un, acts: hasActs(p, e.id), ...infoCls(cardCfg(p, e.id)) })} ${pressDir(p, pressFor(p, e.id, null, () => p.openPopup({ type: "value", e })))}>
+  return html`<div class=${classMap({ card: true, value: true, hero: !un && v != null, unavailable: un, acts: hasActs(p, e.id), ...infoCls(cardCfg(p, e.id)) })} ${pressDir(p, pressFor(p, e.id, null, () => p.openPopup({ type: "value", e })))}>
     ${un ? ua() : nothing}
     <div class="i">${icoFor(p, e.id, mdi)}</div>
     ${corner ? html`<div class="c">${corner}</div>` : nothing}

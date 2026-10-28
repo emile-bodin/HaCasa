@@ -4,9 +4,8 @@ Thanks for wanting to help! HaCasa Nova is a beta maintained by one person, so s
 
 ## Where to go
 
-- **Bug?** Open an [issue](https://github.com/damianeickhoff/HaCasa/issues/new/choose) with your Home Assistant version, browser and any red lines from the browser console (F12).
-- **Question or idea?** Start a [discussion](https://github.com/damianeickhoff/HaCasa/discussions): Q&A for help, Ideas for suggestions, Show and tell for your setup. For a quick chat, or to test betas, join the [HaCasa Discord](https://discord.gg/2Xgtqm8Xmw).
-- **Known issues** are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158). Pick one, say in the issue that you're on it, and go.
+- **Bug?** Open an [issue](https://github.com/emile-bodin/HaCasa/issues/new/choose) with your Home Assistant version, browser and any red lines from the browser console (F12).
+- **Question or idea?** Open an [issue](https://github.com/emile-bodin/HaCasa/issues/new/choose) and say what you would like to see.
 
 ## Development
 
@@ -18,7 +17,7 @@ npx http-server .. -p 8097 -c-1
 npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one
 ```
 
-`dev/index.html` runs the panel against a mock home; add `?lang=nl` for Dutch. More in the [development guide](https://damianeickhoff.github.io/HaCasa/development/).
+`dev/index.html` runs the panel against a mock home; add `?lang=nl` for Dutch. More in the [development guide](https://github.com/emile-bodin/HaCasa/tree/main/docs/development/).
 
 ## Pull requests
 
@@ -38,7 +37,6 @@ Each language is one file in [`src/lang/`](src/lang/). To add one:
 
 A missing or empty key falls back to English, so a partial translation works. The panel picks the language from the Home Assistant profile (`de-CH` uses `de`); users can override it in the panel settings. Check long words with `?lang=<code>` in `dev/index.html`.
 
-See [#156](https://github.com/damianeickhoff/HaCasa/issues/156).
 
 ## Licence
 

@@ -13,3 +13,6 @@ REDDIT_POST.md
 # dev build and the per-machine deploy target
 dist-dev/
 deploy.local.json
+
+# local deploy backups (npm run deploy:dev / deploy:prod keep the last 10 bundles here)
+.deploy-backups/

@@ -141,7 +141,7 @@ export const featureStyles = `
 `;
 
 /* ---------- a newer HaCasa Nova ---------- */
-const REPO = "damianeickhoff/HaCasa";
+const REPO = "emile-bodin/HaCasa";
 const parts = v => String(v || "").replace(/^v/, "").split(/[.-]/).slice(0, 3).map(n => parseInt(n, 10) || 0);
 /** true when version a is newer than b ("v3.0.5" > "3.0.4") */
 export const newer = (a, b) => { const x = parts(a), y = parts(b); for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i]; return false; };

@@ -1,48 +1,42 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/logo/hacasa-banner.svg" alt="HaCasa" width="280">
+<img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/logo/hacasa-banner.svg" alt="HaCasa" width="280">
 
 # HaCasa Nova
 
-**The HaCasa reboot.** A room-first Home Assistant panel, built on the [Homio](https://github.com/iamtherufus/Homio) design by [iamtherufus](https://github.com/iamtherufus).
+A room-first Home Assistant panel, based on [HaCasa Nova](https://github.com/damianeickhoff/HaCasa) by Damian Eickhoff and the [Homio](https://github.com/iamtherufus/Homio) design by iamtherufus.
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories/)
-[![Release](https://img.shields.io/github/v/release/damianeickhoff/HaCasa?style=flat-square&label=release)](https://github.com/damianeickhoff/HaCasa/releases)
+[![Release](https://img.shields.io/github/v/release/emile-bodin/HaCasa?style=flat-square&label=release)](https://github.com/emile-bodin/HaCasa/releases)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.4%2B-18BCF2?style=flat-square)](https://www.home-assistant.io/)
-[![License](https://img.shields.io/github/license/damianeickhoff/HaCasa?style=flat-square)](https://github.com/damianeickhoff/HaCasa/blob/main/LICENSE)
-[![Discord](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscord.com%2Fapi%2Fv10%2Finvites%2F2Xgtqm8Xmw%3Fwith_counts%3Dtrue&query=%24.approximate_member_count&suffix=%20members&label=Discord&logo=discord&logoColor=white&color=5865F2&style=flat-square)](https://discord.gg/2Xgtqm8Xmw)
+[![License](https://img.shields.io/github/license/emile-bodin/HaCasa?style=flat-square)](https://github.com/emile-bodin/HaCasa/blob/main/LICENSE)
 
-[Documentation](https://damianeickhoff.github.io/HaCasa/) · [Demo video](https://damianeickhoff.github.io/HaCasa/#demo) · [Install](#install) · [Discussions](https://github.com/damianeickhoff/HaCasa/discussions) · [Discord](https://discord.gg/2Xgtqm8Xmw) · [Screenshots](#screenshots) · [HaCasa v2 (legacy)](https://github.com/damianeickhoff/HaCasa/tree/legacy)
-
-<a href="https://damianeickhoff.github.io/HaCasa/#demo"><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/demo/poster-play.webp" alt="HaCasa Nova: watch the 40-second demo" width="100%"></a>
-
-<sub>▶ Click to watch the 40-second demo</sub>
+[Documentation](https://github.com/emile-bodin/HaCasa/tree/main/docs) · [Install](#install) · [Screenshots](#screenshots)
 
 </div>
 
-> 🍴 **This is a personal fork.** It is [emile-bodin/HaCasa](https://github.com/emile-bodin/HaCasa), a fork of [damianeickhoff/HaCasa](https://github.com/damianeickhoff/HaCasa) that I run at home and change for my own household. It is **not** the original project and is not affiliated with or supported by its author: for the official panel, documentation, releases and support, go to the [original repository](https://github.com/damianeickhoff/HaCasa). Issues here are not monitored the way upstream's are.
->
-> What differs from upstream (see the [changelog](CHANGELOG.md) for details):
->
-> - **Settings in two layers:** one set for the whole household (stored in Home Assistant's system data, edited by administrators) and a personal layer that only holds what differs. Everything merges per field.
-> - **More device cards:** a robot vacuum card and popup (rooms, tasks, maintenance, dock), a litter box card, extra appliance details (SmartThings phases, month totals, remaining time) and an optional two-row room layout.
-> - **Small changes** to the idle screen, the attention list and the thermostat setpoint.
->
-> The badges, documentation, screenshots and discussion links below still point at the original project. Credit for HaCasa Nova and the Homio design goes to its authors; this fork keeps their MIT license.
+> 🏠 **A standalone, personal project.** This began as a fork of [damianeickhoff/HaCasa](https://github.com/damianeickhoff/HaCasa) and has been detached from it. I maintain it for my own household and give it its own versions (from `3.1.0`). It is not affiliated with or supported by the original author: for the original panel, go to [their repository](https://github.com/damianeickhoff/HaCasa). Everything good about the foundation is theirs. See [Thanks](#thanks).
 
-> ⚠️ **HaCasa Nova is a work in progress and needs testing.** This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).
+> ⚠️ **Built for one home.** It is tested in the house it was made for and in the mock home (`dev/index.html`), nowhere else. Expect rough edges, try it next to your current dashboard rather than replacing it, and [open an issue](https://github.com/emile-bodin/HaCasa/issues/new/choose) if something breaks.
 
-## Why a reboot?
+## What it is
 
-HaCasa started as a set of button-card templates: a calm, good-looking dashboard that the whole household could use. It grew to almost 500 stars, and then it stalled, because every new device meant more YAML and every Home Assistant update risked breaking a template.
-
-**HaCasa Nova** keeps the idea and throws out the YAML. It is a single JavaScript file that reads your home straight from Home Assistant:
+HaCasa is a room-first panel for [Home Assistant](https://www.home-assistant.io/). It is a single JavaScript file that reads your home straight from Home Assistant:
 
 - **Your areas become rooms.** Every entity assigned to an area (directly or through its device) shows up on that room's page. Add a lamp in Home Assistant and it appears; no dashboard to edit.
-- **Everything is set up in the panel.** A four-step wizard on first open, then a settings page with tabs. Settings are stored per Home Assistant user, so they follow you to every device and survive updates.
+- **Everything is set up in the panel.** A four-step wizard on first open, then a settings page with tabs. Settings live in two layers: one for the **whole household** (set by an administrator, seen by everyone) and a **personal** layer that only holds what differs for you. They merge per field and survive updates.
 - **No dependencies.** No button-card, card-mod, layout-card or theme required.
 
-The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus: big photo backgrounds, frosted-glass cards, a pill navigation and a lot of breathing room. Nova rebuilds that design as a native panel and adds HaCasa's focus on being friendly for everyone in the house.
+The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus: big photo backgrounds, frosted-glass cards, a pill navigation and a lot of breathing room.
+
+## What this version adds
+
+Compared with HaCasa Nova 3.0.5 (details in the [changelog](CHANGELOG.md)):
+
+- **Household and personal settings**, with a scope picker in the edit bar and the settings header.
+- **A robot vacuum card and popup** (rooms, tasks, maintenance, dock), a **litter box card**, extra **appliance details** (SmartThings phases, month totals, remaining time) and an optional **two-row room layout**.
+- **Smaller changes** to the idle screen (it drifts and dims at night), the attention list (one line per dead device) and the thermostat setpoint (shown at once).
+- **A deploy workflow** with checks, a render smoke test, backups and rollback (see [Development](#development)).
 
 ## Features
 
@@ -56,30 +50,33 @@ The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus
 | **Popups** | Every card opens a detailed popup: brightness, colour and colour temperature, climate modes, media volume, history of the last 24 hours, and a shortcut to Home Assistant's own dialog. |
 | **Per-card settings** | Name, icon, tap and hold behaviour, bottom line, custom action buttons and template overrides per card, plus defaults per card type. |
 | **Extras** | Search, presence pill, alarm keypad, doorbell camera popup, light scene presets per room, guest and vacation modes, idle screen, Dutch, English and German. |
+| **Settings** | Household and personal layers, a setup wizard, export and import, a scope picker in the edit bar. |
 | **Phone and tablet** | Built for wall tablets and phones alike: the strip becomes a two-column grid on phones. |
 
 ## Screenshots
 
+<sub>Taken from HaCasa Nova 3.0.x; the newer cards are not in them yet.</sub>
+
 <table>
   <tr>
-    <td width="50%"><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/room.png" alt="Room page"><br><sub><b>Room page</b> · photo, climate and a strip of cards</sub></td>
-    <td width="50%"><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/kitchen.png" alt="Kitchen"><br><sub><b>Appliances and plugs</b> · power strips, dishwasher programme and progress</sub></td>
+    <td width="50%"><img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/screenshots/room.png" alt="Room page"><br><sub><b>Room page</b> · photo, climate and a strip of cards</sub></td>
+    <td width="50%"><img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/screenshots/kitchen.png" alt="Kitchen"><br><sub><b>Appliances and plugs</b> · power strips, dishwasher programme and progress</sub></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/popup-light.png" alt="Light popup"><br><sub><b>Light popup</b> · brightness, colour and colour temperature</sub></td>
-    <td><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/popup-climate.png" alt="Climate popup"><br><sub><b>Climate popup</b> · target, modes, presets, every room's temperature</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/screenshots/popup-light.png" alt="Light popup"><br><sub><b>Light popup</b> · brightness, colour and colour temperature</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/screenshots/popup-climate.png" alt="Climate popup"><br><sub><b>Climate popup</b> · target, modes, presets, every room's temperature</sub></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/sensors.png" alt="Sensors page"><br><sub><b>Sensors</b> · attention first, then every room</sub></td>
-    <td><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/energy.png" alt="Energy page"><br><sub><b>Energy</b> · now, today per hour, biggest consumers</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/screenshots/sensors.png" alt="Sensors page"><br><sub><b>Sensors</b> · attention first, then every room</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/screenshots/energy.png" alt="Energy page"><br><sub><b>Energy</b> · now, today per hour, biggest consumers</sub></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/settings.png" alt="Settings"><br><sub><b>Settings</b> · everything in the panel, stored per user</sub></td>
-    <td><img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/wizard.png" alt="Setup wizard"><br><sub><b>First run</b> · a four-step setup</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/screenshots/settings.png" alt="Settings"><br><sub><b>Settings</b> · everything in the panel, stored per user</sub></td>
+    <td><img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/screenshots/wizard.png" alt="Setup wizard"><br><sub><b>First run</b> · a four-step setup</sub></td>
   </tr>
 </table>
 
-<img src="https://raw.githubusercontent.com/damianeickhoff/HaCasa/main/docs/assets/screenshots/phones.png" alt="HaCasa Nova on phones" width="100%">
+<img src="https://raw.githubusercontent.com/emile-bodin/HaCasa/main/docs/assets/screenshots/phones.png" alt="HaCasa Nova on phones" width="100%">
 
 ## Install
 
@@ -89,14 +86,14 @@ You need Home Assistant **2024.4 or newer**. HaCasa Nova can run as its own side
 
 1. Open **HACS** in Home Assistant.
 2. Open the menu (⋮, top right) and choose **Custom repositories**.
-3. Add `https://github.com/damianeickhoff/HaCasa` with type **Dashboard**.
+3. Add `https://github.com/emile-bodin/HaCasa` with type **Dashboard**.
 4. Search for **HaCasa Nova**, open it and choose **Download**.
 5. Reload your browser when HACS asks.
 
 <details>
 <summary>Manual download (without HACS)</summary>
 
-1. Download `hacasa-nova.js` from the [latest release](https://github.com/damianeickhoff/HaCasa/releases/latest).
+1. Download `hacasa-nova.js` from the [latest release](https://github.com/emile-bodin/HaCasa/releases/latest).
 2. Copy it to `/config/www/hacasa-nova/hacasa-nova.js`.
 3. Use `/local/hacasa-nova/hacasa-nova.js` wherever the steps below say `/hacsfiles/HaCasa/hacasa-nova.js`.
 
@@ -145,51 +142,44 @@ Put a photo per room in `/config/www/images/rooms/`, named after the area: `Livi
 
 That's it. Everything else lives in the panel: **More → Panel settings**.
 
-> 💡 **For the best experience**, make HaCasa Nova your start page and hide Home Assistant's sidebar. Both are one click per user; see [Best experience](https://damianeickhoff.github.io/HaCasa/best-experience/) in the docs, which also has tips for wall tablets.
+> 💡 **For the best experience**, make HaCasa Nova your start page and hide Home Assistant's sidebar. Both are one click per user; see [Best experience](https://github.com/emile-bodin/HaCasa/blob/main/docs/best-experience.md) in the docs, which also has tips for wall tablets.
 
 ## Documentation
 
-The full guide is at **[damianeickhoff.github.io/HaCasa](https://damianeickhoff.github.io/HaCasa/)**: installation, the setup wizard, every card and its settings, the built-in pages, the optional theme for the rest of Home Assistant, and troubleshooting.
+The full guide is at **[the docs folder](https://github.com/emile-bodin/HaCasa/tree/main/docs)**: installation, the setup wizard, every card and its settings, the built-in pages, the optional theme for the rest of Home Assistant, and troubleshooting.
 
 ## Good to know
 
 - **Admin features.** Template cards and your own ticker lines use Home Assistant's template renderer, installing updates calls `update.install`, and the System page asks the Supervisor for host info. These need an administrator account; for other users those parts stay empty.
 - **Fonts.** The panel uses [Hanken Grotesk](https://fonts.google.com/specimen/Hanken+Grotesk) from Google Fonts. Without internet access it falls back to the system font.
-- **Languages.** English, Dutch and German, following your Home Assistant language. Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/damianeickhoff/HaCasa/tree/main/src/lang), see [CONTRIBUTING](https://github.com/damianeickhoff/HaCasa/blob/main/CONTRIBUTING.md#translations).
+- **Languages.** English, Dutch and German, following your Home Assistant language. Other languages fall back to English. Translations are welcome: each language is one file in [`src/lang/`](https://github.com/emile-bodin/HaCasa/tree/main/src/lang), see [CONTRIBUTING](https://github.com/emile-bodin/HaCasa/blob/main/CONTRIBUTING.md#translations).
 
-## Community
+## Contributing
 
-- **Chat:** join the [HaCasa Discord](https://discord.gg/2Xgtqm8Xmw) for quick questions, beta testing and sharing your setup
-- **Questions and help:** [Discussions → Q&A](https://github.com/damianeickhoff/HaCasa/discussions/categories/q-a)
-- **Show your setup:** [Discussions → Show and tell](https://github.com/damianeickhoff/HaCasa/discussions/categories/show-and-tell)
-- **Ideas:** [Discussions → Ideas](https://github.com/damianeickhoff/HaCasa/discussions/categories/ideas)
-- **Bugs:** [open an issue](https://github.com/damianeickhoff/HaCasa/issues/new/choose); known issues are in [#158](https://github.com/damianeickhoff/HaCasa/issues/158)
-- **Want to help?** See [CONTRIBUTING.md](https://github.com/damianeickhoff/HaCasa/blob/main/CONTRIBUTING.md)
-
-## HaCasa v2 (legacy)
-
-The original button-card based HaCasa is kept on the [`legacy`](https://github.com/damianeickhoff/HaCasa/tree/legacy) branch, with its releases up to v2.1.3. It is no longer maintained.
+Bugs and ideas are welcome as [issues](https://github.com/emile-bodin/HaCasa/issues/new/choose); see [CONTRIBUTING.md](CONTRIBUTING.md) before sending a change. For the original v2 button-card HaCasa, see the [`legacy` branch](https://github.com/damianeickhoff/HaCasa/tree/legacy) of the original repository.
 
 ## Development
 
 ```bash
 npm install
 npm run watch            # rebuilds dist/hacasa-nova.js on every change
-npx http-server .. -p 8097 -c-1
-# open http://localhost:8097/<this folder>/dev/index.html
-npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one
+npm run deploy:dev       # check, build, smoke-test and install as the HaCasa-dev panel
+npm run deploy:prod      # the same from a clean main, installed as the HaCasa panel, and tags the version
+npm run rollback:dev     # (or rollback:prod) put the previous bundle back
 ```
 
-`dev/index.html` runs the panel outside Home Assistant against a mock home (`dev/mock-hass.js`); add `?lang=nl` for Dutch. `dev/card.html?fresh` shows the card wrapper with the first-run wizard. Icons are drawn by `dev/make-icons.mjs` and inlined into the bundle by `build.mjs`. See the [development guide](https://damianeickhoff.github.io/HaCasa/development/) for more.
+`dev/index.html` runs the panel outside Home Assistant against a mock home (`dev/mock-hass.js`); add `?lang=nl` for Dutch. `dev/smoke.mjs` renders the panel in jsdom and walks the settings layers. Icons are drawn by `dev/make-icons.mjs` and inlined into the bundle by `build.mjs`. The workflow (dev first, then production) is described in the [development guide](https://github.com/emile-bodin/HaCasa/blob/main/docs/development.md).
 
-## Credits
+## Thanks
 
-- **Design:** [Homio](https://github.com/iamtherufus/Homio) by [iamtherufus](https://github.com/iamtherufus). HaCasa Nova would not look the way it does without it.
-- **HaCasa:** created by [Damian Eickhoff](https://github.com/damianeickhoff). HaCasa logo by [Fredrik Persson](https://github.com/fredrikpersson92).
-- **Built with** [Lit](https://lit.dev). Icons are original, drawn for this project.
-- **Made with AI assistance.** HaCasa Nova was written together with an AI coding assistant ([Claude Code](https://claude.com/claude-code)). The design decisions, the testing and the maintenance are mine; much of the code was written by the AI under my direction, which is why you'll see it credited in the commit history. It is also what made bringing HaCasa back possible at all.
-- **And the community**, who kept asking about HaCasa long after it went quiet. This one is for you. 💜
+**Thank you, Damian Eickhoff.** HaCasa started as your button-card dashboard that a whole household could use, and you rebuilt it from scratch as HaCasa Nova, in the open and under an MIT license. This project would not exist without that work, your design decisions and the care you put into the details (the wizard, the cards, the documentation, the translations). I have changed it to suit my house, but the foundation, the idea and most of the code are yours. Thank you for sharing it.
+
+- **Design:** [Homio](https://github.com/iamtherufus/Homio) by [iamtherufus](https://github.com/iamtherufus). The panel would not look the way it does without it.
+- **HaCasa and HaCasa Nova:** created by [Damian Eickhoff](https://github.com/damianeickhoff) with an AI coding assistant. HaCasa logo by [Fredrik Persson](https://github.com/fredrikpersson92).
+- **This version:** maintained by [emile-bodin](https://github.com/emile-bodin); the changes in it were written together with [Claude Code](https://claude.com/claude-code).
+- **Built with** [Lit](https://lit.dev). Icons are original, drawn for the project.
+- **And everyone** who kept asking about HaCasa after the first version went quiet.
 
 ## License
 
-[MIT](https://github.com/damianeickhoff/HaCasa/blob/main/LICENSE). The Homio design credit and the license notices of what is bundled are in [NOTICE.md](https://github.com/damianeickhoff/HaCasa/blob/main/NOTICE.md).
+[MIT](LICENSE), with the original copyright notice kept. The Homio design credit and the license notices of what is bundled are in [NOTICE.md](NOTICE.md).

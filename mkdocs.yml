@@ -1,9 +1,9 @@
 site_name: HaCasa Nova
 site_description: The HaCasa reboot. A room-first Home Assistant panel, built on the Homio design by iamtherufus.
-site_url: https://damianeickhoff.github.io/HaCasa/
+site_url: https://emile-bodin.github.io/HaCasa/
 site_author: Damian Eickhoff
-repo_url: https://github.com/damianeickhoff/HaCasa
-repo_name: damianeickhoff/HaCasa
+repo_url: https://github.com/emile-bodin/HaCasa
+repo_name: emile-bodin/HaCasa
 edit_uri: edit/main/docs/
 copyright: HaCasa Nova · MIT · design based on <a href="https://github.com/iamtherufus/Homio">Homio</a> by iamtherufus
 
@@ -81,11 +81,5 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/damianeickhoff/HaCasa
+      link: https://github.com/emile-bodin/HaCasa
       name: GitHub
-    - icon: fontawesome/solid/comments
-      link: https://github.com/damianeickhoff/HaCasa/discussions
-      name: Discussions
-    - icon: fontawesome/brands/discord
-      link: https://discord.gg/2Xgtqm8Xmw
-      name: Discord

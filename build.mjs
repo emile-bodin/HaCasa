@@ -49,7 +49,7 @@ const ctx = await esbuild.context({
   sourcemap: watch ? "inline" : false,
   outfile: `${outdir}/${name}.js`,
   legalComments: "eof",
-  banner: { js: `/*! HaCasa Nova ${version} · MIT · https://github.com/damianeickhoff/HaCasa */` },
+  banner: { js: `/*! HaCasa Nova ${version} · MIT · https://github.com/emile-bodin/HaCasa */` },
   plugins: [icons, stamp],
 });
 

@@ -13,7 +13,7 @@ Both use the same settings, so you can switch later.
 
     1. Open **HACS** in Home Assistant.
     2. Open the menu (⋮, top right) and choose **Custom repositories**.
-    3. Add `https://github.com/damianeickhoff/HaCasa` with type **Dashboard**.
+    3. Add `https://github.com/emile-bodin/HaCasa` with type **Dashboard**.
     4. Search for **HaCasa Nova**, open it and choose **Download**.
     5. Reload the browser when HACS asks.
 
@@ -21,7 +21,7 @@ Both use the same settings, so you can switch later.
 
 === "Manual"
 
-    1. Download `hacasa-nova.js` from the [latest release](https://github.com/damianeickhoff/HaCasa/releases/latest).
+    1. Download `hacasa-nova.js` from the [latest release](https://github.com/emile-bodin/HaCasa/releases/latest).
     2. Copy it to `/config/www/hacasa-nova/hacasa-nova.js`.
     3. Its URL is `/local/hacasa-nova/hacasa-nova.js`. Use that instead of the `/hacsfiles/…` URL below.
     4. For the card variant, add it as a resource yourself: **Settings → Dashboards → ⋮ → Resources → Add resource**, type *JavaScript module*.

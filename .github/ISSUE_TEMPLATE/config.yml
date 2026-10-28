@@ -1,14 +1,1 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Chat on Discord
-    url: https://discord.gg/2Xgtqm8Xmw
-    about: Quick questions, beta testing and sharing your setup with other HaCasa users.
-  - name: Question or help with your setup
-    url: https://github.com/damianeickhoff/HaCasa/discussions/categories/q-a
-    about: Ask in Discussions → Q&A, so the answer helps the next person too.
-  - name: Show your setup
-    url: https://github.com/damianeickhoff/HaCasa/discussions/categories/show-and-tell
-    about: Share screenshots of your HaCasa Nova in Discussions → Show and tell.
-  - name: Documentation
-    url: https://damianeickhoff.github.io/HaCasa/
-    about: Installation, settings and troubleshooting.
+blank_issues_enabled: true

@@ -3,7 +3,7 @@
 HaCasa Nova is written with [Lit](https://lit.dev) and bundled with [esbuild](https://esbuild.github.io) into one file.
 
 ```bash
-git clone https://github.com/damianeickhoff/HaCasa.git
+git clone https://github.com/emile-bodin/HaCasa.git
 cd HaCasa
 npm install
 npm run watch            # rebuilds dist/hacasa-nova.js on every change
@@ -95,3 +95,15 @@ Pull requests are welcome.
 1. Bump `version` in `package.json` and add the changes to `CHANGELOG.md`.
 2. `npm run build` and commit `dist/hacasa-nova.js`.
 3. Tag `vX.Y.Z` and publish a GitHub release; HACS picks it up.
+
+## Workflow: dev, then production
+
+This repository is a standalone project with two panels in Home Assistant: **HaCasa-dev** (`/hacasa-dev`, bundle `hacasa-nova-dev`, settings key `hacasa_nova_dev`) and **HaCasa** (`/hacasa`, bundle `hacasa-nova`, settings key `hacasa_nova`). They keep separate settings, so a test in dev never touches production.
+
+1. Work on a branch: `git switch -c feature/<name>`.
+2. `npm run deploy:dev` checks the translations, builds the current branch, syntax-checks the bundle, runs the render smoke test (`dev/smoke.mjs`, jsdom) and installs the bundle in `/config/www/hacasa-nova-dev` (override with `HACASA_TARGET` or `deploy.local.json`). Reload the browser: the loader picks up the new build.
+3. Test in HaCasa-dev. `npm run rollback:dev` puts the previous bundle back.
+4. Merge to `main`, then `npm run deploy:prod`. It refuses to run unless you are on a clean `main` (`--force` skips that), runs the same checks, installs into `/config/www/hacasa-nova` and tags the version (`v3.1.0`). Push the tag with `git push origin v3.1.0`.
+5. `npm run rollback:prod` restores the previous production bundle.
+
+The last ten replaced bundles per panel are kept in `.deploy-backups/` (git-ignored). Versions follow `package.json`; the dev build adds `-dev`.

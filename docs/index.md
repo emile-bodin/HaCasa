@@ -12,7 +12,7 @@ hide:
 
 <p class="tag">The HaCasa reboot. A room-first Home Assistant panel, built on the <a href="https://github.com/iamtherufus/Homio">Homio</a> design by iamtherufus.</p>
 
-[Install it](installation.md){ .md-button .md-button--primary } [View on GitHub](https://github.com/damianeickhoff/HaCasa){ .md-button }
+[Install it](installation.md){ .md-button .md-button--primary } [View on GitHub](https://github.com/emile-bodin/HaCasa){ .md-button }
 
 </div>
 
@@ -23,7 +23,7 @@ hide:
 </div>
 
 !!! danger "Work in progress"
-    HaCasa Nova is a work in progress and needs testing. This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).
+    HaCasa Nova is a work in progress and needs testing. This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/emile-bodin/HaCasa/issues/new/choose).
 
 ## What it is
 
@@ -70,5 +70,4 @@ The original **HaCasa** was a button-card dashboard that grew to almost 500 star
 - **[Best experience](best-experience.md)**: start page, hidden sidebar, wall tablets.
 - **[Cards](cards.md)**: what every card does and how to change it.
 - **[Settings](settings.md)**: a tour of the settings page.
-- **[Discussions](https://github.com/damianeickhoff/HaCasa/discussions)**: questions, ideas, and show us your setup.
-- **[Discord](https://discord.gg/2Xgtqm8Xmw)**: chat with other users, get help quickly and test betas.
+- **[Issues](https://github.com/emile-bodin/HaCasa/issues)**: bugs, questions and ideas.

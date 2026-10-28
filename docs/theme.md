@@ -1,6 +1,6 @@
 # Theme for Home Assistant
 
-HaCasa Nova does not need a theme. If you want the rest of Home Assistant to match, the repository includes an optional theme, [`theme/hacasa-nova.yaml`](https://github.com/damianeickhoff/HaCasa/blob/main/theme/hacasa-nova.yaml). It puts your home photo behind the sidebar, header and views, and turns cards and dialogs into the same frosted glass.
+HaCasa Nova does not need a theme. If you want the rest of Home Assistant to match, the repository includes an optional theme, [`theme/hacasa-nova.yaml`](https://github.com/emile-bodin/HaCasa/blob/main/theme/hacasa-nova.yaml). It puts your home photo behind the sidebar, header and views, and turns cards and dialogs into the same frosted glass.
 
 It needs [card-mod](https://github.com/thomasloven/lovelace-card-mod) (HACS) and is dark only.
 

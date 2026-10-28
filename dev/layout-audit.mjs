@@ -28,7 +28,7 @@ const SCENARIOS = [
   { name: "phone-rows2", w: 390, h: 844, rows2: true },
 ].filter(s => !only.length || only.includes(s.name));
 const PAGES = ["", "living_room", "kitchen", "bedroom", "dressing_room", "landing", "attic", "test_lab"];   // test_lab: long names, unavailable and awkward cards (?lab)
-const LAB_VALUES = ["sensor.lab_temp", "sensor.lab_long_value", "sensor.lab_text_value", "sensor.lab_unavailable_value"];   // value cards are added by hand to a page
+const LAB_VALUES = ["claude", "chatgpt", "sensor.lab_temp", "sensor.lab_long_value", "sensor.lab_text_value", "sensor.lab_unavailable_value"];   // value cards are added by hand to a page
 // the regions of a card; two of them overlapping (or sticking out of the card) is a layout defect, except the pairs listed as allowed
 const REGIONS = [".i", ".c", ".n", ".s", ".lbl", ".ctl", ".socks", ".seg", ".slider", ".vslider", ".rail", ".subc", ".prog", ".spk", ".bat", ".meta", ".gl", ".appi"];
 const ALLOWED = [["i", "appi"], ["c", "ua"], ["n", "gl"], ["s", "gl"], ["c", "rail"], ["c", "vslider"], ["ctl", "rail"]];

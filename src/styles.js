@@ -17,6 +17,11 @@ import { usageStyles } from "./usage.js";
     the rules here are the ones that hide, move or reorder something. */
 const cardCompact = (all, compact) => `
   ${compact} .card{--cp:14px;--lh:24px;--bh:30px;--bh-sock:44px;--bh-media:34px;--bh-tile:40px;--bg:6px;--gut:10px;--ib:26px;--ctl-w:34px;--vs-w:8px;height:var(--card-h)}
+  ${compact} .card.litter{--bh-sock:var(--bh);--lh:var(--bh);--reserve:0px}
+  ${compact} .card.usage{--um:22px;--lh:calc(var(--um) * 2 + var(--bg))}
+  ${compact} .card.usage .s{display:none}
+  ${compact} .card.usage .ml{font-size:9px;letter-spacing:1.2px}
+  ${compact} .card.usage .m b{font-size:12px}
   ${compact} .card .i{margin-left:-2px}
   ${compact} .card .c{font-size:9px;letter-spacing:1.2px}
   ${compact} .card .n{font-size:14px}
@@ -359,9 +364,8 @@ export const styles = css`
   .card .socks button.unavailable{opacity:.35}
   .card .socks button ha-icon{--mdc-icon-size:20px}
   .card .socks button small{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.8;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  /* litter box: the same power strip card, icon buttons only (no label under the icon, at any width) and a taller socket row; the state (weight, cleaning, bin full) sits in the corner like a light's percentage, so the title stays */
-  .card.litter{--bh-sock:44px}
-  .card.litter .socks button small{display:none}
+  /* litter box: the button row sits in the bottom-line row (as the light's steps do), so name and status keep the height of the other cards; icon buttons only, the state (weight, cleaning, bin full) is the corner text */
+  .card.litter{--bh-sock:var(--bh);--lh:var(--bh);--reserve:0px}
   .card.litter .n{-webkit-line-clamp:1}
   /* appliance: stop / power row at the bottom */
   .card.appl,.card.acts{--reserve:calc(var(--bh) + var(--bg))}

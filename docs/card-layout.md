@@ -1,6 +1,6 @@
 # Card layout contract
 
-Every card is a member of one system: the same slots in the same order, the same spacing and control sizes, and the same compact variant on phones, tablets and in the two-row layout. The rules live in `src/styles.js` (the card section, `cardCompact()` and the tokens on `.card`); `src/graph.js` and `src/usage.js` bring their own tokens for their own bands.
+Every card is a member of one system: the same slots in the same order, the same spacing and control sizes, and the same compact variant on phones, tablets and in the two-row layout. The rules live in `src/styles.js` (the card section, `cardCompact()` and the tokens on `.card`); `src/graph.js` brings its own tokens for its line band, and `src/usage.js` its meter row (`--um`).
 
 ## The slots
 
@@ -28,8 +28,8 @@ Padding is always `--cp` plus those four.
 
 ## Order
 
-- **Base:** title above status. Lights, switches, covers, fans, locks, sensors (binary), cameras, groups, lists.
-- **Hero** (`.card.hero`): the big value above its name. Climate (setpoint), plug (watts) and a value card that has a number. The hero rule sets the slot order once; the card only adds the class.
+- **Base:** title above status. Lights, switches, covers, fans, locks, vacuums, humidifiers, sensors (binary), cameras, groups, lists.
+- **Hero** (`.card.hero`): the big value above its name. Climate (setpoint), plug (watts) and a value card that has a number. The hero rule sets the slot order once; the card only adds the class. A value card puts the number in `.s.big` (unit in a smaller `small`) and the name under it in `.nm`; `.noname` hides the name.
 - **Caption variants** put the bottom line right under the status instead of at the bottom edge: media, climate and plug with a control row. The area and row templates are tokens (`--a-base`, `--a-capt`, `--a-hero`, `--a-hero-capt`, `--a-hero-foot`, `--a-cam` with their `--r-*` rows), and a card picks one with `--areas` / `--rows`.
 
 ## Geometry tokens
@@ -42,7 +42,7 @@ Defined once on `.card`, changed once for the compact variant:
 | `--lh` | 28px | 24px | bottom line row |
 | `--ib` | 36px | 26px | icon box and corner height |
 | `--bh` | 34px | 30px | button rows (appliance, actions) |
-| `--bh-sock` | 56px | 44px | socket buttons (the litter box card keeps 44px) |
+| `--bh-sock` | 56px | 44px | socket buttons |
 | `--bh-media` | 42px | 34px | media transport buttons |
 | `--bh-tile` | 52px | 40px | scene and group tiles |
 | `--ctl-w` | 46px | 34px | the side control column |
@@ -51,6 +51,39 @@ Defined once on `.card`, changed once for the compact variant:
 | `--gut` | 14px | 10px | gap between content and the furniture at its side |
 
 The graph card adds `--gl-h`, `--gl-gap`, `--gl-nmt` and `--gl-dot` for its line band.
+
+## Every card type
+
+Each card in [Cards](cards.md) and the modifier classes that give it its layout. Anything not listed in a row uses the base slots.
+
+| card | classes | layout |
+|---|---|---|
+| Light | `light`, `vs` (dimmable), `tinted`, `acts` | base; vertical slider on the right (`--rr`, `--vs-w`); bottom line is steps, colour dots, today bars or nothing |
+| Switch | base | base; toggles on tap |
+| Plug | `hero`, `plug`, `appl`, `hasspk` | hero; sparkline on the right (hidden in compact); footer row for timer, cost or bars |
+| Power strip | `pstrip` | socket row at the bottom (`--reserve`, `--bh-sock`) |
+| Litter box | `pstrip`, `litter` | icon, weight / state in the corner, name, active modes; all switches as icon buttons in the bottom-line row (`--lh` = `--bh`, `--reserve` 0) |
+| Appliance | `appl`, `running`, `on` | button row at the bottom (`--bh`); the bottom line is hidden when the row takes its place |
+| Media | `media`, `actions`, `art`, `appart` | caption variant; artwork behind a translucent panel (`--rl`); transport row (`--bh-media`) |
+| Climate | `hero`, `climate` | hero caption; rail on the right (`--rr`, `--rc`); mode row at the bottom (desktop only) |
+| Cover | `actions`, or `vs` with a position | up / down column (`--ctl-w`) or vertical slider |
+| Fan | `vs` | vertical slider for speed |
+| Lock | base | base; tap to lock or unlock |
+| Vacuum | `actions`, `verr` | control column on the right |
+| Humidifier | `actions` | target up / down in the control column |
+| Door, motion, other binary sensors | base, `graph` | base; bottom line is "since", today bars or the on/off line (graph band) |
+| Value | `value`, `hero` | number as hero, name under it; no number means base |
+| Camera | `cam` | `--a-cam`; name and state at the bottom over a gradient |
+| Attention | `list` | list layout in `.s` |
+| Weather, waste, agenda | `hassub` | glass column on the right (`--rr`); in compact the second item moves to `.lbl.mob` |
+| Scenes | `scenes` | tile row in `.s` (`--bh-tile`) |
+| Light scenes | `scenes`, `presets` | same as scenes; the presets popup saves and recalls the room's lights |
+| Energy | base | base |
+| Group | `group`, `tiles` or `list` | chip tiles or member rows in `.s` |
+| Graph | `graph` | line band between icon and name (`--gl-*`) |
+| Claude Code, ChatGPT | `usage` | session time left in the corner, notice in the status line (amber), two meters in the bottom-line row (`--lh` = two meter rows `--um`, `--reserve` 0); amber from 70 %, red from 90 %; in compact the status line goes |
+| Template | the base card of the entity it is placed on | text, label and visibility come from Jinja; the layout is the base's |
+| Network | `net` | its own inner layout |
 
 ## Compact
 
@@ -62,14 +95,15 @@ These differ on purpose; each is a modifier class with its own rules:
 
 - **Climate:** the setpoint rail on the right and the control row at the bottom (desktop); the rail only, with the bottom line at the edge (compact). Its name is one line.
 - **Media:** artwork under the card with the text on a translucent panel (`.art`, `.appart`), the transport row at the bottom, the progress line (a bar along the bottom edge in compact). In two rows under 160px the icon and the corner state are hidden.
-- **Plug with a power meter:** the sparkline on the right (hidden in compact), a footer row for the options.
+- **Plug with a power meter:** the sparkline on the right (hidden in compact, so phones show watts and kWh only), a footer row for the options (timer, cost, bars).
 - **Sub-content** (weather, waste, agenda): a glass column on the right; in compact the second item moves into the bottom line (`.lbl.mob`).
 - **Appliance and action rows:** buttons in a row at the bottom; the bottom line is hidden when the row takes its place.
+- **Door, window and motion cards with the graph bottom:** the same line band as the graph card, stepping between off and on over 24 hours; today's total sits on the bottom line.
 - **Graph:** a line band between the icon and the name; in compact the band shrinks and the average line goes; in two rows under 160px the period text goes too.
 - **Lists, scenes, groups, people:** their inner layout (`.s` as a list, tiles) stays; only tile height and gaps follow the tokens.
 - **Unavailable:** a centred three-row card without controls.
 - **Camera:** name and state anchored at the bottom over a gradient.
-- **Litter box:** the power strip card (`stripCard`) with the `.litter` modifier: same markup and slots, a cat icon, icon-only buttons at every width (no label under the icon), a 44px socket row and a one-line title. Its state (weight, cleaning, bin full) is the corner text, like a light's percentage, so the title is never hidden. Gap and icon size follow the compact tokens like every other strip.
+- **Litter box:** its own card (`litterCard`), not a strip with a modifier: the same slots, a cat icon, the state (weight, cleaning, bin full) as corner text, the active modes in the status line, and every switch as an icon button in the bottom-line row (`--lh` and `--bh-sock` are `--bh`, `--reserve` is 0), so name and status keep the height of the other cards. Icon-only at every width; a one-line title.
 
 ## Checking it
 

@@ -156,14 +156,7 @@ export function makeHass(onChange) {
     // litter boxes: the device is named like one, its switches are Clean / Empty / Smart / Deodorize; one idle, one cleaning, one with a long name, one unreachable
     for (const [k, nm, st] of [["a", "Kattenbak", "off"], ["b", "Kattenbak boven", "off"], ["c", "Kattenbak van de logeerkamer met een heel lange naam", "off"], ["d", "Kattenbak onbereikbaar", "unavailable"]]) {
       const d = dev("dev_litter_" + k, "test_lab"); devices[d].name = nm;
-      for (const [r, label] of [["clean", "Clean"], ["empty", "Empty"], ["smart", "Smart clean"], ["deodorize", "Deodorize"]])
-        add(`switch.litter_${k}_${r}`, null, k === "b" && r === "clean" ? "on" : st, { friendly_name: `${nm} ${label}` }, { device: d });
-      add(`sensor.litter_${k}_weight`, null, st === "unavailable" ? "unavailable" : "4.2", { friendly_name: `${nm} weight`, device_class: "weight", unit_of_measurement: "kg" }, { device: d });
-    }
-    // litter boxes: the device is named like one, its switches are Clean / Empty / Smart / Deodorize; idle, cleaning, long name, unreachable
-    for (const [k, nm, st] of [["a", "Kattenbak", "off"], ["b", "Kattenbak boven", "off"], ["c", "Kattenbak van de logeerkamer met een heel lange naam", "off"], ["d", "Kattenbak onbereikbaar", "unavailable"]]) {
-      const d = dev("dev_litter_" + k, "test_lab"); devices[d].name = nm;
-      for (const [r, label] of [["clean", "Clean"], ["empty", "Empty"], ["smart", "Smart clean"], ["deodorize", "Deodorize"]])
+      for (const [r, label] of [["clean", "Clean"], ["empty", "Empty"], ["smart", "Smart clean"], ["deodorize", "Deodorize"], ["auto", "Auto deodorize"], ["odourless", "Odourless"]])
         add(`switch.litter_${k}_${r}`, null, k === "b" && r === "clean" ? "on" : st, { friendly_name: `${nm} ${label}` }, { device: d });
       add(`sensor.litter_${k}_weight`, null, st === "unavailable" ? "unavailable" : "4.2", { friendly_name: `${nm} weight`, device_class: "weight", unit_of_measurement: "kg" }, { device: d });
     }

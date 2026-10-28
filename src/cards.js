@@ -512,21 +512,37 @@ export function litterBox(p, st) {
   const full = !!fz && /^(true|on|1)$/i.test(String(fz.state)), running = k => items.some(x => x.r === k && isOn(x.s.state)), busy = running("clean") ? t("Reinigt…") : running("empty") ? t("Leegt…") : null;
   return { items, title: nm ? nm.charAt(0).toUpperCase() + nm.slice(1) : t("Kattenbak"), status: busy || (full ? t("Afvalbak vol") : kg != null ? `${fmtVal(kg)} kg` : t("Klaar")), busy: !!busy, full, kg, wz, fz, lz };
 }
-/** one card for every power strip: a litter box (K) only brings its own title, status and icon-only buttons */
+/** one card for every power strip; a litter box gets its own card */
 export function stripCard(p, st) {
-  const K = litterBox(p, st), un = st.switches.every(e => unavailable(e.state)), c = cardCfg(p, st.id), on = st.switches.filter(e => isOn(e.state)).length;
-  const title = c.name || (K ? K.title : deviceName(p.hass, st.device));
-  const status = un ? t("Onbereikbaar") : K ? K.status : on ? t("{n} van {m} aan", { n: on, m: st.switches.length }) : t("Alles uit");
-  const btns = K ? K.items.slice(0, 4).map(x => ({ e: x.s, name: x.name, icon: x.icon })) : st.switches.map((e, i) => ({ e, name: cardCfg(p, e.id).name || String(i + 1), icon: cardCfg(p, e.id).icon || "mdi:power-socket-eu" }));
-  return html`<div class=${classMap({ card: true, pstrip: true, litter: !!K, on: K ? K.busy : on > 0, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
+  const K = litterBox(p, st);
+  if (K) return litterCard(p, st, K);
+  const un = st.switches.every(e => unavailable(e.state)), c = cardCfg(p, st.id), on = st.switches.filter(e => isOn(e.state)).length;
+  const title = c.name || deviceName(p.hass, st.device);
+  const status = un ? t("Onbereikbaar") : on ? t("{n} van {m} aan", { n: on, m: st.switches.length }) : t("Alles uit");
+  const btns = st.switches.map((e, i) => ({ e, name: cardCfg(p, e.id).name || String(i + 1), icon: cardCfg(p, e.id).icon || "mdi:power-socket-eu" }));
+  return html`<div class=${classMap({ card: true, pstrip: true, on: on > 0, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
     ${un ? ua() : nothing}
-    ${K ? html`<div class="i">${c.icon ? ico(c.icon) : ico("mdi:cat", "litter_box")}</div>` : nothing}
-    ${K && !un ? html`<div class="c">${status}</div>` : nothing}
     <div class="n">${title}</div>
-    ${K && !un ? nothing : html`<div class="s">${status}</div>`}
+    <div class="s">${status}</div>
     <div class="socks">${btns.map(x => html`<button class=${classMap({ on: isOn(x.e.state), unavailable: unavailable(x.e.state) })} title=${x.name} aria-label=${x.name}
         ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: x.e.id }), hold: () => p.openPopup({ type: "switch", e: x.e }) })}>
-        <ha-icon icon=${x.icon}></ha-icon>${K ? nothing : html`<small>${x.name}</small>`}</button>`)}</div>
+        <ha-icon icon=${x.icon}></ha-icon><small>${x.name}</small></button>`)}</div>
+  </div>`;
+}
+
+/** the litter box card (docs/cards.md): icon top left, the state (weight, cleaning, bin full) top right, name and a short line in the middle,
+ *  one button per switch in the bottom row (all of them, icon only), the active modes named in the short line */
+function litterCard(p, st, K) {
+  const un = st.switches.every(e => unavailable(e.state)), c = cardCfg(p, st.id);
+  const modes = K.items.filter(x => x.r !== "clean" && x.r !== "empty" && isOn(x.s.state)).map(x => x.name);
+  return html`<div class=${classMap({ card: true, pstrip: true, litter: true, on: K.busy, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
+    ${un ? ua() : html`<div class="c">${K.status}</div>`}
+    <div class="i">${c.icon ? ico(c.icon) : ico("mdi:cat", "litter_box")}</div>
+    <div class="n">${c.name || K.title}</div>
+    <div class="s">${un ? t("Onbereikbaar") : modes.length ? modes.join(" · ") : t("Alles uit")}</div>
+    <div class="socks">${K.items.map(x => html`<button class=${classMap({ on: isOn(x.s.state), unavailable: unavailable(x.s.state) })} title=${x.name} aria-label=${x.name}
+        ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: x.s.id }), hold: () => p.openPopup({ type: "switch", e: x.s }) })}>
+        <ha-icon icon=${x.icon}></ha-icon></button>`)}</div>
   </div>`;
 }
 

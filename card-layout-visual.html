@@ -19,6 +19,9 @@
     <div><div class="cla-card actions"><span class="i">▣</span><span class="c">busy</span><b class="n">Dishwasher</b><span class="s">done at 17:50</span><span class="l">hidden / displaced</span><span class="buttons"><i></i><i></i></span></div><div class="cla-label">Actions: the button row is reserved (--reserve)</div></div>
     <div><div class="cla-card plug"><span class="i">⌑</span><span class="c">standby</span><b class="n">Coffee maker</b><span class="s">120 W</span><span class="l">meta line</span><span class="f">today / cost / graph</span></div><div class="cla-label">Hero order (value above name); a footer row for options</div></div>
     <div><div class="cla-card sub"><span class="i">☁</span><b class="n">Weather</b><span class="s">14° · partly cloudy</span><span class="l">wind</span></div><div class="cla-label">Sub-content reserves --rr on the right; moves into the bottom line in compact</div></div>
+    <div><div class="cla-card value"><span class="i">∿</span><span class="c">temperature</span><span class="v">21.4°</span><span class="nm">Zolder</span><span class="l">changed 14:02</span></div><div class="cla-label">Value: the number is hero, the name under it (.nm)</div></div>
+    <div><div class="cla-card" style="padding-right:34px"><span class="i">◉</span><span class="c">60%</span><b class="n">Eettafel</b><span class="s">On since 18:10</span><span class="l">25 · 50 · 75 · 100</span><span style="position:absolute;right:14px;top:50px;bottom:14px;width:10px;border-radius:5px;background:#77818d"></span></div><div class="cla-label">Light, cover, fan: vertical slider on the right (--rr, --vs-w)</div></div>
+    <div><div class="cla-card" style="background:linear-gradient(180deg,#47515d,#1b2027);grid-template-areas:'i c' '. .' 'n n' 's s';grid-template-rows:26px 1fr auto auto"><span class="i">▶</span><span class="c">live</span><b class="n">Voordeur</b><span class="s">Motion 08:51</span></div><div class="cla-label">Camera: name and state anchored at the bottom over a gradient</div></div>
   </div>
 
   <div class="cla-wide">
@@ -26,10 +29,33 @@
     <div class="cla-panel"><h3>Phone + two-row compact</h3><div class="cla-rows"><div class="cla-mini"><b>one compact</b><span>--cp 14 · --lh 24 · --bh 30 · --bg 6 · --ib 26</span><span class="mini-bottom"></span></div><div class="cla-mini"><b>two triggers</b><span>max-width 900px, or .strip.rows2(.compact)</span><span class="mini-bottom"></span></div><div class="cla-mini"><b>written once</b><span>cardCompact(): sizes are tokens</span><span class="mini-bottom"></span></div></div><div class="cla-note"><span class="cla-key" style="outline-color:#7fb685"></span>a fix lands in both modes by construction</div></div>
   </div>
 
+  <h3 style="margin-top:22px">Every card type</h3>
+  <table class="cla-table"><thead><tr><th>Card</th><th>Classes</th><th>Layout</th></tr></thead><tbody>
+    <tr><td>Light</td><td><code>light vs tinted</code></td><td>Vertical slider; bottom line: steps, colours, today bars or none</td></tr>
+    <tr><td>Switch, lock</td><td>base</td><td>Toggle on tap; lock tap locks or unlocks</td></tr>
+    <tr><td>Plug</td><td><code>hero plug appl hasspk</code></td><td>Watts as hero; sparkline right (hidden in compact); footer: timer, cost, bars</td></tr>
+    <tr><td>Power strip</td><td><code>pstrip</code></td><td>Socket row at the bottom (<code>--bh-sock</code>)</td></tr>
+    <tr><td>Litter box</td><td><code>pstrip litter</code></td><td>State (weight, cleaning, bin full) in the corner, active modes as status; every switch an icon button in the bottom-line row (<code>--lh</code> = <code>--bh</code>, <code>--reserve</code> 0)</td></tr>
+    <tr><td>Appliance</td><td><code>appl running</code></td><td>Button row replaces the bottom line</td></tr>
+    <tr><td>Media</td><td><code>media actions art appart</code></td><td>Caption variant; artwork panel (<code>--rl</code>); transport row</td></tr>
+    <tr><td>Climate</td><td><code>hero climate</code></td><td>Rail right (<code>--rr --rc</code>); mode row bottom, desktop only</td></tr>
+    <tr><td>Cover, fan</td><td><code>actions</code> or <code>vs</code></td><td>Up / down column, or vertical slider with a position / speed</td></tr>
+    <tr><td>Vacuum, humidifier</td><td><code>actions</code></td><td>Control column on the right</td></tr>
+    <tr><td>Door, motion</td><td>base, <code>graph</code></td><td>“since”, today bars, or the on/off line band</td></tr>
+    <tr><td>Value</td><td><code>value hero</code></td><td>Number as hero, name under it</td></tr>
+    <tr><td>Camera</td><td><code>cam</code></td><td><code>--a-cam</code>, gradient</td></tr>
+    <tr><td>Attention, group, scenes, light scenes</td><td><code>list</code> <code>group</code> <code>scenes presets</code></td><td>Inner list or tile layout; tile height and gaps follow the tokens</td></tr>
+    <tr><td>Weather, waste, agenda</td><td><code>hassub</code></td><td>Glass column right; second item moves to <code>.lbl.mob</code> in compact</td></tr>
+    <tr><td>Energy</td><td>base</td><td>Base</td></tr>
+    <tr><td>Graph</td><td><code>graph</code></td><td>Line band between icon and name (<code>--gl-*</code>)</td></tr>
+    <tr><td>Claude Code, ChatGPT</td><td><code>usage</code></td><td>Session time left in the corner, notice in the status line, two meters in the bottom-line row (<code>--lh</code> = 2 × <code>--um</code>); amber from 70 %, red from 90 %</td></tr>
+    <tr><td>Template</td><td>entity's own card</td><td>Text, label and visibility from Jinja; base layout</td></tr>
+  </tbody></table>
+
   <h3 style="margin-top:22px">Contract</h3>
   <table class="cla-table"><thead><tr><th>Area</th><th>Contract</th><th>Preserved exception</th></tr></thead><tbody>
     <tr><td>Vertical order</td><td>Base <code>n → s</code>. The hero modifier (<code>.card.hero</code>) puts the big value first: <code>s → n</code>. One rule, set by the card with a class.</td><td>Climate, plug and value cards (with a number) are hero. Media, climate and plug with a control row use a caption variant: the bottom line sits right under the status.</td></tr>
-    <tr><td>Bottom region</td><td><code>.lbl</code> is one row of <code>--lh</code>. Controls are absolute and anchored at <code>--cp</code>; the card reserves <code>--reserve</code> = control height + <code>--bg</code>.</td><td>Appliance and action rows replace the bottom line; sockets and the litter box (the same card, icon-only buttons, state in the corner) use <code>--bh-sock</code>.</td></tr>
+    <tr><td>Bottom region</td><td><code>.lbl</code> is one row of <code>--lh</code>. Controls are absolute and anchored at <code>--cp</code>; the card reserves <code>--reserve</code> = control height + <code>--bg</code>.</td><td>Appliance and action rows replace the bottom line; sockets use <code>--bh-sock</code>.</td></tr>
     <tr><td>Side furniture</td><td><code>--rr</code> (right), <code>--rl</code> (left), <code>--rc</code> (corner text). Padding is <code>--cp</code> plus these.</td><td>Climate rail, vertical slider, action column, sparkline, sub-content, media artwork panel.</td></tr>
     <tr><td>Spacing source</td><td>Tokens on <code>.card</code>: <code>--cp --lh --ib --bh --bh-sock --bh-media --bh-tile --ctl-w --vs-w --bg --gut</code>. No card writes its own padding formula.</td><td>Graph band tokens (<code>--gl-*</code>).</td></tr>
     <tr><td>Responsive behavior</td><td>One compact variant, <code>cardCompact(all, compact)</code>, used under <code>max-width:900px</code> and for <code>.strip.rows2</code>. It is placed after every module's card rules.</td><td>Media cards under 160px in two rows hide icon and corner; phones keep them.</td></tr>

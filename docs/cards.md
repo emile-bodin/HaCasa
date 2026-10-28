@@ -63,6 +63,15 @@ Washing machines, dishwashers and dryers are recognised in two ways:
 - a device that reports its own status (Home Connect, Miele, LG ThinQ …): the card shows the programme, progress, finish time and door, with a **Stop** button;
 - a smart plug with a power meter: *busy* above a threshold (5 W by default, adjustable per card), *done* when it drops, *standby* otherwise.
 
+## Litter box
+
+A power strip whose device is named like a litter box (Kattenbak, litter, cat box), or whose switches are Clean, Empty and Deodorize, gets its own card instead of the plain power strip.
+
+- **Corner:** the state, not a percentage: the weight (for example "5,9 kg"), "Reinigt…" or "Leegt…" while it runs, and "Afvalbak vol" when the bin is full.
+- **Middle:** the name, and under it the modes that are on (Ontgeuren, Auto-ontgeuren …) or "All off".
+- **Bottom row:** one icon button per switch, in the order Clean, Empty, Smart clean, Deodorize, Auto-deodorize, Odourless. A button toggles its switch on tap and opens the switch's details on hold; the name is the tooltip. The row sits where a light's brightness steps sit, so the name keeps the height of the other cards.
+- **Tap on the card:** a popup with Clean and Empty, the weight, the bin, the lifetime and every switch.
+
 ## Media
 
 <div class="grid2" markdown>
@@ -193,7 +202,7 @@ Door, window and motion cards can take the same layout: set **Bottom** to *graph
 
 ## Claude Code and ChatGPT usage
 
-Two cards with your AI usage, **Claude Code** and **ChatGPT**, built the same way: the **5-hour session** and the **weekly limit** as two meters, with the percentage used, when each window resets and a tick on the bar for how far the window's time has run. A meter turns amber from 70 % and red from 90 %. When you have used more than the elapsed part of the window allows (10 points ahead), the corner says *ahead of schedule*; when the sensors have not updated for half an hour it says *outdated*. Tap a card for the popup: both windows with their reset time, the pace, when the data was last updated and the history of the last 24 hours (session) and 7 days (week).
+Two cards with your AI usage, **Claude Code** and **ChatGPT**, built the same way. The corner shows the **time left of the 5-hour session** (for example "2 u 55 min"), the way a litter box shows its weight. Under the name, in amber, a notice appears when you have used more than the elapsed part of the window allows (10 points ahead: *ahead of schedule*), when the sensors have not updated for half an hour (*outdated*) or when the integration reports an error. At the bottom, two meters: the **5-hour session** and the **weekly limit**, each with the percentage used and a tick on the bar for how far the window's time has run. A meter turns amber from 70 % and red from 90 %. On phones and in two rows the notice line is left out and the meters get smaller. Tap a card for the popup: both windows with their reset time, the pace, when the data was last updated and the history of the last 24 hours (session) and 7 days (week).
 
 The numbers come from sensors in Home Assistant, from a usage integration or your own template sensors, per provider:
 

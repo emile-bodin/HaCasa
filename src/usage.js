@@ -57,19 +57,22 @@ export function usageWindow(p, prov, kind) {
 }
 const pctText = v => v == null ? "–" : `${Math.round(v)} %`;
 
+/** The usage card laid out like every other card (docs/cards.md, docs/card-layout.md): icon top left, the notice (ahead of schedule, outdated, an error) top right,
+ *  name and the next reset in the middle, the two meters in the bottom-line row (`--lh` is their height, so the name keeps the height of the other cards) */
 export function usageCard(p, prov) {
   const wins = ["session", "week"].map(k => usageWindow(p, prov, k)).filter(Boolean);
   if (!wins.length) return null;
   const P = USAGE_PROVIDERS[prov], cfg = cardCfg(p, prov), down = wins.every(w => w.down), stale = wins.some(w => w.stale), over = wins.some(w => w.pace === "over");
-  const corner = wins.find(w => w.status)?.status || (stale ? t("verouderd") : over ? t("boven schema") : "");
-  const worst = wins.reduce((a, w) => (w.pct ?? 0) > (a ?? 0) ? w.pct : a, null);
+  const notice = wins.find(w => w.status)?.status || (stale ? t("verouderd") : over ? t("boven schema") : "");
+  const worst = wins.reduce((a, w) => (w.pct ?? 0) > (a ?? 0) ? w.pct : a, null), ses = wins.find(w => w.kind === "session");
   return html`<div class=${classMap({ card: true, usage: true, unavailable: down, stale, over, on: worst >= CRIT })} ${pressDir(p, { tap: () => p.openPopup({ type: "usage", provider: prov }) })}>
     ${down ? ua() : nothing}
     <div class="i">${icoFor(p, prov, P.icon, null)}</div>
-    <div class="c">${corner}</div>
+    <div class="c">${ses?.left != null ? span(ses.left) : ""}</div>
     <div class="n">${cfg.name || P.name}</div>
-    <div class="s">${wins.map(w => html`<div class=${"cm " + w.level}>
-      <span class="cl">${w.label}${w.left != null ? html`<em>${t("reset over {t}", { t: span(w.left) })}</em>` : nothing}</span><b>${pctText(w.pct)}</b>
+    <div class="s">${notice}</div>
+    <div class="um">${wins.map(w => html`<div class=${"m " + w.level}>
+      <span class="ml">${w.label}</span><b>${pctText(w.pct)}</b>
       <i class="bar"><u style=${`width:${Math.min(100, w.pct ?? 0)}%`}></u>${w.elapsed != null ? html`<s style=${`left:${(w.elapsed * 100).toFixed(1)}%`} title=${t("Verstreken deel van het venster")}></s>` : nothing}</i></div>`)}</div>
   </div>`;
 }
@@ -92,21 +95,19 @@ export function usagePopup(p, prov, li) {
 }
 
 export const usageStyles = `
-  /* ===== AI usage cards (Claude Code, ChatGPT): two meters (session, week) with a tick for where the window's time stands ===== */
-  .card.usage .s{display:grid;gap:10px;margin-top:6px;color:inherit}
-  .card.usage .cm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;align-items:baseline}
-  .card.usage .cl{font-size:12px;color:var(--fg-2);letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .card.usage .cl em{font-style:normal;margin-left:8px;opacity:.65;font-size:11px}
-  .card.usage .cm b{font-size:16px;font-weight:700;letter-spacing:-.4px;color:var(--fg)}
-  .card.usage .bar{grid-column:1/-1;position:relative;display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.14)}
+  /* ===== AI usage cards (Claude Code, ChatGPT): the time left of the session in the corner, two meters (session, week) in the bottom-line row, with a tick for where the window's time stands ===== */
+  .card.usage{--um:28px;--lh:calc(var(--um) * 2 + var(--bg));--reserve:0px}
+  .card.usage .um{position:absolute;left:var(--cp);right:var(--cp);bottom:var(--cp);display:grid;gap:var(--bg)}
+  .card.usage .m{height:var(--um);display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:1fr auto;gap:4px 8px;align-items:end}
+  .card.usage .ml{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.4px;color:var(--fg-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card.usage .m b{font-size:14px;font-weight:700;letter-spacing:-.2px;color:var(--fg)}
+  .card.usage .bar{grid-column:1/-1;position:relative;display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.14)}
   .card.usage .bar u{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:#fff;transition:width .6s ease}
-  .card.usage .cm.warn .bar u{background:#f2b63a}
-  .card.usage .cm.crit .bar u{background:#f27a5c}
-  .card.usage .cm.crit b{color:#f27a5c}
+  .card.usage .m.warn .bar u{background:#f2b63a}
+  .card.usage .m.crit .bar u{background:#f27a5c}
+  .card.usage .m.crit b{color:#f27a5c}
   .card.usage .bar s{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:rgba(255,255,255,.8)}
-  .card.usage.over .c,.card.usage.stale .c{color:#f2b63a}
+  .card.usage.over .s,.card.usage.stale .s{color:#f2b63a}
   .popup .cgraph{height:56px;margin:4px 0 14px}
   .popup .cgraph svg{display:block;width:100%;height:100%;overflow:visible}
-  @media (min-width:901px){ :where(.strip.rows2.compact) .card.usage .cl em{display:none} :where(.strip.rows2.compact) .card.usage .s{gap:7px} }
-  @media (max-width:900px){ .card.usage .cl em{display:none} .card.usage .s{gap:8px;margin-top:4px} .card.usage .cm b{font-size:14px} .card.usage .cl{font-size:11px} }
 `;

@@ -14,7 +14,7 @@ npm install
 npm run watch            # rebuilds dist/tomte.js on every change
 npx http-server .. -p 8097 -c-1
 # open http://localhost:8097/<this folder>/dev/index.html
-npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one
+npm run deploy:dev       # a dev panel in your own Home Assistant, next to the HACS one (installs bundle + loader.js)
 ```
 
 `dev/index.html` runs the panel against a mock home; add `?lang=nl` for Dutch. More in the [development guide](https://github.com/emile-bodin/TomTe/tree/main/docs/development/).
@@ -22,7 +22,7 @@ npm run deploy:dev       # a dev panel in your own Home Assistant, next to the H
 ## Pull requests
 
 - Branch from `main`, keep one change per pull request.
-- Run `npm run build` and commit `dist/tomte.js` with your change (CI checks that it is up to date).
+- Run `npm run build` and commit `dist/tomte.js` and `dist/loader.js` with your change (CI checks that they are up to date).
 - All user-visible text goes through `t()` from `src/i18n.js`, with the Dutch text as the key and an English translation in `src/lang/en.js`. `npm run i18n:check` (also run by CI) tells you when one is missing.
 - Match the style of the surrounding code; no new runtime dependencies without discussing it first.
 - Screenshots in the pull request help a lot for anything visual.

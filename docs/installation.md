@@ -23,8 +23,9 @@ Both use the same settings, so you can switch later.
 
     1. Download `tomte.js` from the [latest release](https://github.com/emile-bodin/TomTe/releases/latest).
     2. Copy it to `/config/www/tomte/tomte.js`.
-    3. Its URL is `/local/tomte/tomte.js`. Use that instead of the `/hacsfiles/…` URL below.
-    4. For the card variant, add it as a resource yourself: **Settings → Dashboards → ⋮ → Resources → Add resource**, type *JavaScript module*.
+    3. Download `loader.js` from the same release and copy it next to it (`/config/www/tomte/loader.js`). Home Assistant serves `/local` with a 31-day browser cache, so a `module_url` straight at `tomte.js` keeps showing the old version after an update. The loader asks the server for the current build of `tomte.js` (its ETag) and loads that one, so after an update a browser reload is enough.
+    4. Its URL is `/local/tomte/loader.js`. Use that instead of the `/hacsfiles/…` URL below, in `module_url` and in `extra_module_url`. (Without the loader `/local/tomte/tomte.js` works too, but you have to clear the browser cache after every update.)
+    5. For the card variant, add it as a resource yourself: **Settings → Dashboards → ⋮ → Resources → Add resource**, type *JavaScript module*.
 
 ## 2a. Sidebar panel
 

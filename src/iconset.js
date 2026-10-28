@@ -1,5 +1,5 @@
 // Registers the Tomte logo as an icon set, so `tomte:logo` works anywhere Home Assistant takes an icon:
-// the sidebar (panel_custom sidebar_icon), cards, ha-icon. Load the bundle early with frontend: extra_module_url
+// the sidebar (panel_custom sidebar_icon), cards, ha-icon. Load the bundle (or its loader.js) early with frontend: extra_module_url
 // for the sidebar icon to show before the panel is opened.
 const VIEWBOX = "0 0 500 500";
 // the Tomte mark: a tomte's drooping cap that is also a little house with a door (dev/make-logo.mjs draws the logo files)

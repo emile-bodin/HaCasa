@@ -27,12 +27,27 @@ const icons = {
   },
 };
 
+// loader.js next to the bundle: /local is served with a 31-day browser cache, so a module_url pointing straight at the bundle keeps
+// showing an old build. The loader asks for the bundle's ETag (HEAD, no cache) and imports it as ?v=<etag>: a new build is a new URL.
+const loader = `// Tomte loader: /local is served with a 31-day max-age, so the panel loads this tiny file
+// and imports the real bundle under its current ETag. A new build gets a new ETag, hence a new URL, hence no stale cache.
+const bundle = new URL("./${name}.js", import.meta.url);
+let v = Date.now();
+try {
+  const r = await fetch(bundle, { method: "HEAD", cache: "no-store" });
+  v = r.headers.get("etag") || r.headers.get("last-modified") || v;
+} catch (e) {}
+bundle.searchParams.set("v", String(v).replace(/[^\\w-]/g, ""));
+await import(bundle.href);
+`;
+
 const stamp = {
   name: "version-stamp",
   setup(build) {
     build.onEnd(result => {
       if (result.errors.length) return;
       const v = Date.now().toString(36);
+      writeFileSync(`${outdir}/loader.js`, loader);
       writeFileSync(`${outdir}/version.json`, JSON.stringify({ v, version, built: new Date().toISOString() }));
       console.log(`[tomte] built ${version} v=${v}`);
     });

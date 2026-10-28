@@ -95,7 +95,8 @@ You need Home Assistant **2024.4 or newer**. Tomte can run as its own sidebar pa
 
 1. Download `tomte.js` from the [latest release](https://github.com/emile-bodin/TomTe/releases/latest).
 2. Copy it to `/config/www/tomte/tomte.js`.
-3. Use `/local/tomte/tomte.js` wherever the steps below say `/hacsfiles/TomTe/tomte.js`.
+3. Download `loader.js` from the same release and put it next to it (`/config/www/tomte/loader.js`). Home Assistant caches `/local` for 31 days, so a `module_url` straight at `tomte.js` keeps showing an old version after an update; the loader asks the server which build is current and always loads that one.
+4. Use `/local/tomte/loader.js` wherever the steps below say `/hacsfiles/TomTe/tomte.js` (without the loader, `/local/tomte/tomte.js` works but needs a cache clear after every update).
 
 </details>
 
@@ -163,7 +164,7 @@ Bugs and ideas are welcome as [issues](https://github.com/emile-bodin/TomTe/issu
 ```bash
 npm install
 npm run watch            # rebuilds dist/tomte.js on every change
-npm run deploy:dev       # check, build, smoke-test and install as the Tomte-dev panel
+npm run deploy:dev       # check, build, smoke-test and install as the Tomte-dev panel (bundle + loader.js)
 npm run deploy:prod      # the same from a clean main, installed as the Tomte panel, and tags the version
 npm run rollback:dev     # (or rollback:prod) put the previous bundle back
 npm run release -- 1.0.1 # write the version and the changelog heading, commit (from a clean main)

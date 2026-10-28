@@ -4,12 +4,12 @@
 //   prod  builds `main` as tomte                -> /config/www/tomte             (panel /tomte), tags the version
 //
 // Both run the same checks first (translations, syntax, a render smoke test), back up the bundle they replace in
-// .deploy-backups/<variant>/ and (re)write a small loader.js next to the bundle: /local is cached for 31 days, the loader
+// .deploy-backups/<variant>/ and install the loader.js that build.mjs writes next to the bundle: /local is cached for 31 days, the loader
 // imports the bundle under its current ETag, so a reload in the browser always gets the new build.
 // Other targets: TOMTE_TARGET, or { "dev": "...", "prod": "..." } in deploy.local.json (git-ignored).
 // Roll back with `npm run rollback:dev` / `npm run rollback:prod`.
 import { execSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 const variant = process.argv[2];
@@ -51,18 +51,7 @@ if (existsSync(current)) {
   for (const f of keep.slice(0, Math.max(0, keep.length - 10))) rmSync(join(backupDir, f));   // keep the last 10
 }
 copyFileSync(bundle, current);
-writeFileSync(join(target, "loader.js"), `// Tomte ${variant} loader: /local is served with a 31-day max-age, so the panel
-// loads this tiny file and imports the real bundle under its current ETag.
-// A new build gets a new ETag, hence a new URL, hence no stale cache.
-const bundle = new URL("./${name}.js", import.meta.url);
-let v = Date.now();
-try {
-  const r = await fetch(bundle, { method: "HEAD", cache: "no-store" });
-  v = r.headers.get("etag") || r.headers.get("last-modified") || v;
-} catch (e) {}
-bundle.searchParams.set("v", String(v).replace(/[^\\w-]/g, ""));
-await import(bundle.href);
-`);
+copyFileSync(`${dist}/loader.js`, join(target, "loader.js"));   // built next to the bundle by build.mjs
 console.log(`deployed ${version} (${branch}${dirty ? ", with uncommitted changes" : ""}) to ${target}; reload the browser`);
 
 if (variant === "prod") {

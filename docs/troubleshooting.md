@@ -5,6 +5,11 @@
     - `name` must be exactly `tomte-panel`.
     - Restart Home Assistant after changing `panel_custom`, then reload the browser.
 
+??? question "An update does not show"
+    - Reload the browser (hard reload: Ctrl+Shift+R, or clear the site data in the Home Assistant app).
+    - Installed by hand with `module_url: /local/tomte/tomte.js`? Home Assistant serves `/local` with a 31-day cache. Use `loader.js` from the release instead (see [Installation](installation.md#1-download)): `module_url: /local/tomte/loader.js`, and the same in `extra_module_url`. It loads whichever build of `tomte.js` is current, so a normal reload is enough.
+    - HACS installs use `/hacsfiles/…` and have no loader: reload the browser after the update HACS reports.
+
 ??? question "The sidebar icon is empty"
     `sidebar_icon: tomte:logo` needs the file loaded at startup: add it under `frontend: extra_module_url` (see [Installation](installation.md#2a-sidebar-panel)) and restart. Or use an `mdi:` icon instead.
 

@@ -1,7 +1,7 @@
 import { TAG, SUFFIX } from "./util.js";
 const CARD = "tomte-card" + SUFFIX;                      // custom:tomte-card (dev build: custom:tomte-card-dev)
 // Lovelace card wrapper: lets the panel live in a dashboard (panel view) instead of panel_custom.
-// Install the bundle as a dashboard resource, add a dashboard with one card:  type: custom:tomte-card
+// Install the bundle (or its loader.js, see docs/installation.md) as a dashboard resource, add a dashboard with one card:  type: custom:tomte-card
 // Routing inside the card uses the URL hash (#/<room>), so the dashboard URL itself never changes.
 // Optional: a `config:` object in the card config is used like config.json (users can still override it in the panel settings).
 class TomteCard extends HTMLElement {

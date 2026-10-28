@@ -521,6 +521,7 @@ export const styles = css`
   .card.add b{font-size:11px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--fg-2)}
   .banner.ebar{justify-content:flex-start;gap:12px;padding:0 var(--pad);height:58px;text-align:left}
   .banner.ebar ha-icon{--mdc-icon-size:18px;flex:none}
+  .banner.ebar .scopesel{margin-left:auto}
   .banner.ebar small{font-weight:600;color:var(--fg-3);letter-spacing:1.6px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .banner.ebar button{height:36px;padding:0 18px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;flex:none}
   .banner.ebar .ghost{margin-left:auto}

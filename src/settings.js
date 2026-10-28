@@ -3,7 +3,7 @@
 // The page is split into tabs (left) so each topic stays small.
 import { t, locale, LANGUAGES } from "./i18n.js";
 import { html, nothing } from "lit";
-import { domain, slug, SUFFIX, VERSION } from "./util.js";
+import { domain, slug, SUFFIX, VERSION, relTime } from "./util.js";
 import { QUICK_TYPES, QUICK_DOMAINS, triggerCandidates, selfUpdate } from "./features.js";
 import { GRAPH_HOURS } from "./graph.js";
 
@@ -24,15 +24,73 @@ export async function loadUserConfig(hass) {
 }
 export const saveUserConfig = (hass, value) => hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY, value });
 
-/** deep-ish merge: home + home.energy, cards and pages are merged per key, everything else is replaced */
-export function mergeConfig(...layers) {
+/* ---------- two layers: the household (shared, system data) and the person (user data) ----------
+   What a person sees = defaults < card config < household < personal. The personal layer only holds what differs from
+   the layers below it. An administrator edits the household by default; the scope picker in the edit bar and in the
+   settings header switches to "only me". */
+
+/** keys that are always personal, whatever the scope */
+export const PERSONAL_KEYS = ["setupDone", "hintSeen", "importedAt", "idleMinutes", "language", "saveScope"];
+/** the part of a config that is personal (own = true) or shareable (own = false) */
+export const pick = (cfg, own) => Object.fromEntries(Object.entries(cfg || {}).filter(([k]) => PERSONAL_KEYS.includes(k) === own));
+
+const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
+
+/** deep merge: objects are merged per key, arrays and values are replaced; home.energy is always an object */
+function deepMerge(...layers) {
   const out = {};
-  for (const l of layers) { if (!l) continue; for (const [k, v] of Object.entries(l)) {
-    if (k === "home" && v && typeof v === "object") out.home = { ...(out.home || {}), ...v, energy: { ...(out.home?.energy || {}), ...(v.energy || {}) } };
-    else if ((k === "cards" || k === "pages") && v && typeof v === "object") out[k] = { ...(out[k] || {}), ...v };
-    else out[k] = v; } }
+  for (const l of layers) { if (!l) continue; for (const [k, v] of Object.entries(l)) out[k] = isObj(v) ? deepMerge(isObj(out[k]) ? out[k] : {}, v) : v; }
   return out;
 }
+export function mergeConfig(...layers) { const out = deepMerge(...layers); if (out.home) out.home.energy = out.home.energy || {}; return out; }
+
+/** what `cfg` adds to `base`: a sparse object holding only the differing leaves */
+export function diffConfig(cfg, base) {
+  const out = {};
+  for (const [k, v] of Object.entries(cfg || {})) {
+    if (v === undefined) continue;
+    const b = base?.[k];
+    if (isObj(v) && isObj(b)) { const d = diffConfig(v, b); if (Object.keys(d).length) out[k] = d; }
+    else if (JSON.stringify(v) !== JSON.stringify(b)) out[k] = v;
+  }
+  return out;
+}
+/** where two configs differ, as a mask (true at every differing leaf) */
+export function changeMask(a, b) {
+  const out = {};
+  for (const k of new Set([...Object.keys(a || {}), ...Object.keys(b || {})])) {
+    const x = a?.[k], y = b?.[k];
+    if (isObj(x) && isObj(y)) { const m = changeMask(x, y); if (Object.keys(m).length) out[k] = m; }
+    else if (JSON.stringify(x) !== JSON.stringify(y)) out[k] = true;
+  }
+  return out;
+}
+/** remove from `cfg` (in place) everything the mask marks: a household change replaces the personal difference */
+export function dropMasked(cfg, mask) {
+  for (const k of Object.keys(mask)) if (k in cfg) {
+    if (isObj(mask[k]) && isObj(cfg[k])) { dropMasked(cfg[k], mask[k]); if (!Object.keys(cfg[k]).length) delete cfg[k]; }
+    else delete cfg[k];
+  }
+  return cfg;
+}
+export const cloneConfig = o => JSON.parse(JSON.stringify(o || {}));
+/** dotted paths where the personal layer differs from the household, for the settings page */
+export const personalPaths = own => Object.entries(pick(own, false)).flatMap(([k, v]) => isObj(v) && k !== "home" ? Object.keys(v).map(s => k + "." + s) : [k]);
+
+/** household settings live in HA's system data (readable by everyone, writable by administrators) */
+export async function loadSharedConfig(hass) {
+  try {
+    const r = await hass.callWS({ type: "frontend/get_system_data", key: USER_DATA_KEY });
+    const v = r?.value;
+    return v && typeof v === "object" && v.config && Object.keys(v.config).length ? v : null;
+  } catch (e) { console.warn("[hacasa-nova] shared settings not available", e); return false; }   // false = could not read: keep what we have
+}
+export const saveSharedConfig = (hass, value) => hass.callWS({ type: "frontend/set_system_data", key: USER_DATA_KEY, value });
+
+/** "who am I editing": household or only me (administrators only) */
+export const scopePicker = p => p.canShare ? html`<select class="scopesel" title=${t("Je bewerkt")} @change=${e => p.setScope(e.target.value)}>
+  <option value="global" ?selected=${p.scope === "global"}>${t("Je bewerkt")}: ${t("Het hele huis")}</option>
+  <option value="user" ?selected=${p.scope === "user"}>${t("Je bewerkt")}: ${t("Alleen mij")}</option></select>` : nothing;
 
 /* ---------- small form helpers ---------- */
 export const field = (label, control, sub) => html`<label class="f"><span>${label}${sub ? html`<small>${sub}</small>` : nothing}</span>${control}</label>`;
@@ -94,14 +152,18 @@ export function renderSettings(p) {
   const calendars = sortByName(Object.values(hass.states).filter(s => domain(s.entity_id) === "calendar"));
   const motion = p.rooms.flatMap(r => r.ents.motion.map(e => ({ ...e.state, entity_id: e.id, room: r })));
 
-  const strip = o => JSON.stringify(o, (k, v) => v === undefined ? undefined : v);
-  const dirty = strip(d) !== strip(p.config);
+  const strip = o => JSON.stringify(o, (k, v) => v === undefined ? undefined : isObj(v) ? Object.fromEntries(Object.keys(v).sort().map(x => [x, v[x]])) : v);
+  const dirty = strip(d) !== strip(p.draftBase());
   const sec = (title, meta, body) => html`<section class="pcard"><h2>${title}${meta ? html`<small>${meta}</small>` : nothing}</h2>${body}</section>`;
   const pageName = key => key === "home" ? t("Startpagina") : (p.rooms.find(r => r.id === key)?.name || key);
   const cardSummary = c => [c.name && t("naam: {n}", { n: c.name }), c.icon && t("icoon: {n}", { n: c.icon }), c.tap === "popup" && t("tikken opent details"), c.hidden && t("verborgen"), c.noColor && t("kleur uit"), c.noArt && t("albumhoes uit"), c.noMode && t("modusknoppen uit"), c.noPreset && t("thuis/weg uit"), c.live && t("live beeld"), c.noAppliance && t("apparaatfuncties uit"), c.threshold != null && t("drempel {n} W", { n: c.threshold })].filter(Boolean).join(" · ");
 
   const content = {
     algemeen: html`
+      ${sec(t("Opslag"), t("voor wie gelden de instellingen"), html`
+        <div class="hint">${p.canShare ? p.scope === "global" ? t("Je bewerkt het hele huis: iedereen ziet dit.") : t("Je bewerkt alleen jouw account: afwijkend van het huis.") : t("alleen beheerders kunnen instellingen voor het hele huis wijzigen")}</div>
+        <div class="hint">${p.globalConfig ? t("Huis: versie {r}, {t} door {w}", { r: String(p.globalMeta?.rev ?? "?"), t: p.globalMeta?.updatedAt ? relTime(p.globalMeta.updatedAt) : "?", w: p.globalMeta?.updatedBy || "?" }) : t("Huis: nog geen gedeelde instellingen")}<br>${(paths => paths.length ? t("Persoonlijk wint op: {p}", { p: paths.slice(0, 12).join(", ") + (paths.length > 12 ? " …" : "") }) : t("Persoonlijk: geen afwijkingen"))(personalPaths(p.userConfig))}</div>
+        ${p.globalConfig && Object.keys(pick(p.userConfig, false)).length ? html`<div class="f"><span>${t("Mijn afwijkingen wissen")}<small>${t("alleen de instellingen van het hele huis blijven over")}</small></span><button @click=${() => p.clearPersonal()}>${t("Wissen")}</button></div>` : nothing}`)}
       ${sec(t("Instellingenbestand"), t("de instellingen staan per gebruiker in Home Assistant; een bestand maakt ze overdraagbaar"), html`
         <div class="f"><span>${t("Exporteren")}<small>${t("download alle instellingen als JSON")}</small></span><button @click=${() => p.exportSettings()}>${t("Download")}</button></div>
         <div class="f"><span>${t("Importeren")}<small>${t("een export of een oude config.json; wordt samengevoegd met wat er al staat")}</small></span><input type="file" accept="application/json,.json" @change=${e => { if (e.target.files[0]) p.importSettings(e.target.files[0]); e.target.value = ""; }}></div>`)}
@@ -240,7 +302,7 @@ export function renderSettings(p) {
   return html`<section class="settings page">
     <header class="phead"><div><h1>${t("Instellingen")}</h1><div class="psub">${t("Opgeslagen per gebruiker in Home Assistant. Leeg laten = automatisch of de waarde uit config.json.")} · HaCasa Nova ${VERSION}${(su => su ? html` · <a class="upd" @click=${su.open}>${t("{v} beschikbaar", { v: String(su.to).replace(/^v/, "") })}</a>` : nothing)(selfUpdate(p))}</div></div>
       <div class="actions">
-        ${p.saved ? html`<span class="ok">${t("Opgeslagen")}</span>` : dirty ? html`<span class="dirty"><ha-icon icon="mdi:circle-medium"></ha-icon>${t("Niet opgeslagen")}</span>` : nothing}
+        ${scopePicker(p)}${p.saved ? html`<span class="ok">${t("Opgeslagen")}</span>` : dirty ? html`<span class="dirty"><ha-icon icon="mdi:circle-medium"></ha-icon>${t("Niet opgeslagen")}</span>` : nothing}
         <button class=${dirty ? "primary pulse" : "primary"} @click=${() => p.saveSettings()}>${t("Opslaan")}</button>
         <button @click=${() => { if (confirm(t("Alle panelinstellingen van deze gebruiker wissen en terug naar de standaard?"))) p.resetSettings(); }}>${t("Alles herstellen")}</button>
         <button @click=${() => { if (!dirty || confirm(t("Wijzigingen niet opgeslagen. Toch sluiten?"))) p.go(null); }}>${t("Sluiten")}</button>
@@ -293,6 +355,7 @@ export const settingsStyles = `
   .settings .ok{font-size:13px;opacity:.8}
   .settings .dirty{display:inline-flex;align-items:center;gap:2px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f2b63a}
   .settings .dirty ha-icon{--mdc-icon-size:20px}
+  .scopesel{height:36px;padding:0 10px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);color:inherit;font:inherit;font-size:12px;font-weight:700}
   .settings .actions button.pulse{animation:pulse 1.6s ease-in-out infinite}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.35)}50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
   @media (max-width:900px){

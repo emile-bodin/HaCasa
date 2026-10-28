@@ -30,7 +30,7 @@ function optionsMenu(p, pop) {
     ${item("mdi:tune", t("Kaart instellen"), t("naam, weergave, gedrag, knoppen"), () => p.openPopup({ ...pop, menu: false, form: true }))}
     ${item("mdi:open-in-new", t("Openen in Home Assistant"), id.startsWith("device:") ? t("apparaatpagina") : id, () => { p.popup = null; id.startsWith("device:") ? p.goPath(`/config/devices/device/${dev}`) : p.moreInfo(id); })}
     ${dev && !id.startsWith("device:") ? item("mdi:chip", t("Apparaat openen"), deviceName(p.hass, dev), () => { p.popup = null; p.goPath(`/config/devices/device/${dev}`); }) : nothing}
-    ${onPage ? html`<div class="sep"></div>${item("mdi:eye-off-outline", t("Verbergen op deze pagina"), t("terug te vinden via Pagina instellen"), () => { const pc = p.pageCfg(pageKey); p.savePage(pageKey, { ...pc, hidden: [...new Set([...(pc.hidden || []), id])] }); p.popup = null; })}` : nothing}
+    ${onPage ? html`<div class="sep"></div>${item("mdi:eye-off-outline", t("Verbergen op deze pagina"), t("terug te vinden via Pagina instellen"), () => { const pc = p.layerPage(pageKey); p.savePage(pageKey, { ...pc, hidden: [...new Set([...(pc.hidden || []), id])] }); p.popup = null; })}` : nothing}
     <button class="cancel" @click=${() => p.openPopup({ ...pop, menu: false })}>${t("Annuleren")}</button>
   </div>`;
 }
@@ -68,7 +68,7 @@ function cardForm(p, pop) {
   // a group or graph: its definition is edited right here (pop.gd) and saved with the card settings
   const grp = id.startsWith("group:") ? (p.config.groups || []).find(g => g.id === id.slice(6)) : null, grf = id.startsWith("graph:") ? (p.config.graphs || []).find(g => g.id === id.slice(6)) : null;
   const gd = pop.gd || (grp ? { ...grp } : grf ? { ...grf } : null), gupd = patch => p.openPopup({ ...pop, gd: { ...gd, ...patch } });
-  const saveMade = async () => { if (gd) await p.saveUser({ [grp ? "groups" : "graphs"]: (p.userConfig?.[grp ? "groups" : "graphs"] || p.config[grp ? "groups" : "graphs"] || []).map(x => x.id === gd.id ? gd : x) }); };
+  const saveMade = async () => { if (gd) await p.saveUser({ [grp ? "groups" : "graphs"]: (p.wl?.[grp ? "groups" : "graphs"] || p.config[grp ? "groups" : "graphs"] || []).map(x => x.id === gd.id ? gd : x) }); };
   // live preview: the real card, rendered with the draft (cardCfg reads p._preview while it renders)
   const pageKey = p.room?.id || "home";
   let preview = null;

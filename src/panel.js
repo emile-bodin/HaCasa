@@ -9,7 +9,7 @@ import { buildRooms, buildHome, name } from "./model.js";
 import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateInstance } from "./cards.js";
 import { editStrip, editBar, canEdit } from "./edit.js";
 import { renderPopup } from "./popups.js";
-import { renderSettings, loadUserConfig, saveUserConfig, mergeConfig } from "./settings.js";
+import { USER_DATA_KEY, renderSettings, loadUserConfig, saveUserConfig, mergeConfig, loadSharedConfig, saveSharedConfig, pick, diffConfig, changeMask, dropMasked, cloneConfig } from "./settings.js";
 import { renderPage, PAGES } from "./pages.js";
 import { subscribeNotifications, hourlyToday, idleScreen } from "./extras.js";
 import { fetchEvents, fetchHistory, nextEvent, applianceState, applianceEnd } from "./extras2.js";
@@ -63,6 +63,7 @@ class HacasaNova extends LitElement {
     this._lastActivity = Date.now();
     this._onResize = () => { clearTimeout(this._rsT); this._rsT = setTimeout(() => this.requestUpdate(), 150); }; addEventListener("resize", this._onResize);
     this._mq = matchMedia("(max-width:900px)"); this._mq.addEventListener("change", this._onResize);   // phone ⇄ desktop layout is decided in render()
+    this._gpoll = setInterval(() => { if (this.hass && this._userLoaded) this.loadGlobal(); }, 60000);   // household settings changed elsewhere
     this._idleT = setInterval(() => { const m = +(this.config.idleMinutes ?? 0); if (m > 0 && !this.idle && Date.now() - this._lastActivity > m * 60000) this.idle = true; }, 5000);
     // swipe between rooms (touch only, outside the card strip)
     this._swipeDown = e => { if (e.pointerType !== "touch" || e.composedPath().some(el => el.classList && (el.classList.contains("strip") || el.classList.contains("overlay") || el.classList.contains("page") || el.classList.contains("settings") || el.classList.contains("nav")))) { this._sw = null; return; } this._sw = { x: e.clientX, y: e.clientY, t: Date.now() }; };
@@ -72,7 +73,7 @@ class HacasaNova extends LitElement {
     this.addEventListener("pointerdown", e => { if (this.navFloor != null && !this.drawer && !e.composedPath().some(el => el.classList?.contains("fl"))) this.navFloor = null; });
     this.addEventListener("pointerdown", e => { if (this.drawer && !e.composedPath().some(el => el.classList?.contains("links") || el.classList?.contains("rtab"))) this.drawer = false; });
   }
-  disconnectedCallback() { super.disconnectedCallback(); clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
+  disconnectedCallback() { super.disconnectedCallback(); clearInterval(this._clock); clearInterval(this._ticker); clearInterval(this._idleT); clearInterval(this._gpoll); removeEventListener("keydown", this._onKey); removeEventListener("resize", this._onResize); this._mq?.removeEventListener("change", this._onResize); if (this._onHash) removeEventListener("hashchange", this._onHash); for (const ev of ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"]) removeEventListener(ev, this._activity); this._unsubNotif?.(); }
   wake() { this.idle = false; this._lastActivity = Date.now(); }
   /** go to the previous/next room in nav order (home is before the first room) */
   swipe(dir) { const order = [null, ...this.rooms]; const i = order.findIndex(r => (r?.id || null) === (this.room?.id || null)); const n = order[i + dir]; if (n !== undefined) this.go(n); }
@@ -95,18 +96,38 @@ class HacasaNova extends LitElement {
       u = { ...mergeConfig(this.fileConfig, u || {}), importedAt: new Date().toISOString(), setupDone: true };
       try { await saveUserConfig(this.hass, u); console.info("[hacasa-nova] config.json imported into the user settings"); } catch (e) { console.warn("[hacasa-nova] could not store the imported config.json", e); }
     }
+    const g = await loadSharedConfig(this.hass);
+    this.globalConfig = g?.config || null; this.globalMeta = g?.meta || null;
     this.userConfig = u; this.applyConfig();
   }
-  applyConfig() { this.config = mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.userConfig); this.subscribeTemplates(); if (this.userConfig && !this._tplMigrated) { this._tplMigrated = true; this.migrateTemplates(); } }
+  /** the household settings change on another device: pick them up (polled, see connectedCallback) */
+  async loadGlobal() {
+    const g = await loadSharedConfig(this.hass); if (g === false) return;
+    const c = g?.config || null;
+    if (JSON.stringify(c) !== JSON.stringify(this.globalConfig || null)) { this.globalConfig = c; this.globalMeta = g?.meta || null; this.applyConfig(); }
+  }
+  /* ---------- scope: the household (administrators) or only this account ---------- */
+  get canShare() { return !!this.hass?.user?.is_admin; }
+  /** where edits go: "global" for an administrator once household settings exist (the default), otherwise "user" */
+  get scope() { return this.canShare && this.globalConfig && this.userConfig?.saveScope !== "user" ? "global" : "user"; }
+  /** the layer being edited */
+  get wl() { return this.scope === "global" ? this.globalConfig : this.userConfig; }
+  get setupIsDone() { return !!(this.userConfig?.setupDone || this.globalConfig); }
+  /** the draft of the settings page starts from the edited layer, so the "not saved" marker compares like with like */
+  draftBase() { return this.scope === "global" ? mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.globalConfig, pick(this.userConfig, true)) : this.config; }
+  /** what the layers below the edited one say: a personal save stores only the difference with it */
+  lowerCfg() { return this.scope === "global" ? mergeConfig(DEFAULT_CONFIG, this.cardConfig) : mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.globalConfig); }
+  applyConfig() { this.config = mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.globalConfig, this.userConfig); this.subscribeTemplates(); if (this.userConfig && !this._tplMigrated) { this._tplMigrated = true; this.migrateTemplates(); } }
   /** settings as a downloadable JSON file (the old config.json role) */
   exportSettings() {
-    const blob = new Blob([JSON.stringify(this.userConfig || {}, null, 2)], { type: "application/json" });
+    const { saveScope, ...all } = this.globalConfig ? mergeConfig(this.globalConfig, this.userConfig || {}) : (this.userConfig || {});
+    const blob = new Blob([JSON.stringify(all, null, 2)], { type: "application/json" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "hacasa-nova-settings.json"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   /** merge a JSON file (export or an old config.json) into the settings */
   importSettings(file) {
     const rd = new FileReader();
-    rd.onload = async () => { try { const data = JSON.parse(rd.result); if (!data || typeof data !== "object") throw 0; const u = { ...mergeConfig(this.userConfig || {}, data), setupDone: true }; await saveUserConfig(this.hass, u); this.userConfig = u; this.applyConfig(); this.draft = JSON.parse(JSON.stringify(this.config)); this.showToast(t("Instellingen geïmporteerd")); } catch { this.showToast(t("Geen geldig instellingenbestand")); } };
+    rd.onload = async () => { try { const data = JSON.parse(rd.result); if (!data || typeof data !== "object") throw 0; delete data.saveScope; if (this.scope === "global") { await this.saveGlobal(mergeConfig(this.globalConfig || {}, pick(data, false))); const u = { ...(this.userConfig || {}), ...pick(data, true), setupDone: true }; await saveUserConfig(this.hass, u); this.userConfig = u; } else { const u = { ...mergeConfig(this.userConfig || {}, data), setupDone: true }; await saveUserConfig(this.hass, u); this.userConfig = u; } this.applyConfig(); this.draft = cloneConfig(this.draftBase()); this.showToast(t("Instellingen geïmporteerd")); } catch { this.showToast(t("Geen geldig instellingenbestand")); } };
     rd.readAsText(file);
   }
   /** one render_template subscription per template card field; re-subscribed when the config changes */
@@ -131,9 +152,21 @@ class HacasaNova extends LitElement {
     }
   }
   get settingsPath() { return `${this.basePath()}/instellingen`; }
-  async saveSettings() { await saveUserConfig(this.hass, this.draft); this.userConfig = this.draft; this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500); }
+  /** settings page: the household gets what differs from the defaults; a person only what differs from the household */
+  async saveSettings() {
+    if (this.scope === "global") {
+      const before = this.globalConfig || {};
+      await this.saveGlobal(diffConfig(pick(this.draft, false), mergeConfig(DEFAULT_CONFIG, this.cardConfig)), true);
+      this.userConfig = { ...dropMasked(cloneConfig(this.userConfig), changeMask(before, this.globalConfig)), ...pick(this.draft, true) };
+      await saveUserConfig(this.hass, this.userConfig);
+    } else {
+      const u = { ...diffConfig(pick(this.draft, false), mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.globalConfig)), ...pick(this.draft, true) };
+      await saveUserConfig(this.hass, u); this.userConfig = u;
+    }
+    this.applyConfig(); this.saved = true; setTimeout(() => this.saved = false, 2500);
+  }
   /** back to the defaults (a config.json next to the panel is imported again on the next load) */
-  async resetSettings() { await saveUserConfig(this.hass, null); this.userConfig = null; this.applyConfig(); this.draft = mergeConfig(DEFAULT_CONFIG, this.cardConfig); }
+  async resetSettings() { await saveUserConfig(this.hass, null); this.userConfig = null; this.applyConfig(); this.draft = cloneConfig(this.draftBase()); }
 
   /* ---------- derived model ---------- */
   willUpdate() {
@@ -143,15 +176,15 @@ class HacasaNova extends LitElement {
     this.rooms = buildRooms(this.hass, this.config);
     this.home = buildHome(this.hass, this.config, this.rooms, this.notifications);
     watchTriggers(this);
-    if (!this._wizardShown && this.userConfig !== undefined && !this.userConfig?.setupDone && !this.cardConfig) { this._wizardShown = true; this.popup = { type: "wizard", step: 0 }; }
-    if (!this._hinted && this.userConfig !== undefined && this.userConfig?.setupDone && !this.userConfig?.hintSeen) { this._hinted = true; this.showToast(t("Tik op een kaart om te schakelen, houd vast voor details. Via ⋯ in de popup stel je dit per kaart in."), 9000, "info"); this.saveUser({ hintSeen: true }); }
+    if (!this._wizardShown && this.userConfig !== undefined && !this.setupIsDone && !this.cardConfig) { this._wizardShown = true; this.popup = { type: "wizard", step: 0 }; }
+    if (!this._hinted && this.userConfig !== undefined && this.setupIsDone && !this.userConfig?.hintSeen) { this._hinted = true; this.showToast(t("Tik op een kaart om te schakelen, houd vast voor details. Via ⋯ in de popup stel je dit per kaart in."), 9000, "info"); this.saveUser({ hintSeen: true }); }
     if (this.home.calendars.length && (!this._eventsAt || Date.now() - this._eventsAt > 10 * 60000)) this.loadEvents();
     if (this.home.weather && (!this._wxAt || Date.now() - this._wxAt > 30 * 60000 || this._wxId !== this.home.weather.entity_id)) this.loadWx();
     const seg = (this.route?.path || "/").split("/").filter(Boolean)[0];
     this.settings = seg === "instellingen";
     this.page = PAGES[seg] ? seg : null;
     // a draft made before the user settings arrived (settings opened by reload) is rebuilt once they do, so Save never writes defaults over them
-    if (this.settings && (!this.draft || (this._draftEarly && this.userConfig !== undefined))) { this.draft = JSON.parse(JSON.stringify(this.config)); this._draftEarly = this.userConfig === undefined; }
+    if (this.settings && (!this.draft || (this._draftEarly && this.userConfig !== undefined))) { this.draft = cloneConfig(this.draftBase()); this._draftEarly = this.userConfig === undefined; }
     if (!this.settings) this.draft = null;
     this.room = seg && !this.settings && !this.page ? this.rooms.find(r => r.slug === seg || r.id === seg) : null;
     const bg = this.settings || this.page ? "" : this.bgUrl(this.room);   // Meer pages: plain background, no photo
@@ -191,33 +224,75 @@ class HacasaNova extends LitElement {
   toggleSidebar() { this.drawer = false; this.popup = null; this.dispatchEvent(new CustomEvent("hass-toggle-menu", { bubbles: true, composed: true })); }
   /** open Home Assistant's own more-info dialog for an entity */
   moreInfo(entityId) { this.dispatchEvent(new CustomEvent("hass-more-info", { bubbles: true, composed: true, detail: { entityId } })); }
+  /** a card's settings go to the edited layer as the difference with the layers below it; saving to the household drops the personal version */
   async saveCardSettings(id, cfg) {
-    const cards = { ...(this.userConfig?.cards || {}) };
-    if (cfg && Object.keys(cfg).some(k => cfg[k] !== undefined)) cards[id] = cfg; else delete cards[id];
-    this.userConfig = { ...(this.userConfig || {}), cards };
-    await saveUserConfig(this.hass, this.userConfig); this.applyConfig(); this.popup = null;
+    const cards = { ...(this.wl?.cards || {}) }, d = cfg ? diffConfig(cfg, this.lowerCfg().cards?.[id]) : null;
+    if (d && Object.keys(d).length) cards[id] = d; else delete cards[id];
+    await this.saveUser({ cards });
+    if (this.scope === "global") await this.dropPersonal("cards", id);
+    this.popup = null;
   }
-  /** merge a patch into the per-user settings and save it */
-  async saveUser(patch) { this.userConfig = { ...(this.userConfig || {}), ...patch }; await saveUserConfig(this.hass, this.userConfig); this.applyConfig(); }
+  /** merge a patch into the edited layer (the household for an administrator in household scope) and save it.
+      Personal keys always stay personal; `personalOnly` skips the household. */
+  async saveUser(patch, personalOnly = false) {
+    const toHome = !personalOnly && this.scope === "global", own = toHome ? pick(patch, true) : patch, shared = toHome ? pick(patch, false) : {};
+    let u = this.userConfig || {};
+    if (Object.keys(shared).length) { const before = this.globalConfig || {}; await this.saveGlobal(shared); u = dropMasked(cloneConfig(u), changeMask(before, this.globalConfig)); }   // a household change replaces the personal difference
+    u = { ...u, ...own };
+    if (JSON.stringify(u) !== JSON.stringify(this.userConfig || {})) { this.userConfig = u; await saveUserConfig(this.hass, u); }
+    this.applyConfig();
+  }
+  /** write the household settings (system data); `replace` stores exactly `cfg` instead of merging it into what is there */
+  async saveGlobal(cfg, replace = false) {
+    const cur = await loadSharedConfig(this.hass), config = replace ? cfg : { ...((cur && cur.config) || this.globalConfig || {}), ...cfg };
+    const meta = { rev: ((cur && cur.meta?.rev) || 0) + 1, updatedAt: new Date().toISOString(), updatedBy: this.hass.user?.name || "" };
+    await saveSharedConfig(this.hass, { v: 2, meta, config }); this.globalConfig = config; this.globalMeta = meta;
+  }
+  async setScope(scope) {
+    if (scope === "global") { if (!this.canShare) return; if (!this.globalConfig) { await this.shareSettings(); return; } }
+    await this.saveUser({ saveScope: scope });
+    if (this.draft) this.draft = cloneConfig(this.draftBase());
+  }
+  /** first time: turn this account's settings into the household's (the personal copy is backed up first) */
+  async shareSettings() {
+    if (!this.canShare) return;
+    const shared = mergeConfig(this.globalConfig || {}, pick(this.userConfig, false));
+    if (!Object.keys(shared).length) { this.showToast(t("Er is niets om te delen")); return; }
+    try { await this.hass.callWS({ type: "frontend/set_user_data", key: USER_DATA_KEY + "_backup", value: { at: new Date().toISOString(), config: this.userConfig || {} } }); } catch (e) { console.warn("[hacasa-nova] backup before sharing failed", e); }
+    await this.saveGlobal(shared);
+    this.userConfig = { ...pick(this.userConfig, true), saveScope: "global" }; await saveUserConfig(this.hass, this.userConfig);
+    this.applyConfig(); if (this.draft) this.draft = cloneConfig(this.draftBase());
+    this.showToast(t("Instellingen gedeeld met het hele huis"));
+  }
+  /** drop every personal difference with the household */
+  async clearPersonal() { this.userConfig = pick(this.userConfig, true); await saveUserConfig(this.hass, this.userConfig); this.applyConfig(); if (this.draft) this.draft = cloneConfig(this.draftBase()); }
+  /** drop one personal page / card entry, so the household's shows again */
+  async dropPersonal(kind, id) {
+    const u = this.userConfig; if (!u?.[kind]?.[id]) return;
+    const next = { ...u, [kind]: { ...u[kind] } }; delete next[kind][id]; if (!Object.keys(next[kind]).length) delete next[kind];
+    this.userConfig = next; await saveUserConfig(this.hass, next); this.applyConfig(); if (this.draft) this.draft = cloneConfig(this.draftBase());
+  }
   /** wizard result -> user settings (null = skipped: only remember that it ran) */
   async finishWizard(d) {
     const clean = o => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ""));
-    const patch = d ? { ...clean({ language: d.language, title: d.title, roomImage: d.roomImage, homeImage: d.homeImage }), rooms: d.rooms?.length ? d.rooms : undefined, home: { ...(this.userConfig?.home || {}), ...clean({ weather: d.home.weather, climate: d.home.climate, alarm: d.home.alarm }), energy: { ...(this.userConfig?.home?.energy || {}), ...clean(d.home.energy || {}) } }, setupDone: true } : { setupDone: true };
+    const patch = d ? { ...clean({ language: d.language, title: d.title, roomImage: d.roomImage, homeImage: d.homeImage }), rooms: d.rooms?.length ? d.rooms : undefined, home: { ...(this.wl?.home || {}), ...clean({ weather: d.home.weather, climate: d.home.climate, alarm: d.home.alarm }), energy: { ...(this.wl?.home?.energy || {}), ...clean(d.home.energy || {}) } }, setupDone: true } : { setupDone: true };
     await this.saveUser(patch); this.popup = null; if (d) this.showToast(t("Het panel is ingesteld"));
   }
   async savePreset(r, pr) {
-    const all = { ...(this.userConfig?.presets || {}) }, list = all[r.id] || [];
+    const all = { ...(this.wl?.presets || {}) }, list = all[r.id] || [];
     all[r.id] = list.some(x => x.id === pr.id) ? list.map(x => x.id === pr.id ? pr : x) : [...list, pr];
     await this.saveUser({ presets: all }); this.popup = { type: "presets", roomId: r.id };
   }
   async deletePreset(r, id) {
-    const all = { ...(this.userConfig?.presets || {}) }; all[r.id] = (all[r.id] || []).filter(x => x.id !== id); if (!all[r.id].length) delete all[r.id];
+    const all = { ...(this.wl?.presets || {}) }; all[r.id] = (all[r.id] || []).filter(x => x.id !== id); if (!all[r.id].length) delete all[r.id];
     await this.saveUser({ presets: all }); this.popup = { type: "presets", roomId: r.id, manage: true };
   }
   visible(list) { return list.filter(e => !isHidden(this, e.id)); }
   get homeImage() { return this.config.pages?.home?.image || this.config.homeImage || ""; }
   /* ---------- per-page config: title, image, card order/visibility, ticker lines ---------- */
   pageCfg(key) { return this.config.pages?.[key] || {}; }
+  /** a page as the edited layer sees it (writes start from this, so a household save never copies a personal difference) */
+  layerPage(key) { return (this.scope === "global" ? mergeConfig(DEFAULT_CONFIG, this.cardConfig, this.globalConfig) : this.config).pages?.[key] || {}; }
   /** cards in the configured order: keys listed in `order` first, the rest in their default position */
   orderCards(list, order = []) { const pos = k => { const i = order.indexOf(k); return i < 0 ? order.length + list.findIndex(c => c.key === k) : i; }; return [...list].sort((a, b) => pos(a.key) - pos(b.key)); }
   applyPage(key, list) { const pc = this.pageCfg(key), hid = new Set(pc.hidden || []); return this.orderCards(list, pc.order).filter(c => !hid.has(c.key) && !this.condHiddenCard(c.key)); }
@@ -237,8 +312,8 @@ class HacasaNova extends LitElement {
   }
   /** take a hand-added card off its page again: an add-list entry (a template instance also drops its settings), or a group / graph made for this page */
   async removeAdded(pageKey, key) {
-    if (key.startsWith("group:") || key.startsWith("graph:")) { const kind = key.startsWith("group:") ? "groups" : "graphs", id = key.slice(6); await this.saveUser({ [kind]: (this.userConfig?.[kind] || this.config[kind] || []).filter(g => g.id !== id) }); await this.saveCardSettings(key, null); return; }
-    const pc = this.pageCfg(pageKey); await this.savePage(pageKey, { ...pc, add: (pc.add || []).filter(k => k !== key) }); if (key.startsWith("tpl:")) await this.saveCardSettings(key, null);
+    if (key.startsWith("group:") || key.startsWith("graph:")) { const kind = key.startsWith("group:") ? "groups" : "graphs", id = key.slice(6); await this.saveUser({ [kind]: (this.wl?.[kind] || this.config[kind] || []).filter(g => g.id !== id) }); await this.saveCardSettings(key, null); return; }
+    const pc = this.layerPage(pageKey); await this.savePage(pageKey, { ...pc, add: (pc.add || []).filter(k => k !== key) }); if (key.startsWith("tpl:")) await this.saveCardSettings(key, null);
   }
   /** template cards used to be pinned to a page (room); since 3.1 they are a library placed through edit mode: move the pins into the pages' add lists once */
   migrateTemplates() {
@@ -247,7 +322,7 @@ class HacasaNova extends LitElement {
     const next = tpls.map(x => { if (x.room === "none") return x; const page = x.room || "home", pc = { ...(pages[page] || {}) }, key = `tpl:${x.id}:legacy`;
       pc.add = [...new Set([...(pc.add || []), key])]; pages[page] = pc; return { ...x, room: "none" }; });
     console.info("[hacasa-nova] template cards moved to the pages' add lists");
-    this.saveUser({ templates: next, pages });
+    this.saveUser({ templates: next, pages }, true);
   }
   tickerOn(key, items) {
     const pc = this.pageCfg(key), tk = pc.ticker || {};
@@ -256,7 +331,7 @@ class HacasaNova extends LitElement {
   }
   /** appliance features on/off for a plug; the popup stays open on the matching card form */
   async setApplianceMode(key, on) {
-    const cards = { ...(this.userConfig?.cards || {}) }, c = { ...(cards[key] || {}) };
+    const cards = { ...(this.wl?.cards || {}) }, c = { ...(cards[key] || {}) };
     if (on) delete c.noAppliance; else c.noAppliance = true;
     if (Object.keys(c).length) cards[key] = c; else delete cards[key];
     await this.saveUser({ cards });
@@ -267,9 +342,12 @@ class HacasaNova extends LitElement {
   /** every card a page can show (before hiding/ordering), for the page popup */
   pageCards(key) { return key === "home" ? homeCards(this, this.home) : this.roomCards(this.rooms.find(r => r.id === key)); }
   async savePage(key, cfg) {
-    const pages = { ...(this.userConfig?.pages || {}) };
-    if (cfg && Object.keys(cfg).some(k => cfg[k] !== undefined && !(Array.isArray(cfg[k]) && !cfg[k].length) && !(typeof cfg[k] === "object" && !Array.isArray(cfg[k]) && cfg[k] && !Object.keys(cfg[k]).length))) pages[key] = cfg; else delete pages[key];
-    await this.saveUser({ pages }); if (this.draft) this.draft = { ...this.draft, pages: this.config.pages }; this.popup = null;
+    const pages = { ...(this.wl?.pages || {}) }, d = cfg ? diffConfig(cfg, this.lowerCfg().pages?.[key]) : null;
+    if (d && Object.keys(d).length) pages[key] = d; else delete pages[key];
+    await this.saveUser({ pages });
+    if (this.scope === "global") await this.dropPersonal("pages", key);
+    if (this.draft) this.draft = { ...this.draft, pages: this.draftBase().pages };
+    this.popup = null;
   }
   basePath() { if (this.hashMode) return ""; return "/" + (this.route?.prefix || this.panel?.url_path || location.pathname.split("/")[1]).replace(/^\/+|\/+$/g, ""); }
   stripDragged() { return this._drag > 6; }
@@ -588,8 +666,8 @@ class HacasaNova extends LitElement {
   startEdit(key) { this.edit = true; this.editKey = key; this.editOrder = null; this.editDrag = null; this.popup = null; this.drawer = false; this.searchOpen = false; }
   stopEdit() { this.edit = false; this.editOrder = null; this.editDrag = null; }
   editing(key) { return !!this.edit && this.editKey === key && !this.settings; }
-  async setHidden(key, cardKey, hide) { const pc = this.pageCfg(key), cur = pc.hidden || []; await this.savePage(key, { ...pc, hidden: hide ? [...new Set([...cur, cardKey])] : cur.filter(k => k !== cardKey) }); }
-  async saveOrder() { if (!this.editOrder) return; const pc = this.pageCfg(this.editKey); await this.savePage(this.editKey, { ...pc, order: this.editOrder }); }
+  async setHidden(key, cardKey, hide) { const pc = this.layerPage(key), cur = pc.hidden || []; await this.savePage(key, { ...pc, hidden: hide ? [...new Set([...cur, cardKey])] : cur.filter(k => k !== cardKey) }); }
+  async saveOrder() { if (!this.editOrder) return; const pc = this.layerPage(this.editKey); await this.savePage(this.editKey, { ...pc, order: this.editOrder }); }
   /** the card settings of a card by its page key (entity id, or device:<id> for appliances and power strips) */
   openCardForm(key) {
     if (key.startsWith("device:")) {

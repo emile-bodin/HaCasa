@@ -8,6 +8,7 @@ import { t, locale } from "./i18n.js";
 import { domain, num, unavailable } from "./util.js";
 import { cardFor, homeCards, findCard } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
+import { scopePicker } from "./settings.js";
 
 export const canEdit = p => !!p.hass?.user?.is_admin;
 /** entity domains that have a card */
@@ -82,7 +83,7 @@ export function editStrip(p, key) {
 /** the bar at the bottom while editing (desktop; phones put it in the bottom nav) */
 export const editBar = (p, key) => html`<div class="banner ebar show">
   <ha-icon icon="mdi:pencil-outline"></ha-icon><span>${key === "home" ? t("Startpagina bewerken") : t("Kamer bewerken")}</span><small>${t("sleep om te ordenen · × verbergt · tik opent de kaartinstellingen")}</small>
-  <button class="ghost" @click=${() => p.openPopup({ type: "page", key })}>${t("Pagina instellen")}</button><button class="done" @click=${() => p.stopEdit()}>${t("Klaar")}</button>
+  ${scopePicker(p)}${p.scope === "global" && p.userConfig?.pages?.[key] ? html`<button class="ghost" title=${t("Persoonlijke afwijking voor deze kamer")} @click=${() => p.dropPersonal("pages", key)}>${t("Terug naar huis")}</button>` : nothing}<button class="ghost" @click=${() => p.openPopup({ type: "page", key })}>${t("Pagina instellen")}</button><button class="done" @click=${() => p.stopEdit()}>${t("Klaar")}</button>
 </div>`;
 
 /* ---------- "Kaart toevoegen" popup ---------- */
@@ -92,15 +93,15 @@ const stateText = s => unavailable(s) ? t("Onbereikbaar") : s.state === "on" ? t
 /** add `key` to the page, then open its card settings */
 async function addKey(p, pageKey, key, { cardCfg = null, hideIn = null, haArea = false } = {}) {
   if (haArea) await p.hass.callWS({ type: "config/entity_registry/update", entity_id: key, area_id: pageKey });
-  else { const pc = p.pageCfg(pageKey); await p.savePage(pageKey, { ...pc, add: [...new Set([...(pc.add || []), key])] }); }
-  if (hideIn) { const pc = p.pageCfg(hideIn); await p.savePage(hideIn, { ...pc, hidden: [...new Set([...(pc.hidden || []), key])] }); }
+  else { const pc = p.layerPage(pageKey); await p.savePage(pageKey, { ...pc, add: [...new Set([...(pc.add || []), key])] }); }
+  if (hideIn) { const pc = p.layerPage(hideIn); await p.savePage(hideIn, { ...pc, hidden: [...new Set([...(pc.hidden || []), key])] }); }
   if (cardCfg) await p.saveCardSettings(key, cardCfg);
   setTimeout(() => p.openCardForm(key), haArea ? 800 : 50);              // a registry change arrives through hass first
 }
 /** a new group or graph for this page: straight into the config, then its card settings */
 async function addMade(p, pageKey, kind, item) {
   const id = (kind === "groups" ? "grp" : "gr") + Date.now().toString(36);
-  await p.saveUser({ [kind]: [...(p.userConfig?.[kind] || p.config[kind] || []), { ...item, id, room: pageKey }] });
+  await p.saveUser({ [kind]: [...(p.wl?.[kind] || p.config[kind] || []), { ...item, id, room: pageKey }] });
   p.popup = null; setTimeout(() => p.openCardForm((kind === "groups" ? "group:" : "graph:") + id), 50);
 }
 /* ---------- card types, like Home Assistant's card picker: pick a type, then configure it ---------- */
@@ -205,7 +206,7 @@ export function addPopup(p, pop) {
     const txt = (k, ph, sub) => f(t(k === "state" ? "Tekst" : k === "label" ? "Label" : k === "visible" ? "Zichtbaar (voorwaarde)" : k === "name" ? "Naam" : k === "icon" ? "Icoon" : k), html`<input type="text" .value=${nt[k] || ""} placeholder=${ph} @change=${e => n({ [k]: e.target.value || undefined })}>`, sub);
     const place = async () => {
       const def = { name: nt.name, icon: nt.icon, state: nt.state, label: nt.label, visible: nt.visible, visibleInvert: nt.visibleInvert, tap: nt.tap, service: nt.service, data: nt.data, path: nt.path };
-      if (nt.keep) { const id = "tpl" + Date.now().toString(36); await p.saveUser({ templates: [...(p.userConfig?.templates || p.config.templates || []), { ...def, id, room: "none" }] }); await addKey(p, key, `tpl:${id}:${Date.now().toString(36)}`, { cardCfg: { fields: { entity: nt.entity } } }); }
+      if (nt.keep) { const id = "tpl" + Date.now().toString(36); await p.saveUser({ templates: [...(p.wl?.templates || p.config.templates || []), { ...def, id, room: "none" }] }); await addKey(p, key, `tpl:${id}:${Date.now().toString(36)}`, { cardCfg: { fields: { entity: nt.entity } } }); }
       else await addKey(p, key, `tpl:once:${Date.now().toString(36)}`, { cardCfg: { once: def, fields: { entity: nt.entity } } });
     };
     return html`<div class="popup addp">${head(t("Nieuwe templatekaart"), t("Tekst en label zijn Jinja-templates; Home Assistant rendert ze live"))}

@@ -493,7 +493,7 @@ export function roomCameraCard(p, e) {
 /** power strip: one card, one button per socket (tap toggles, hold = details) */
 /* ---------- litter box: a device whose switches are Clean / Empty / Deodorize / … becomes one card with a button per action ---------- */
 const LITTER_ROLES = ["clean", "empty", "smart", "deodorize", "auto", "odourless"];
-const LITTER_INFO = { clean: ["Reinigen", "Reinigen", "mdi:broom"], empty: ["Legen", "Legen", "mdi:delete-empty-outline"], smart: ["Slim reinigen", "Slim", "mdi:auto-fix"], deodorize: ["Ontgeuren", "Ontgeur", "mdi:spray"], auto: ["Auto-ontgeuren", "Auto", "mdi:spray-bottle"], odourless: ["Geurloos", "Geurloos", "mdi:leaf"] };
+const LITTER_INFO = { clean: ["Reinigen", "mdi:broom"], empty: ["Legen", "mdi:delete-empty-outline"], smart: ["Slim reinigen", "mdi:auto-fix"], deodorize: ["Ontgeuren", "mdi:spray"], auto: ["Auto-ontgeuren", "mdi:spray-bottle"], odourless: ["Geurloos", "mdi:leaf"] };   // [name, icon]: the card shows icons only, the name is the tooltip and the popup row
 const litterRole = s => {
   const k = (s.id + " " + (s.state?.attributes?.friendly_name || s.reg?.name || "")).toLowerCase();
   return /smart/.test(k) ? "smart" : /auto/.test(k) ? "auto" : /odou?rless|geurloos/.test(k) ? "odourless" : /empty|leeg/.test(k) ? "empty" : /deodor|deordr|ontgeur/.test(k) ? "deodorize" : /clean|reinig/.test(k) ? "clean" : null;
@@ -503,8 +503,8 @@ export function litterBox(p, st) {
   const hass = p.hass, d = hass.devices?.[st.device], nm = d?.name_by_user || d?.name || "", roles = st.switches.map(s => ({ s, r: litterRole(s) })), has = k => roles.some(x => x.r === k);
   if (!(/kattenbak|litter|kattenbox|cat ?box/i.test(nm) || has("clean") && has("empty") && (has("deodorize") || has("odourless")))) return null;
   const items = roles.map(x => {
-    const c = cardCfg(p, x.s.id), m = LITTER_INFO[x.r] || [label(p, x.s), label(p, x.s), "mdi:power-socket-eu"];
-    return { s: x.s, r: x.r, name: c.name || t(m[0]), short: c.name || t(m[1]), icon: c.icon || m[2] };
+    const c = cardCfg(p, x.s.id), m = LITTER_INFO[x.r] || [label(p, x.s), "mdi:power-socket-eu"];
+    return { s: x.s, r: x.r, name: c.name || t(m[0]), icon: c.icon || m[1] };
   }).sort((a, b) => { const i = LITTER_ROLES.indexOf(a.r), j = LITTER_ROLES.indexOf(b.r); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j); });
   const sens = Object.entries(hass.entities || {}).filter(([k, v]) => v.device_id === st.device && k.startsWith("sensor.")).map(([k]) => hass.states[k]).filter(Boolean);
   const find = re => sens.find(z => re.test(z.entity_id) || re.test(z.attributes?.device_class || "")), wz = find(/weight|gewicht/), fz = find(/full/), lz = find(/lifetime/);
@@ -514,14 +514,14 @@ export function litterBox(p, st) {
 }
 function litterCard(p, st, K) {
   const un = st.switches.every(e => unavailable(e.state)), c = cardCfg(p, st.id);
-  return html`<div class=${classMap({ card: true, pstrip: true, on: K.busy, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
+  return html`<div class=${classMap({ card: true, pstrip: true, litter: true, on: K.busy, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
     ${un ? ua() : nothing}
     <div class="i">${c.icon ? ico(c.icon) : ico("mdi:cat", "litter_box")}</div>
     <div class="n">${c.name || K.title}</div>
     <div class="s">${un ? t("Onbereikbaar") : K.status}</div>
-    <div class="socks">${K.items.slice(0, 4).map(x => html`<button class=${classMap({ on: isOn(x.s.state), unavailable: unavailable(x.s.state) })} title=${x.name}
+    <div class="socks">${K.items.slice(0, 4).map(x => html`<button class=${classMap({ on: isOn(x.s.state), unavailable: unavailable(x.s.state) })} title=${x.name} aria-label=${x.name}
         ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: x.s.id }), hold: () => p.openPopup({ type: "switch", e: x.s }) })}>
-        <ha-icon icon=${x.icon}></ha-icon><small>${x.short}</small></button>`)}</div>
+        <ha-icon icon=${x.icon}></ha-icon></button>`)}</div>
   </div>`;
 }
 export function stripCard(p, st) {

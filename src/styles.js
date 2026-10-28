@@ -288,6 +288,14 @@ export const styles = css`
   .card .socks button.unavailable{opacity:.35}
   .card .socks button ha-icon{--mdc-icon-size:20px}
   .card .socks button small{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.8;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* litter box: icon buttons only, at every width and in both layouts (a label per button does not fit a tablet card and broke the layout);
+     the geometry does not depend on the media queries below: more specific than they are */
+  .card.pstrip.litter{padding-bottom:calc(var(--cp) + 44px + 4px)}
+  .card.litter .n{-webkit-line-clamp:1}
+  .card.litter .socks{gap:6px}
+  .card.litter .socks button{height:44px;min-width:0}
+  .card.litter .socks button ha-icon{--mdc-icon-size:20px}
+  @media (min-width:901px){ .strip.rows2.compact .card.litter .n{display:none} }   /* two rows, cards under 160px: the cat icon and the status line are enough, the title would run into the buttons */
   /* appliance: stop / power row at the bottom */
   .card.appl{padding-bottom:calc(var(--cp) + 34px + 10px)}
   .card.appl .ctl.row{position:absolute;left:var(--cp);right:var(--cp);bottom:var(--cp);width:auto;display:flex;gap:6px;grid-auto-rows:auto}

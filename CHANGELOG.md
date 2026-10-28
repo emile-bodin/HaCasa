@@ -4,6 +4,7 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **Litter box card is icon-only at every width:** its buttons showed a text label under each icon on tablets (single and double row), which did not fit and distorted the card. The buttons are now icons only everywhere (the name is the tooltip and the row in the popup), with a fixed button height and bottom padding that no longer depend on the width, and a one-line title. The smoke test checks it.
 ## 1.2.0 · 2026-10-28
 
 - **ChatGPT usage card:** the Claude Code usage card is now one *AI usage* card for two providers, and ChatGPT is the second one: the same two meters (5-hour session, weekly limit), colours, pace hint, popup and history, from `sensor.chatgpt_5_h_session`, `sensor.chatgpt_week` and the optional reset sensors, found by name. Add it with **Edit → Add card → Tomte cards → ChatGPT** (only listed when the sensors exist). **Settings → Claude Code** became **Settings → AI usage** with a section per provider; the stored settings (`home.claude`, `home.chatgpt`) and the existing `claude` card key stay as they were, so nothing has to be redone. The code moved from `src/claude.js` to `src/usage.js`; the smoke test and the mock home cover both providers.

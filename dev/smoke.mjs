@@ -54,6 +54,8 @@ const html = () => el.shadowRoot?.innerHTML || "";
 check(html().length > 20000, `room page renders (${html().length} chars)`);
 check(/Robbie/.test(html()), "robot vacuum card");
 check(/socks/.test(html()) && /Reinigen/.test(html()), "litter box card");
+const lit = el.shadowRoot.querySelector(".card.litter");
+check(!!lit && lit.querySelectorAll(".socks button").length >= 3 && !lit.querySelector(".socks small") && !!lit.querySelector(".socks button[title=\"Reinigen\"]"), "litter box card: icon buttons only (no label text), the name is the tooltip");
 check(/vdot/.test(html()), "maintenance dot on the vacuum card");
 check(/ChatGPT/.test(html()) && /0 %/.test(html()) && /reset over 4 u 10 min/.test(html()), "ChatGPT card with its own sensors (not mixed up with Claude)");
 check(/Claude Code/.test(html()) && /84 %/.test(html()) && /54 %/.test(html()) && /reset over 2 u 55 min/.test(html()), "Claude Code card with session and week from the sensors");

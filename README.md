@@ -20,6 +20,16 @@
 
 </div>
 
+> 🍴 **This is a personal fork.** It is [emile-bodin/HaCasa](https://github.com/emile-bodin/HaCasa), a fork of [damianeickhoff/HaCasa](https://github.com/damianeickhoff/HaCasa) that I run at home and change for my own household. It is **not** the original project and is not affiliated with or supported by its author: for the official panel, documentation, releases and support, go to the [original repository](https://github.com/damianeickhoff/HaCasa). Issues here are not monitored the way upstream's are.
+>
+> What differs from upstream (see the [changelog](CHANGELOG.md) for details):
+>
+> - **Settings in two layers:** one set for the whole household (stored in Home Assistant's system data, edited by administrators) and a personal layer that only holds what differs. Everything merges per field.
+> - **More device cards:** a robot vacuum card and popup (rooms, tasks, maintenance, dock), a litter box card, extra appliance details (SmartThings phases, month totals, remaining time) and an optional two-row room layout.
+> - **Small changes** to the idle screen, the attention list and the thermostat setpoint.
+>
+> The badges, documentation, screenshots and discussion links below still point at the original project. Credit for HaCasa Nova and the Homio design goes to its authors; this fork keeps their MIT license.
+
 > ⚠️ **HaCasa Nova is a work in progress and needs testing.** This first release has only been run on a handful of homes, so expect rough edges: things may break or change between versions. Try it next to your current dashboard rather than replacing it, and please [report what you run into](https://github.com/damianeickhoff/HaCasa/issues/new/choose). Known issues are tracked in [#158](https://github.com/damianeickhoff/HaCasa/issues/158).
 
 ## Why a reboot?

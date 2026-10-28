@@ -2,6 +2,7 @@
 // Rooms = areas. An entity belongs to an area directly or through its device.
 import { slug, domain, num, isOn, unavailable, isDown, daysUntil } from "./util.js";
 import { t, locale } from "./i18n.js";
+import { dedupeVacuums } from "./vacuum.js";
 
 const DOOR = ["door", "garage_door", "opening", "garage"];
 const WINDOW = ["window"];
@@ -30,11 +31,12 @@ function wasteDate(s) {
   for (const v of [a.Sorted_date, a.date, s.state]) {
     if (!v) continue;
     const m = String(v).match(/(\d{1,2})-(\d{1,2})-(\d{4})/); if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
-    if (!isNaN(new Date(v))) return String(v).slice(0, 10);
+    const d = new Date(v);
+    if (!isNaN(d)) return /T/.test(String(v)) ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : String(v).slice(0, 10);   // a timestamp is the local day, not the UTC one
   }
   return null;
 }
-const isOpState = e => e.reg.translation_key === "operation_state" || /_operation_state$/.test(e.id);
+const isOpState = e => e.reg.translation_key === "operation_state" || /_operation_state$/.test(e.id) || /^sensor\..*_machine_state$/.test(e.id);   // Home Connect, SmartThings
 
 function classify(list, config = {}, hass = {}) {
   const r = { lights: [], switches: [], strips: [], media: [], covers: [], climate: [], fans: [], locks: [], vacuums: [], humidifiers: [], scenes: [], cameras: [], appliances: [], power: [], opstate: [], doors: [], windows: [], motion: [], temp: [], hum: [], battery: [], other: [], values: [], all: list };
@@ -71,7 +73,8 @@ function classify(list, config = {}, hass = {}) {
     const dname = (pw.state?.attributes?.friendly_name || "") + " " + (sw?.state?.attributes?.friendly_name || "");
     if (!sw && !APPLIANCE_RE.test(dname)) continue;
     if (r.appliances.some(a => a.device === dev)) continue;
-    const plain = !!config.cards?.[(sw || pw).id]?.noAppliance;          // appliance features off: still a plug card (watts), but no busy/done
+    // appliance features off: still a plug card (watts), but no busy/done. A plug that is not named like an appliance is plain unless switched on in its card settings
+    const set = config.cards?.[(sw || pw).id]?.noAppliance, plain = set != null ? !!set : !!sw && !APPLIANCE_RE.test(dname);
     if (plain && !sw) continue;
     r.appliances.push({ id: "device:" + dev, device: dev, key: (sw || pw).id, power: pw, switch: sw || null, plain });
     if (sw) r.switches = r.switches.filter(s => s !== sw);
@@ -90,7 +93,7 @@ function classify(list, config = {}, hass = {}) {
     const own = list.filter(e => e.reg.device_id === dev), pick = (tk, re) => own.find(e => e.reg.translation_key === tk || re.test(e.id)) || null;
     const sws = r.switches.filter(s => s.reg.device_id === dev), sw = sws.find(s => s.reg.translation_key === "power" || /_power$/.test(s.id)) || null;
     if (config.cards?.[(sw || op).id]?.noAppliance) continue;
-    const more = { op, progress: pick("program_progress", /_program(me)?_progress$/), finish: pick("program_finish_time", /_program(me)?_finish_time$/), door: pick("door", /^sensor\..*_door$/),
+    const more = { op, progress: pick("program_progress", /_program(me)?_progress$/), finish: pick("program_finish_time", /_program(me)?_finish_time$|^sensor\..*_completion_time$/), job: pick("job_state", /^sensor\..*_job_state$/), door: pick("door", /^sensor\..*_door$/),
       program: pick("active_program", /^select\..*_active_program(me)?$/), stop: pick("stop_program", /^button\..*_stop_program(me)?$/), extra: sws.filter(s => s !== sw),
       flags: r.other.filter(e => e.reg.device_id === dev) };              // e.g. "remote start": shown in the popup
     const prev = r.appliances.find(a => a.device === dev);
@@ -104,8 +107,24 @@ function classify(list, config = {}, hass = {}) {
   for (const [dev, sw] of byDev) if (sw.length >= 2) { r.strips.push({ id: "device:" + dev, device: dev, switches: sw }); r.switches = r.switches.filter(e => !sw.includes(e)); }
   // a binary sensor without a known type on a device that already has a card (thermostat, appliance, …) is a detail of that
   // device ("remote start", "overlay"), not a card of its own; it stays on the Sensoren page as r.details
+  const dupDevices = new Set();
+  {   // the same machine reported by two integrations (a Home Connect and a SmartThings dishwasher): one card, the richer one
+    const dev = x => hass?.devices?.[x.device], ids = x => { const d = dev(x); return d ? [d.serial_number, ...(d.identifiers || []).map(y => y[1])].filter(Boolean).map(String) : []; };
+    const mark = x => { const d = dev(x); return d?.model ? [d.manufacturer, d.model, d.area_id].join("|") : null; };
+    const same = (x, y) => { const p = ids(x), q = ids(y); return p.some(v => q.includes(v)) || (!!mark(x) && mark(x) === mark(y)); };
+    const score = x => (x.op?.reg?.translation_key === "operation_state" ? 10 : 0) + ["progress", "finish", "door", "program", "stop", "job"].filter(k => x[k]).length, kept = [];
+    for (const a of r.appliances) {
+      if (!a.op) { kept.push(a); continue; }
+      const j = kept.findIndex(y => y.op && same(y, a));
+      if (j < 0) kept.push(a); else if (score(a) > score(kept[j])) { dupDevices.add(kept[j].device); kept[j] = a; } else dupDevices.add(a.device);
+    }
+    r.appliances = kept;
+  }
+  const { kept: vacuums, dropped: dupVacuums } = dedupeVacuums(hass, r.vacuums); r.vacuums = vacuums;   // one card per physical robot
   const owned = new Set([...r.lights, ...r.switches, ...r.media, ...r.covers, ...r.climate, ...r.fans, ...r.locks, ...r.vacuums, ...r.humidifiers, ...r.cameras].map(e => e.reg.device_id));
   for (const x of [...r.appliances, ...r.strips]) owned.add(x.device);
+  for (const e of dupVacuums) owned.add(e.reg.device_id);
+  for (const d of dupDevices) owned.add(d);
   r.details = r.other.filter(e => e.reg.device_id && owned.has(e.reg.device_id));
   r.other = r.other.filter(e => !r.details.includes(e));
   return r;
@@ -187,8 +206,16 @@ export function buildHome(hass, config, rooms, notifications = []) {
 
   const low = h.lowBattery ?? 20;
   const attention = [];
-  for (const e of all) if (isDown(e) && !e.reg.entity_category && domain(e.id) !== "sensor" && domain(e.id) !== "binary_sensor")
-    attention.push({ kind: "unavailable", id: e.id, name: e.state?.attributes?.friendly_name || e.reg.name || e.id, room: e.room, since: e.state?.last_changed, text: t("onbereikbaar"), icon: "mdi:lan-disconnect" });
+  {   // an entity that is down while its device still reports elsewhere is not an outage; a dead device is reported once, by its name
+    const up = new Set(), seen = new Set();
+    for (const [id, reg] of Object.entries(hass.entities || {})) if (reg.device_id && !/^(unavailable|unknown)?$/.test(hass.states[id]?.state ?? "")) up.add(reg.device_id);
+    for (const e of all) {
+      if (!isDown(e) || e.reg.entity_category || ["sensor", "binary_sensor", "media_player"].includes(domain(e.id))) continue;
+      const dev = e.reg.device_id; if (dev && (up.has(dev) || seen.has(dev))) continue;
+      if (dev) seen.add(dev);
+      attention.push({ kind: "unavailable", id: e.id, name: dev ? deviceName(hass, dev) : e.state?.attributes?.friendly_name || e.reg.name || e.id, room: e.room, since: e.state?.last_changed, text: t("onbereikbaar"), icon: "mdi:lan-disconnect" });
+    }
+  }
   for (const r of rooms) for (const e of r.ents.battery) { const v = num(e.state?.state); if (v != null && v <= low)
     attention.push({ kind: "battery", id: e.id, name: (e.state?.attributes?.friendly_name || e.id).replace(/ batter(y|ij)/i, ""), room: r, value: v, text: t("batterij {n}%", { n: v }), icon: "mdi:battery-20" }); }
   for (const n of notifications) attention.push({ kind: "notification", id: n.notification_id, name: n.title || t("Melding"), text: (n.message || "").replace(/\s+/g, " ").slice(0, 80), icon: "mdi:bell-outline", since: n.created_at });

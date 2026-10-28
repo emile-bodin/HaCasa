@@ -512,29 +512,20 @@ export function litterBox(p, st) {
   const full = !!fz && /^(true|on|1)$/i.test(String(fz.state)), running = k => items.some(x => x.r === k && isOn(x.s.state)), busy = running("clean") ? t("Reinigt…") : running("empty") ? t("Leegt…") : null;
   return { items, title: nm ? nm.charAt(0).toUpperCase() + nm.slice(1) : t("Kattenbak"), status: busy || (full ? t("Afvalbak vol") : kg != null ? `${fmtVal(kg)} kg` : t("Klaar")), busy: !!busy, full, kg, wz, fz, lz };
 }
-function litterCard(p, st, K) {
-  const un = st.switches.every(e => unavailable(e.state)), c = cardCfg(p, st.id);
-  return html`<div class=${classMap({ card: true, pstrip: true, litter: true, on: K.busy, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
-    ${un ? ua() : nothing}
-    <div class="i">${c.icon ? ico(c.icon) : ico("mdi:cat", "litter_box")}</div>
-    <div class="n">${c.name || K.title}</div>
-    <div class="s">${un ? t("Onbereikbaar") : K.status}</div>
-    <div class="socks">${K.items.slice(0, 4).map(x => html`<button class=${classMap({ on: isOn(x.s.state), unavailable: unavailable(x.s.state) })} title=${x.name} aria-label=${x.name}
-        ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: x.s.id }), hold: () => p.openPopup({ type: "switch", e: x.s }) })}>
-        <ha-icon icon=${x.icon}></ha-icon></button>`)}</div>
-  </div>`;
-}
+/** one card for every power strip: a litter box (K) only brings its own title, status and icon-only buttons */
 export function stripCard(p, st) {
-  const lit = litterBox(p, st); if (lit) return litterCard(p, st, lit);
-  const on = st.switches.filter(e => isOn(e.state)).length, un = st.switches.every(e => unavailable(e.state));
-  const title = cardCfg(p, st.id).name || deviceName(p.hass, st.device);
-  return html`<div class=${classMap({ card: true, pstrip: true, on: on > 0, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
+  const K = litterBox(p, st), un = st.switches.every(e => unavailable(e.state)), c = cardCfg(p, st.id), on = st.switches.filter(e => isOn(e.state)).length;
+  const title = c.name || (K ? K.title : deviceName(p.hass, st.device));
+  const status = un ? t("Onbereikbaar") : K ? K.status : on ? t("{n} van {m} aan", { n: on, m: st.switches.length }) : t("Alles uit");
+  const btns = K ? K.items.slice(0, 4).map(x => ({ e: x.s, name: x.name, icon: x.icon })) : st.switches.map((e, i) => ({ e, name: cardCfg(p, e.id).name || String(i + 1), icon: cardCfg(p, e.id).icon || "mdi:power-socket-eu" }));
+  return html`<div class=${classMap({ card: true, pstrip: true, litter: !!K, on: K ? K.busy : on > 0, unavailable: un })} ${pressDir(p, { tap: () => p.openPopup({ type: "strip", st }), hold: () => p.openPopup({ type: "strip", st }) })}>
     ${un ? ua() : nothing}
+    ${K ? html`<div class="i">${c.icon ? ico(c.icon) : ico("mdi:cat", "litter_box")}</div>` : nothing}
     <div class="n">${title}</div>
-    <div class="s">${un ? t("Onbereikbaar") : on ? t("{n} van {m} aan", { n: on, m: st.switches.length }) : t("Alles uit")}</div>
-    <div class="socks">${st.switches.map((e, i) => html`<button class=${classMap({ on: isOn(e.state), unavailable: unavailable(e.state) })} title=${label(p, e)}
-        ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: e.id }), hold: () => p.openPopup({ type: "switch", e }) })}>
-        <ha-icon icon=${cardCfg(p, e.id).icon || "mdi:power-socket-eu"}></ha-icon><small>${cardCfg(p, e.id).name || (i + 1)}</small></button>`)}</div>
+    <div class="s">${status}</div>
+    <div class="socks">${btns.map(x => html`<button class=${classMap({ on: isOn(x.e.state), unavailable: unavailable(x.e.state) })} title=${x.name} aria-label=${x.name}
+        ${pressDir(p, { tap: () => p.call("switch", "toggle", { entity_id: x.e.id }), hold: () => p.openPopup({ type: "switch", e: x.e }) })}>
+        <ha-icon icon=${x.icon}></ha-icon>${K ? nothing : html`<small>${x.name}</small>`}</button>`)}</div>
   </div>`;
 }
 

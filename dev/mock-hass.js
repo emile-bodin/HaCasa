@@ -153,6 +153,20 @@ export function makeHass(onChange) {
     const dLabPlug = dev("dev_lab_plug", "test_lab"); devices[dLabPlug].name = "Coffee machine with a long name";
     add("switch.lab_plug", null, "on", { friendly_name: "Coffee machine plug", current_power_w: 120 }, { device: dLabPlug });
     add("sensor.lab_plug_power", null, "120", { unit_of_measurement: "W", device_class: "power", friendly_name: "Coffee machine power" }, { device: dLabPlug });
+    // litter boxes: the device is named like one, its switches are Clean / Empty / Smart / Deodorize; one idle, one cleaning, one with a long name, one unreachable
+    for (const [k, nm, st] of [["a", "Kattenbak", "off"], ["b", "Kattenbak boven", "off"], ["c", "Kattenbak van de logeerkamer met een heel lange naam", "off"], ["d", "Kattenbak onbereikbaar", "unavailable"]]) {
+      const d = dev("dev_litter_" + k, "test_lab"); devices[d].name = nm;
+      for (const [r, label] of [["clean", "Clean"], ["empty", "Empty"], ["smart", "Smart clean"], ["deodorize", "Deodorize"]])
+        add(`switch.litter_${k}_${r}`, null, k === "b" && r === "clean" ? "on" : st, { friendly_name: `${nm} ${label}` }, { device: d });
+      add(`sensor.litter_${k}_weight`, null, st === "unavailable" ? "unavailable" : "4.2", { friendly_name: `${nm} weight`, device_class: "weight", unit_of_measurement: "kg" }, { device: d });
+    }
+    // litter boxes: the device is named like one, its switches are Clean / Empty / Smart / Deodorize; idle, cleaning, long name, unreachable
+    for (const [k, nm, st] of [["a", "Kattenbak", "off"], ["b", "Kattenbak boven", "off"], ["c", "Kattenbak van de logeerkamer met een heel lange naam", "off"], ["d", "Kattenbak onbereikbaar", "unavailable"]]) {
+      const d = dev("dev_litter_" + k, "test_lab"); devices[d].name = nm;
+      for (const [r, label] of [["clean", "Clean"], ["empty", "Empty"], ["smart", "Smart clean"], ["deodorize", "Deodorize"]])
+        add(`switch.litter_${k}_${r}`, null, k === "b" && r === "clean" ? "on" : st, { friendly_name: `${nm} ${label}` }, { device: d });
+      add(`sensor.litter_${k}_weight`, null, st === "unavailable" ? "unavailable" : "4.2", { friendly_name: `${nm} weight`, device_class: "weight", unit_of_measurement: "kg" }, { device: d });
+    }
     add("climate.lab_long", "test_lab", "heat", { friendly_name: L, temperature: 21, current_temperature: 19.5, hvac_action: "heating", hvac_modes: ["off", "heat", "auto"], preset_modes: ["home", "away"], preset_mode: "home" });
     add("climate.lab_unavailable", "test_lab", "unavailable", { friendly_name: "Unavailable thermostat" });
     add("media_player.lab_art", "test_lab", "playing", { friendly_name: L, media_title: "A track title that is far too long to fit on one line of the card", media_artist: "An artist with a long name", volume_level: .4, entity_picture: "/images/rooms/lounge.png" });

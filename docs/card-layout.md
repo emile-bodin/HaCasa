@@ -69,7 +69,7 @@ These differ on purpose; each is a modifier class with its own rules:
 - **Lists, scenes, groups, people:** their inner layout (`.s` as a list, tiles) stays; only tile height and gaps follow the tokens.
 - **Unavailable:** a centred three-row card without controls.
 - **Camera:** name and state anchored at the bottom over a gradient.
-- **Litter box:** icon buttons only, at every width.
+- **Litter box:** the power strip card (`stripCard`) with the `.litter` modifier: same markup and slots, a cat icon, icon-only buttons at every width (no label under the icon), a 44px socket row, a one-line title; in two rows under 160px the title is hidden. Gap and icon size follow the compact tokens like every other strip.
 
 ## Checking it
 

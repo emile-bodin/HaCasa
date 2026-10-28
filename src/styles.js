@@ -359,14 +359,11 @@ export const styles = css`
   .card .socks button.unavailable{opacity:.35}
   .card .socks button ha-icon{--mdc-icon-size:20px}
   .card .socks button small{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.8;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  /* litter box: icon buttons only, at every width and in both layouts (a label per button does not fit a tablet card and broke the layout);
-     the geometry does not depend on the media queries below: more specific than they are */
+  /* litter box: the same power strip card, icon buttons only (no label under the icon, at any width) and a taller socket row */
   .card.litter{--bh-sock:44px}
+  .card.litter .socks button small{display:none}
   .card.litter .n{-webkit-line-clamp:1}
-  .card.litter .socks{gap:6px}
-  .card.litter .socks button{min-width:0}
-  .card.litter .socks button ha-icon{--mdc-icon-size:20px}
-  @media (min-width:901px){ .strip.rows2.compact .card.litter .n{display:none} }   /* two rows, cards under 160px: the cat icon and the status line are enough, the title would run into the buttons */
+  @media (min-width:901px){ .strip.rows2.compact .card.litter .n{display:none} }   /* two rows, cards under 160px: the cat icon and the status are enough, the title would run into the buttons */
   /* appliance: stop / power row at the bottom */
   .card.appl,.card.acts{--reserve:calc(var(--bh) + var(--bg))}
   .card.appl .ctl.row{position:absolute;left:var(--cp);right:var(--cp);bottom:var(--cp);width:auto;display:flex;gap:6px;grid-auto-rows:auto}

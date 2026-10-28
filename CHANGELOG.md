@@ -4,6 +4,8 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+## 1.0.1 · 2026-10-28
+
 - **Repository name:** links, the HACS path (`/hacsfiles/TomTe/tomte.js`, which is case-sensitive) and the update check use the repository's real name, `emile-bodin/TomTe`; the update check no longer compares the release URL case-sensitively.
 
 ## 1.0.0 · 2026-10-28

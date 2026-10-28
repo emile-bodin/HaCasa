@@ -4,6 +4,8 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+## 1.0.2 · 2026-10-28
+
 - **Release workflow:** pushing a version tag (`v*`) runs `.github/workflows/release.yml`: it checks that the tag matches `package.json`, the translations, that `dist/` is up to date and the render smoke test, then publishes a GitHub release with `dist/tomte.js` (for HACS) and `dist/loader.js` attached and the matching changelog section as the notes. It can be re-run for an existing tag from the Actions tab.
 - **`loader.js` is part of the build:** `build.mjs` writes it next to the bundle (`dist/loader.js`, `dist-dev/loader.js`) and the deploy scripts install that file, instead of generating their own. Manual installs can use it too: the new release workflow attaches it to the GitHub release next to `tomte.js` and manual installs point `module_url` and `extra_module_url` at `/local/tomte/loader.js`, so an update shows after a normal browser reload and not after the 31-day cache (HACS installs have no loader). The installation guide, the README, the troubleshooting page (*An update does not show*), the contributing guide and the development guide describe it; CI now also checks that `dist/loader.js` is up to date.
 ## 1.0.1 · 2026-10-28

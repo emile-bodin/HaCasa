@@ -22,6 +22,7 @@ then open `http://localhost:8097/Tomte/dev/index.html` (adjust the folder name).
 | page | what it is |
 |---|---|
 | `dev/index.html` | the panel with the mock home (`dev/mock-hass.js`); `?lang=nl` for Dutch, `#/kitchen` for a room |
+| `dev/index.html?dw=schoon` | the mock dishwasher in its clean / dirty / empty flow (`schoon`, `vuil`, `leeg`); without it the dishwasher is running. `?appl2` shows the washer and dryer test cards on a production build, the dev build always shows them |
 | `dev/index.html?shot&popup=light:light.floor_lamp` | screenshot mode: no hints, animations off, a popup opened |
 | `dev/card.html?fresh` | the dashboard card with empty settings, so the setup wizard shows |
 | `dev/phones.html` | three phones side by side (the README image) |

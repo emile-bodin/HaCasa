@@ -60,8 +60,53 @@ A switch toggles on tap. A switch whose device also reports **power** becomes a 
 
 Washing machines, dishwashers and dryers are recognised in two ways:
 
-- a device that reports its own status (Home Connect, Miele, LG ThinQ …): the card shows the programme, progress, finish time and door, with a **Stop** button;
+- a device that reports its own status (Home Connect, Home Connect Local, Miele, LG ThinQ …): the card shows the programme, progress, finish time and door, with a **Stop** button;
 - a smart plug with a power meter: *busy* above a threshold (5 W by default, adjustable per card), *done* when it drops, *standby* otherwise.
+
+<a id="dishwasher-card"></a>
+
+**Dishwasher card.** A dishwasher follows the clean / dirty / empty flow of a helper with the options `schoon`, `vuil` and `leeg` (found by its options, no setting; an automation keeps it): when the cycle ends the door opens to dry and the card says *Schoon, uitruimen* with an *Uitgeruimd* button; closing the door without a new cycle makes it *Vuil* (amber, with Start when the machine allows it); *Uitgeruimd* makes it *Leeg* until the door opens again. While a cycle runs the card shows programme, progress, finish time and Stop. When the machine drops its connection the card keeps the last flow state instead of switching to *Offline*.
+
+The helper and the automation that keeps it (adjust the entity ids to your dishwasher; the door is *on* when open). The card only reads the helper:
+
+```yaml
+input_select:
+  vaatwasser_status:
+    name: Vaatwasser status
+    options: [schoon, vuil, leeg]
+
+automation:
+  - alias: Vaatwasser schoon/vuil
+    mode: queued
+    triggers:
+      - {trigger: state, entity_id: sensor.siemens_dishwasher_operation_state, to: finished, id: schoon}
+      - {trigger: state, entity_id: binary_sensor.siemens_dishwasher_door, from: "on", to: "off", id: vuil}
+      - {trigger: state, entity_id: binary_sensor.siemens_dishwasher_door, from: "off", to: "on", id: laden}
+    conditions:
+      - condition: or
+        conditions:
+          - {condition: trigger, id: schoon}
+          # the door opens by itself at the end of a cycle, and closing it during a cycle is not dirty
+          - condition: and
+            conditions:
+              - {condition: trigger, id: vuil}
+              - {condition: not, conditions: [{condition: state, entity_id: sensor.siemens_dishwasher_operation_state, state: run}]}
+              - {condition: not, conditions: [{condition: state, entity_id: input_select.vaatwasser_status, state: leeg}]}
+          # an empty dishwasher that opens again is being loaded
+          - condition: and
+            conditions:
+              - {condition: trigger, id: laden}
+              - {condition: state, entity_id: input_select.vaatwasser_status, state: leeg}
+    actions:
+      - action: input_select.select_option
+        target: {entity_id: input_select.vaatwasser_status}
+        data:
+          option: "{{ 'vuil' if trigger.id == 'laden' else trigger.id }}"
+```
+
+The month totals on the card come from sensors named after the Dutch name (`sensor.vaatwasser_cycli_maand`, `_energie_maand`, `_kosten_maand`), also when the device is called *SIEMENS Dishwasher*. Home Connect Local reports the time left as a duration (hours) and not as a finish time; the card works out the finish time from it.
+
+**Dishwasher popup.** Tapping a dishwasher opens a popup with everything the machine offers, as far as the integration exposes it (tested with Home Connect Local): **Dishes** (clean, dirty or empty, when a helper with those three options exists), the **programme** as a row of buttons (read-only while it runs), the **options** of the cycle (half load, Hygiene Plus, intensive zone, VarioSpeed Plus, quiet …), **delay start** in hours (set it, then press Start), **notices** the machine reports (filter, AquaStop, calcified heater …), **maintenance** (salt, rinse aid, MachineCare, number of cycles, Wi-Fi strength or connection) and the machine's own **settings** (child lock, water hardness, rinse-aid dosing, water connection). Start and Stop are at the top. A section that the integration does not offer is left out.
 
 ## Litter box
 

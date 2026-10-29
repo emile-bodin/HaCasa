@@ -82,12 +82,26 @@ export function makeHass(onChange) {
   // kitchen: Home Connect dishwasher (no power sensor; status comes from the appliance)
   const dVw = dev("dev_dishwasher", "kitchen"); devices[dVw].name = "Dishwasher";
   const hc = (id, state, attr, tk, cat) => add(id, null, state, attr, { device: dVw, reg: { translation_key: tk, platform: "home_connect", ...(cat ? { entity_category: cat } : {}) } });
-  hc("sensor.dishwasher_operation_state", "run", { friendly_name: "Dishwasher Operation state", device_class: "enum" }, "operation_state");
+  const DW = new URLSearchParams(location.search).get("dw");   // ?dw=schoon|vuil|leeg shows the dishwasher flow (test card), without it the dishwasher is running
+  hc("sensor.dishwasher_operation_state", DW ? "ready" : "run", { friendly_name: "Dishwasher Operation state", device_class: "enum" }, "operation_state");
   hc("sensor.dishwasher_programme_progress", "11", { friendly_name: "Dishwasher Programme progress", unit_of_measurement: "%" }, "program_progress");
-  hc("sensor.dishwasher_programme_finish_time", new Date(Date.now() + 113 * 60000).toISOString(), { friendly_name: "Dishwasher Programme finish time", device_class: "timestamp" }, "program_finish_time");
-  hc("sensor.dishwasher_door", "closed", { friendly_name: "Dishwasher Door", device_class: "enum" }, "door");
-  hc("select.dishwasher_active_programme", "dishcare_dishwasher_program_auto_2", { friendly_name: "Dishwasher Active programme" }, "active_program");
-  hc("button.dishwasher_stop_programme", "unknown", { friendly_name: "Dishwasher Stop programme" }, "stop_program");
+  hc("sensor.dishwasher_remaining_program_time", "1.88", { friendly_name: "Dishwasher Remaining program time", device_class: "duration", unit_of_measurement: "h" }, "remaining_program_time");   // Home Connect Local: the time left as a duration
+  hc("binary_sensor.dishwasher_door", DW === "schoon" ? "on" : "off", { friendly_name: "Dishwasher Door", device_class: "door" }, "door");
+  hc("button.dishwasher_abort", "unknown", { friendly_name: "Dishwasher Abort" }, "abort");
+  add("input_select.dishwasher_status", "kitchen", DW || "vuil", { friendly_name: "Dishwasher status", options: ["schoon", "vuil", "leeg"] });
+  hc("select.dishwasher_selected_program", "dishcare_dishwasher_program_eco50", { friendly_name: "Dishwasher Selected program", options: ["favorite_001", "dishcare_dishwasher_program_auto2", "dishcare_dishwasher_program_eco50", "dishcare_dishwasher_program_intensiv70", "dishcare_dishwasher_program_machinecare", "dishcare_dishwasher_program_prerinse", "dishcare_dishwasher_program_quick45", "dishcare_dishwasher_program_quick65", "dishcare_dishwasher_program_quickd"] }, "selected_program");
+  for (const [k, st] of [["half_load", "off"], ["hygiene_plus", "off"], ["intensiv_zone", "on"], ["variospeedplus", "off"], ["silence_on_demand", "unavailable"], ["child_lock", "off"]]) hc(`switch.dishwasher_${k}`, st, { friendly_name: `Dishwasher ${k}` }, k);
+  hc("number.dishwasher_start_in", "7200", { friendly_name: "Dishwasher Start in", min: 0, max: 86400, step: 1, unit_of_measurement: "s", device_class: "duration" }, "start_in");
+  hc("select.dishwasher_water_hardness", "h04", { friendly_name: "Dishwasher Water hardness", options: ["h00", "h01", "h02", "h03", "h04", "h05", "h06", "h07"] }, "water_hardness");
+  hc("select.dishwasher_rinse_aid", "r05", { friendly_name: "Dishwasher Rinse aid", options: ["off", "r01", "r02", "r03", "r04", "r05", "r06"] }, "rinse_aid");
+  hc("select.dishwasher_water_connection", "coldwater", { friendly_name: "Dishwasher Water connection", options: ["coldwater", "hotwater"] }, "water_connection");
+  hc("sensor.dishwasher_rinse_aid", "full", { friendly_name: "Dishwasher Rinse aid level", device_class: "enum" }, "rinse_aid_level");
+  hc("sensor.dishwasher_salt", "low", { friendly_name: "Dishwasher Salt", device_class: "enum" }, "salt");
+  hc("sensor.dishwasher_machinecare_remaining_runs", "19", { friendly_name: "Dishwasher MachineCare remaining runs" }, "machinecare_remaining_runs");
+  hc("sensor.dishwasher_start_count", "736", { friendly_name: "Dishwasher Start count" }, "start_count");
+  hc("sensor.dishwasher_wifi_signal_strength", "-68", { friendly_name: "Dishwasher WiFi Signal strength", unit_of_measurement: "dBm" }, "wifi");
+  hc("binary_sensor.dishwasher_check_filter_system", "on", { friendly_name: "Dishwasher Check Filter System", device_class: "problem" }, "check_filter");
+  hc("button.dishwasher_start", "unknown", { friendly_name: "Dishwasher Start" }, "start");
   hc("switch.dishwasher_power", "on", { friendly_name: "Dishwasher Power" }, "power");
   hc("switch.dishwasher_silence_on_demand", "off", { friendly_name: "Dishwasher Silence on demand" }, "silence_on_demand");
   hc("binary_sensor.dishwasher_remote_start", "on", { friendly_name: "Dishwasher Remote start" }, "remote_start");
@@ -97,6 +111,23 @@ export function makeHass(onChange) {
   add("light.attic", "attic", "unavailable", { friendly_name: "Attic light" }, { changed: ago(630) });
   const dWas = dev("dev_washer", "attic"); devices[dWas].name = "Washing machine";
   add("switch.washing_machine", null, "on", { friendly_name: "Washing machine plug", current_power_w: 3 }, { device: dWas });
+  // attic: LG ThinQ washer (running) and dryer (stopped), named like the household's own devices
+  for (const [k, nm, run] of [["wasmachine", "Wasmachine", true], ["droger", "Droger", false]]) {
+    const d = dev("dev_" + k, "attic"); devices[d].name = nm; const w = (id, st, at) => add(id, null, st, { friendly_name: `${nm} ${at.n}`, ...at.a }, { device: d });
+    const ms = k === "wasmachine" ? "sensor.wasmachine_washer_machine_state" : "sensor.droger_1_machine_state", js = k === "wasmachine" ? "sensor.wasmachine_washer_job_state" : "sensor.droger_1_job_state", ct = k === "wasmachine" ? "sensor.wasmachine_washer_completion_time" : "sensor.droger_1_completion_time";
+    w(ms, run ? "run" : "stop", { n: "Machine state", a: { device_class: "enum" } });
+    w(js, run ? "rinse" : "none", { n: "Job state", a: { device_class: "enum" } });
+    w(ct, new Date(Date.now() + (run ? 52 : -180) * 60000).toISOString(), { n: "Completion time", a: { device_class: "timestamp" } });
+    w(`binary_sensor.${k === "wasmachine" ? "wasmachine" : "droger_1"}_power`, run ? "on" : "off", { n: "Power", a: { device_class: "power" } });
+    w(`switch.${k}`, run ? "on" : "off", { n: "", a: {} });
+    w(`select.${k === "wasmachine" ? "wasmachine" : "droger_1"}`, run ? "run" : "stop", { n: "", a: { options: ["stop", "run", "pause"] } });
+    w(`sensor.${k === "wasmachine" ? "wasmachine" : "droger_1"}_power`, run ? "410" : "0", { n: "Power", a: { unit_of_measurement: "W", device_class: "power" } });
+    w(`binary_sensor.${k === "wasmachine" ? "wasmachine" : "droger_1"}_remote_control`, "on", { n: "Remote control", a: {} });
+    w(`sensor.${k}_progress`, "-", { n: "progress", a: {} });
+    w(`sensor.${k}_energie_maand`, k === "wasmachine" ? "19.0" : "12.9", { n: "energie maand", a: { unit_of_measurement: "kWh", device_class: "energy" } });
+    w(`sensor.${k}_kosten_maand`, k === "wasmachine" ? "4.92" : "3.39", { n: "kosten maand", a: { unit_of_measurement: "EUR", device_class: "monetary" } });
+    w(`sensor.${k}_cycli_maand`, k === "wasmachine" ? "30" : "28", { n: "cycli maand", a: { unit_of_measurement: "beurten" } });
+  }
   add("sensor.attic_temperature", "attic", "17.2", { device_class: "temperature" });
 
   add("camera.front_door", "hallway", "idle", { friendly_name: "Front door", entity_picture: "/images/rooms/hallway.png?x=1", access_token: "abc" });
@@ -187,6 +218,7 @@ export function makeHass(onChange) {
       for (const id of ids) {
         const s = states[id]; if (!s) continue;
         const set = (st, attrs = {}) => { states[id] = { ...s, state: st, attributes: { ...s.attributes, ...attrs }, last_changed: now() }; };
+        if (service === "select_option") set(data.option);
         if (service === "toggle") set(s.state === "on" ? "off" : "on");
         if (domain === "persistent_notification" && service === "dismiss") { const i = notifications.findIndex(n => n.notification_id === data.notification_id); if (i >= 0) notifications.splice(i, 1); }
         if (service === "turn_on") set("on", data.brightness_pct ? { brightness: Math.round(data.brightness_pct * 2.55) } : data.color_temp_kelvin ? { color_temp_kelvin: data.color_temp_kelvin, color_mode: "color_temp" } : data.hs_color ? { hs_color: data.hs_color, color_mode: "hs", rgb_color: (h => { const [hh, ss] = h, c = ss / 100, x = c * (1 - Math.abs((hh / 60) % 2 - 1)), m = 1 - c; const [r, g, b] = hh < 60 ? [c, x, 0] : hh < 120 ? [x, c, 0] : hh < 180 ? [0, c, x] : hh < 240 ? [0, x, c] : hh < 300 ? [x, 0, c] : [c, 0, x]; return [r, g, b].map(v => Math.round((v + m) * 255)); })(data.hs_color) } : {});

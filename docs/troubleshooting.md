@@ -30,6 +30,12 @@
 ??? question "The per-hour energy chart is empty"
     The energy sensor needs long-term statistics (a `state_class`). Check it in **Developer tools → Statistics**.
 
+??? question "The dishwasher keeps going Offline or shows the wrong state"
+    Home Connect appliances can drop their own Wi-Fi connection for a few seconds, often every few minutes when the signal is weak (5 GHz through a router in another room). The entities then go `unavailable` → `unknown` → back. This also happens with Home Connect Local, which has no cloud, so it is the appliance's connection and not the integration. The dishwasher card keeps its last clean / dirty / empty state during such a drop. To see how often it happens, look at the *Connection* binary sensor of the integration, and at the *Wi-Fi signal strength* sensor if it has one. A trigger in your own automations should not use `unavailable` as a state change: use `not_from: unavailable`, or a `for:` of a few minutes.
+
+??? question "The dishwasher card does not say clean or dirty"
+    The card needs a helper with exactly the options `schoon`, `vuil` and `leeg` (an *input_select*), and something that sets it. See the example under [Cards → Dishwasher card](cards.md#dishwasher-card). Without the helper the dishwasher card shows only the status of the machine.
+
 ??? question "It is in Dutch"
     **Settings → General → Language**. *Automatic* follows the language of your Home Assistant profile; anything other than Dutch or German shows English.
 

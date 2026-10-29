@@ -6,7 +6,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { keyed } from "lit/directives/keyed.js";
 import { styles } from "./styles.js";
 import { buildRooms, buildHome, name } from "./model.js";
-import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateInstance } from "./cards.js";
+import { lightCard, switchCard, mediaCard, coverCard, climateCard, sensorCard, stripCard, applianceCard2, applianceCardFor, isDishwasher, fanCard, lockCard, vacuumCard, humidifierCard, roomScenesCard, roomCameraCard, applianceCard, templateCard, homeCards, condText, condIcon, condSvg, wasteSentence, ico, wxExpect, groupCard, condHidden, valueCard, addedCard, templateInstances, templateInstance } from "./cards.js";
 import { editStrip, editBar, canEdit } from "./edit.js";
 import { renderPopup } from "./popups.js";
 import { USER_DATA_KEY, renderSettings, loadUserConfig, saveUserConfig, mergeConfig, loadSharedConfig, saveSharedConfig, pick, diffConfig, changeMask, dropMasked, cloneConfig } from "./settings.js";
@@ -19,7 +19,7 @@ import { searchBar, openFor } from "./search.js";
 import { graphCard } from "./graph.js";
 import { fetchNumeric, batteryEta, modeList } from "./extras3.js";
 import { deviceName } from "./model.js";
-import { BASE, TAG, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText, markSetpoint, clearSetpoint } from "./util.js";
+import { BASE, TAG, SUFFIX, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText, markSetpoint, clearSetpoint } from "./util.js";
 
 /** numbers with their unit (6,8 kWh · 50% · 12 min · 14:02) rendered white inside a notice */
 const emph = text => { const parts = String(text ?? "").split(/(\d+(?:[.,:]\d+)?(?:\s?(?:%|kWh|W|kW|°C?|min|uur|u|×))?)/g); return parts.map((x, i) => i % 2 ? html`<b>${x}</b>` : x); };
@@ -670,7 +670,8 @@ class TomtePanel extends LitElement {
     add(v(e.locks), nm, x => lockCard(this, x));
     add(v(e.vacuums), nm, x => vacuumCard(this, x));
     add(v(e.humidifiers), nm, x => humidifierCard(this, x));
-    add(v(e.appliances), dn, x => applianceCard(this, x));
+    add(v(e.appliances), dn, x => applianceCardFor(this, x));
+    if (SUFFIX === "-dev" || /[?&]appl2\b/.test(location.search)) v(e.appliances).filter(x => !isDishwasher(this, x)).forEach(x => { const tpl = applianceCard2(this, x); if (tpl) list.push({ key: x.id + ":test", label: dn(x) + " (test)", tpl }); });
     (this.config.templates || []).filter(tc => (tc.room === r.id || tc.room === r.slug) && !condHidden(this, tc.id, tc.visible, tc.visibleInvert)).forEach((tc, i) => list.push({ key: tc.id, label: tc.name || t("Template"), tpl: templateCard(this, tc, i) }));
     (this.config.groups || []).filter(g => (g.room === r.id || g.room === r.slug) && g.members?.length).forEach(g => list.push({ key: "group:" + g.id, label: g.name || t("Groep"), tpl: groupCard(this, g) }));
     (this.config.graphs || []).filter(g => (g.room === r.id || g.room === r.slug) && g.entity).forEach(g => list.push({ key: "graph:" + g.id, label: g.name || t("Grafiek"), tpl: graphCard(this, g) }));

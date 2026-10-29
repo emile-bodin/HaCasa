@@ -63,7 +63,7 @@ Each card in [Cards](cards.md) and the modifier classes that give it its layout.
 | Plug | `hero`, `plug`, `appl`, `hasspk` | hero; sparkline on the right (hidden in compact); footer row for timer, cost or bars |
 | Power strip | `pstrip` | socket row at the bottom (`--reserve`, `--bh-sock`) |
 | Litter box | `pstrip`, `litter` | icon, weight / state in the corner, name, active modes; all switches as icon buttons in the bottom-line row (`--lh` = `--bh`, `--reserve` 0) |
-| Appliance | `appl`, `running`, `on` | button row at the bottom (`--bh`); the bottom line is hidden when the row takes its place |
+| Appliance | `appl`, `running`, `on`, `dirty` | button row at the bottom (`--bh`); the bottom line is hidden when the row takes its place |
 | Media | `media`, `actions`, `art`, `appart` | caption variant; artwork behind a translucent panel (`--rl`); transport row (`--bh-media`) |
 | Climate | `hero`, `climate` | hero caption; rail on the right (`--rr`, `--rc`); mode row at the bottom (desktop only) |
 | Cover | `actions`, or `vs` with a position | up / down column (`--ctl-w`) or vertical slider |

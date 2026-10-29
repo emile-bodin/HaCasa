@@ -52,7 +52,9 @@ function opState(hass, a) {
   const op = String(os?.state ?? "").split(".").pop().toLowerCase();
   const pct = a.progress ? num(hass.states[a.progress.id]?.state) : null;
   // an end time only counts while a program runs (SmartThings keeps the last one after the cycle)
-  const fin = a.finish && !unavailable(hass.states[a.finish.id]) ? new Date(hass.states[a.finish.id].state) : null, end = fin && !isNaN(fin) && fin > Date.now() && /^(run|pause|delayedstart|aborting)$/.test(op) ? fin : null;
+  const fs = a.finish ? hass.states[a.finish.id] : null, UNIT = { h: 3600000, min: 60000, s: 1000 };
+  // a finish time is a timestamp (Home Connect, SmartThings) or, on Home Connect Local, the time left as a duration: counted from when it was last updated
+  const fin = fs && !unavailable(fs) ? (fs.attributes?.device_class === "duration" ? new Date(new Date(fs.last_changed).getTime() + num(fs.state) * (UNIT[fs.attributes.unit_of_measurement] || 1000)) : new Date(fs.state)) : null, end = fin && !isNaN(fin) && fin > Date.now() && /^(run|pause|delayedstart|aborting)$/.test(op) ? fin : null;
   const jb = a.job ? hass.states[a.job.id]?.state : null, job = jb && !/^(none|unknown|unavailable)$/.test(jb) ? t(JOB_PHASES[jb] || jb.replace(/_/g, " ")) : null;   // the phase of the cycle: washing, rinsing, spinning, …
   const base = { power, progress: pct, end, job };
   if (sw?.state === "off" || op === "inactive" || op === "off") return { ...base, st: "off", label: t("Uit") };
@@ -86,7 +88,7 @@ export const noRemote = (hass, a) => {
 };
 /** the month totals the household keeps per appliance (sensor.<first word of the device name>_energie_maand / _kosten_maand / _cycli_maand) */
 export const applianceMonth = (hass, a) => {
-  const d = hass.devices?.[a.device], k = String(d?.name || "").toLowerCase().split(/\s+/)[0];
+  const d = hass.devices?.[a.device], nm = String(d?.name_by_user || d?.name || "").toLowerCase(), k = /vaat|dish/.test(nm) ? "vaatwasser" : nm.split(/\s+/)[0];   // the month sensors are named after the Dutch name, also when the device is called "SIEMENS Dishwasher"
   if (!k) return null;
   const en = num(hass.states[`sensor.${k}_energie_maand`]?.state), eur = num(hass.states[`sensor.${k}_kosten_maand`]?.state), cy = num(hass.states[`sensor.${k}_cycli_maand`]?.state);
   if (en == null && cy == null) return null;

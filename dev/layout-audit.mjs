@@ -77,7 +77,7 @@ for (const sc of SCENARIOS) {
   const user = { setupDone: true, hintSeen: true, pages: Object.fromEntries(PAGES.filter(Boolean).map(r => [r, { ...(sc.rows2 ? { rows: 2 } : {}), ...(r === "test_lab" ? { add: LAB_VALUES } : {}) }])) };
   await page.evaluateOnNewDocument(u => { localStorage.setItem("mock:tomte", JSON.stringify(u)); }, user);
   for (const pg of PAGES) {
-    await page.goto(`http://localhost:${port}/dev/index.html?shot&nohint&lab#/${pg}`, { waitUntil: "load", timeout: 60000 });
+    await page.goto(`http://localhost:${port}/dev/index.html?shot&nohint&lab&appl2#/${pg}`, { waitUntil: "load", timeout: 60000 });
     await page.reload({ waitUntil: "load" });
     try { await page.waitForFunction(() => document.querySelector("tomte-panel")?.shadowRoot?.querySelector(".card"), { timeout: 15000 }); } catch { results[sc.name][pg || "home"] = { error: "no cards" }; continue; }
     await new Promise(r => setTimeout(r, 900));

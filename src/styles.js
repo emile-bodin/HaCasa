@@ -22,6 +22,7 @@ const cardCompact = (all, compact) => `
   ${compact} .card.usage .s{display:none}
   ${compact} .card.usage .ml{font-size:9px;letter-spacing:1.2px}
   ${compact} .card.usage .m b{font-size:12px}
+  ${compact} .card.appl2 .ctl.row button{padding:0 8px;gap:5px;font-size:10px;letter-spacing:.6px}
   ${compact} .card .i{margin-left:-2px}
   ${compact} .card .c{font-size:9px;letter-spacing:1.2px}
   ${compact} .card .n{font-size:14px}
@@ -367,8 +368,18 @@ export const styles = css`
   /* litter box: the button row sits in the bottom-line row (as the light's steps do), so name and status keep the height of the other cards; icon buttons only, the state (weight, cleaning, bin full) is the corner text */
   .card.litter{--bh-sock:var(--bh);--lh:var(--bh);--reserve:0px}
   .card.litter .n{-webkit-line-clamp:1}
+  /* appliance test card: progress as a line along the bottom edge (as on the media card); the separator dot sits on the text line */
+  .card.appl2.dirty .c{color:#ffb46e}   /* dishwasher: closed and not started */
+  .card.appl2 .prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.14)}
+  .card.appl2 .prog u{display:block;height:100%;background:#fff;transition:width .6s ease}
+  .card.appl2 .lbl .dt{align-self:flex-end;margin-bottom:5px}
+  .card.appl2 .ctl.row button{flex:0 1 auto;min-width:0}   /* two buttons (Stop, Pause) shrink to the card instead of running out of it */
+  .card.appl2 .ctl.row button .bl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* appliance: stop / power row at the bottom */
   .card.appl,.card.acts{--reserve:calc(var(--bh) + var(--bg))}
+  /* the name keeps the height every other card gives it: the button row is absolute at the bottom and takes no room from the grid, and it takes the place of the bottom line (as on the phone) */
+  .card.appl:not(.plug){--reserve:0px}
+  .card.appl:not(.plug) .lbl{display:none}
   .card.appl .ctl.row{position:absolute;left:var(--cp);right:var(--cp);bottom:var(--cp);width:auto;display:flex;gap:6px;grid-auto-rows:auto}
   .card.appl .ctl.row button{height:var(--bh);padding:0 14px;flex:none;display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:rgba(255,255,255,.12);border:1px solid var(--line);border-radius:var(--r-sm)}
   .card.appl .ctl.row button ha-icon{--mdc-icon-size:16px}
@@ -794,6 +805,7 @@ export const styles = css`
   @media (min-width:901px){
     ${unsafeCSS(cardCompact(":where(.strip.rows2)", ":where(.strip.rows2.compact)"))}
     /* two rows under 160px: no room for icon and status on a media card; play/pause and the progress line carry the state (phones keep them) */
+    :where(.strip.rows2.compact) .card.appl:not(.plug){--reserve:calc(var(--bh) + var(--bg))}   /* under 160px there is no room for the name at its usual height above the row */
     :where(.strip.rows2.compact) .card.graph .lbl{display:none}   /* under 160px the period text would run into the name */
     :where(.strip.rows2.compact) .card.actions{--rc:var(--rr)}   /* the control column is as tall as the card: the corner text moves left of it */
     :where(.strip.rows2.compact) .card.media .i,:where(.strip.rows2.compact) .card.media .c{display:none}

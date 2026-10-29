@@ -6,7 +6,7 @@ import { name, deviceName } from "./model.js";
 import { PAGES } from "./pages.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState, applianceMonth, noRemote } from "./extras2.js";
-import { litterBox, wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, cardType } from "./cards.js";
+import { dishHelper, litterBox, wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, cardType } from "./cards.js";
 import { roomPresets, snapshot, applyPreset, presetMatches, installUpdate, pendingUpdates } from "./features.js";
 import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check } from "./settings.js";
@@ -41,6 +41,51 @@ const li = (mdi, label, value, { on = false, sub = "", onclick = null, svg = nul
 const range = (label, v, oninput, { min = 0, max = 100, unit = "%" } = {}) =>
   html`<div class="prow"><span>${label}</span><b>${v}${unit}</b><input type="range" min=${min} max=${max} .value=${String(v)} @change=${e => oninput(+e.target.value)}></div>`;
 const modes = (items, cls = "") => html`<div class="modes ${cls}">${items.map(m => html`<button class=${m.on ? "on" : ""} @click=${m.go}>${m.label}</button>`)}</div>`;
+
+/* ---------- dishwasher: programme, options, delayed start, maintenance and the machine's own settings ---------- */
+const DISH_PROG = { auto1: "Auto 35–45°", auto2: "Auto 45–65°", auto3: "Auto 65–75°", eco50: "Eco 50°", intensiv70: "Intensief 70°", quick45: "Snel 45°", quick65: "Snel 65°", quickd: "Snel droog", prerinse: "Voorspoelen", machinecare: "MachineCare", glas40: "Glas 40°", nightwash: "Nacht", normal65: "Normaal 65°", kurz60: "Kort 60°" };
+const DISH_OPT = [["half_load", "mdi:contrast-box", "Halve lading"], ["hygiene_plus", "mdi:shield-check-outline", "Hygiëne Plus"], ["intensiv_zone", "mdi:target", "Intensiefzone"], ["variospeedplus", "mdi:speedometer", "VarioSpeed Plus"], ["silence_on_demand", "mdi:volume-low", "Stil"], ["speed_on_demand", "mdi:rocket-launch-outline", "Sneller"], ["extra_dry", "mdi:hair-dryer-outline", "Extra drogen"]];
+const DISH_LEVEL = { full: "Vol", ok: "Goed", low: "Bijna leeg", empty: "Leeg", almostempty: "Bijna leeg", nearlyempty: "Bijna leeg" };
+function dishPanel(p, a, st, hass, title) {
+  const keys = Object.keys(hass.entities || {}).filter(k => hass.entities[k].device_id === a.device && !hass.entities[k].hidden);
+  const find = re => { const k = keys.find(x => re.test(x)); return k ? hass.states[k] : null; };
+  const ok = z => !!z && z.state !== "unavailable";
+  const live = st.st === "running" || st.st === "waiting", door = a.door ? hass.states[a.door.id] : null, doorOpen = ["open", "on"].includes(door?.state);
+  const raw = z => String(z.state).split(".").pop();
+  const progName = v => { const k = String(v).split("program_").pop().split(".").pop(); return DISH_PROG[k] ? t(DISH_PROG[k]) : /^favorite_/.test(k) ? t("Favoriet {n}", { n: Number(k.split("_").pop()) || "" }) : k.replace(/_/g, " ").replace(/([a-z])(\d)/g, "$1 $2").replace(/^\w/, c => c.toUpperCase()); };
+  const call = (dom, svc, id, data = {}) => p.call(dom, svc, { entity_id: id, ...data });
+  const grid = n => (n === 2 ? "n2" : n === 3 ? "n3" : "");
+  const out = [];
+  // clean / dirty / empty (the helper that the automation keeps)
+  const dw = dishHelper(hass);
+  if (dw) out.push(html`<div class="vh">${t("Vaat")}</div><div class="vs">${t("Schoon zodra de cyclus klaar is, vuil als de deur dicht gaat, leeg na uitruimen")}</div>${modes([["schoon", "Schoon"], ["vuil", "Vuil"], ["leeg", "Leeg"]].map(([v, l]) => ({ label: t(l), on: dw.state === v, go: () => call("input_select", "select_option", dw.entity_id, { option: v }) })), "n3")}`);
+  // programme
+  const prog = find(/^select\..*_selected_program$/);
+  if (ok(prog) && prog.attributes.options?.length) out.push(html`<div class="vh">${t("Programma")}</div>${live ? html`<ul>${li("mdi:playlist-play", progName(prog.state), t("Bezig"), { on: true, sub: t("Kan pas na afloop gewijzigd worden") })}</ul>` : modes(prog.attributes.options.map(o => ({ label: progName(o), on: prog.state === o, go: () => call("select", "select_option", prog.entity_id, { option: o }) })), "")}`);
+  // options of the cycle
+  const opts = DISH_OPT.map(([k, ic, lb]) => [find(new RegExp(`^switch\\..*_${k}$`)), ic, lb]).filter(([z]) => ok(z));
+  if (opts.length) out.push(html`<div class="vh">${t("Opties")}</div>${live ? html`<ul>${opts.map(([z, ic, lb]) => li(ic, t(lb), isOn(z) ? t("Aan") : t("Uit"), { on: isOn(z) }))}</ul>` : modes(opts.map(([z, ic, lb]) => ({ label: t(lb), on: isOn(z), go: () => call("switch", "toggle", z.entity_id) })), "")}`);   // the machine only takes options before the start
+  // delayed start (the number counts seconds)
+  const delay = find(/^number\..*_start_in$/);
+  if (ok(delay) && !live) { const cur = Math.round((num(delay.state) ?? 0) / 3600), unit = delay.attributes.unit_of_measurement === "h" ? 1 : 3600, max = (delay.attributes.max ?? 86400) / (unit === 1 ? 1 : 3600);
+    out.push(html`<div class="vh">${t("Start uitstellen")}</div><div class="vs">${t("Stel in en druk daarna op Start")}</div>${modes([0, 1, 2, 3, 4, 6, 9].filter(h => h <= max).map(h => ({ label: h ? `${h} ${t("u")}` : t("Nu"), on: cur === h, go: () => call("number", "set_value", delay.entity_id, { value: h * (unit === 1 ? 1 : 3600) }) })), "")}`); }
+  // problems the machine reports
+  const probs = keys.filter(k => /^binary_sensor\./.test(k) && hass.states[k]?.attributes.device_class === "problem" && isOn(hass.states[k]));
+  if (probs.length) out.push(html`<div class="vh">${t("Meldingen")}</div><ul>${probs.map(k => li("mdi:alert-outline", (hass.states[k].attributes.friendly_name || k).replace(title, "").replace(/^Siemens Dishwasher\s*/i, "").trim(), t("Actief"), { on: true, onclick: () => p.moreInfo(k) }))}</ul>`);
+  // levels and counters
+  const lvl = (re, ic, lb) => { const z = find(re); return ok(z) ? li(ic, lb, t(DISH_LEVEL[raw(z)] || raw(z)), { on: /low|empty/.test(raw(z)), onclick: () => p.moreInfo(z.entity_id) }) : nothing; };
+  const cnt = (re, ic, lb, fmt = v => v) => { const z = find(re); return ok(z) ? li(ic, lb, fmt(z.state), { onclick: () => p.moreInfo(z.entity_id) }) : nothing; };
+  const wifi = find(/^sensor\..*_wifi_signal_strength$/), conn = find(/^binary_sensor\..*_connection$/);
+  out.push(html`<div class="vh">${t("Onderhoud")}</div><ul>${lvl(/^sensor\..*_salt$/, "mdi:shaker-outline", t("Zout"))}${lvl(/^sensor\..*_rinse_aid$/, "mdi:water-opacity", t("Glansspoelmiddel"))}${cnt(/^sensor\..*_machinecare_remaining_runs$/, "mdi:wrench-clock", t("MachineCare over"), v => t("{n} beurten", { n: v }))}${cnt(/^sensor\..*_start_count$/, "mdi:counter", t("Aantal starts"), v => `${v}×`)}${ok(wifi) ? li("mdi:wifi", t("Wifi"), `${wifi.state} dBm`, { onclick: () => p.moreInfo(wifi.entity_id) }) : conn ? li("mdi:wifi-off", t("Verbinding"), isOn(conn) ? t("Verbonden") : t("Verbroken"), { on: !isOn(conn), onclick: () => p.moreInfo(conn.entity_id) }) : nothing}</ul>`);
+  // the machine's own settings
+  const lock = find(/^switch\..*_child_lock$/), hard = find(/^select\..*_water_hardness$/), rinse = find(/^select\..*_rinse_aid$/), water = find(/^select\..*_water_connection$/);
+  const pick = (z, lbl, fmt) => ok(z) && z.attributes.options?.length ? html`<div class="vs">${lbl}</div>${modes(z.attributes.options.map(o => ({ label: fmt(o), on: z.state === o, go: () => call("select", "select_option", z.entity_id, { option: o }) })), "")}` : nothing;
+  const num2 = o => String(Number(String(o).replace(/\D/g, "")));
+  if (ok(lock) || ok(hard) || ok(rinse) || ok(water)) out.push(html`<div class="vh">${t("Instellingen van de vaatwasser")}</div><div class="vs">${t("Wijzigt direct op het apparaat")}</div>
+    ${ok(lock) ? html`<ul>${li("mdi:lock-outline", t("Kinderslot"), isOn(lock) ? t("Aan") : t("Uit"), { on: isOn(lock), onclick: () => call("switch", "toggle", lock.entity_id) })}</ul>` : nothing}
+    ${pick(hard, t("Waterhardheid"), num2)}${pick(rinse, t("Glansspoelmiddel (afgifte)"), o => o === "off" ? t("Uit") : num2(o))}${pick(water, t("Wateraansluiting"), o => o === "coldwater" ? t("Koud") : o === "hotwater" ? t("Warm") : o)}`);
+  return html`${out}`;
+}
 let CUR = null; // current {p, pop} while rendering, so wrap() can draw the header buttons
 const wrap = (title, big, sub, body) => {
   const { p, pop } = CUR;
@@ -342,12 +387,12 @@ export function renderPopup(p, pop) {
         const left = end => { const m = Math.max(0, Math.round((end - Date.now()) / 60000)); return m >= 60 ? t("nog {h} u {m} min", { h: Math.floor(m / 60), m: m % 60 }) : t("nog {m} min", { m }); };
         const fmt = e => { const s = e && hass.states[e.id]; if (!s || unavailable(s)) return null; const v = hass.formatEntityState?.(s) ?? s.state;
           return v === s.state && /_program_/.test(v) ? v.split("_program_").pop().replace(/_/g, " ").replace(/^\w/, c => c.toUpperCase()) : v; };   // untranslated "dishcare_dishwasher_program_auto_2" → "Auto 2"
-        const prog = fmt(a.program), door = a.door ? hass.states[a.door.id]?.state : null, canStop = a.stop && ["running", "waiting"].includes(st.st) && hass.states[a.stop.id] && hass.states[a.stop.id].state !== "unavailable";   // a button's normal state is "unknown"
-        const btns = [...(sw && !noRemote(hass, a) ? [{ label: sw.state === "on" ? t("Uitzetten") : t("Aanzetten"), on: sw.state === "on", go: () => p.call("switch", "toggle", { entity_id: a.switch.id }) }] : []), ...(canStop ? [{ label: t("Programma stoppen"), go: () => p.call("button", "press", { entity_id: a.stop.id }) }] : [])];
+        const isDish = /vaat|dish/i.test(title) || /dishwasher/i.test(a.op.id), startId = isDish ? Object.keys(hass.entities || {}).find(k => k.startsWith("button.") && hass.entities[k].device_id === a.device && /_start$/.test(k) && hass.states[k]?.state !== "unavailable") : null, prog = isDish ? null : fmt(a.program), door = a.door ? hass.states[a.door.id]?.state : null, canStop = a.stop && ["running", "waiting"].includes(st.st) && hass.states[a.stop.id] && hass.states[a.stop.id].state !== "unavailable";   // a button's normal state is "unknown"
+        const btns = [...(sw && !noRemote(hass, a) ? [{ label: sw.state === "on" ? t("Uitzetten") : t("Aanzetten"), on: sw.state === "on", go: () => p.call("switch", "toggle", { entity_id: a.switch.id }) }] : []), ...(canStop ? [{ label: t("Programma stoppen"), go: () => p.call("button", "press", { entity_id: a.stop.id }) }] : []), ...(startId && ["idle", "done"].includes(st.st) && !["open", "on"].includes(door) ? [{ label: t("Start"), go: () => p.call("button", "press", { entity_id: startId }) }] : [])];
         return wrap(roomName, title, st.label, html`
-          ${btns.length ? modes(btns, "n2") : nothing}
+          ${btns.length ? modes(btns, btns.length > 2 ? "n3" : "n2") : nothing}
           ${st.progress != null && ["running", "waiting"].includes(st.st) ? html`<div class="pbar" style="margin-top:14px;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden"><i style="display:block;height:100%;width:${Math.max(0, Math.min(100, st.progress))}%;background:#fff"></i></div>` : nothing}
-          <ul>${prog ? li("mdi:playlist-play", t("Programma"), prog, { onclick: () => p.moreInfo(a.program.id) }) : nothing}${st.job && st.st !== "off" ? li("mdi:progress-wrench", t("Fase"), st.job, { onclick: () => p.moreInfo(a.job.id) }) : nothing}${st.progress != null && st.st !== "off" ? li("mdi:progress-clock", t("Voortgang"), `${Math.round(st.progress)}%`, { onclick: () => p.moreInfo(a.progress.id) }) : nothing}${st.end ? li("mdi:clock-end", t("Klaar om"), st.end.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }), { sub: left(st.end), onclick: () => p.moreInfo(a.finish.id) }) : nothing}${st.doneAt ? li("mdi:check", t("Klaar sinds"), relTime(st.doneAt.toISOString())) : nothing}${door ? li("mdi:door", t("Deur"), door === "open" ? t("Open") : door === "locked" ? t("Vergrendeld") : t("Dicht"), { on: door === "open", onclick: () => p.moreInfo(a.door.id) }) : nothing}${(a.extra || []).map(x => { const s = hass.states[x.id]; return li("mdi:toggle-switch-outline", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.call("switch", "toggle", { entity_id: x.id }) }); })}${(a.flags || []).map(x => { const s = hass.states[x.id]; return li("mdi:information-variant", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, unavailable(s) ? "–" : isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.moreInfo(x.id) }); })}${(mo => mo ? li("mdi:calendar-month", t("Deze maand"), mo.kw || t("{n} beurten", { n: mo.cy }), { sub: [mo.kw && mo.cy != null ? t("{n} beurten", { n: mo.cy }) : "", mo.eu].filter(Boolean).join(" · "), onclick: () => p.moreInfo(mo.cId) }) : nothing)(applianceMonth(hass, a))}${li("mdi:information-outline", t("Status"), fmt(a.op) || "–", { sub: relTime(hass.states[a.op.id]?.last_changed), onclick: () => p.moreInfo(a.op.id) })}</ul>`);
+          <ul>${prog ? li("mdi:playlist-play", t("Programma"), prog, { onclick: () => p.moreInfo(a.program.id) }) : nothing}${st.job && st.st !== "off" ? li("mdi:progress-wrench", t("Fase"), st.job, { onclick: () => p.moreInfo(a.job.id) }) : nothing}${st.progress != null && st.st !== "off" ? li("mdi:progress-clock", t("Voortgang"), `${Math.round(st.progress)}%`, { onclick: () => p.moreInfo(a.progress.id) }) : nothing}${st.end ? li("mdi:clock-end", t("Klaar om"), st.end.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }), { sub: left(st.end), onclick: () => p.moreInfo(a.finish.id) }) : nothing}${st.doneAt ? li("mdi:check", t("Klaar sinds"), relTime(st.doneAt.toISOString())) : nothing}${door ? li("mdi:door", t("Deur"), door === "open" || door === "on" ? t("Open") : door === "locked" ? t("Vergrendeld") : t("Dicht"), { on: door === "open" || door === "on", onclick: () => p.moreInfo(a.door.id) }) : nothing}${(isDish ? [] : a.extra || []).map(x => { const s = hass.states[x.id]; return li("mdi:toggle-switch-outline", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.call("switch", "toggle", { entity_id: x.id }) }); })}${(isDish ? [] : a.flags || []).map(x => { const s = hass.states[x.id]; return li("mdi:information-variant", (s?.attributes.friendly_name || x.id).replace(title, "").trim() || x.id, unavailable(s) ? "–" : isOn(s) ? t("Aan") : t("Uit"), { on: isOn(s), onclick: () => p.moreInfo(x.id) }); })}${(mo => mo ? li("mdi:calendar-month", t("Deze maand"), mo.kw || t("{n} beurten", { n: mo.cy }), { sub: [mo.kw && mo.cy != null ? t("{n} beurten", { n: mo.cy }) : "", mo.eu].filter(Boolean).join(" · "), onclick: () => p.moreInfo(mo.cId) }) : nothing)(applianceMonth(hass, a))}${li("mdi:information-outline", t("Status"), fmt(a.op) || "–", { sub: relTime(hass.states[a.op.id]?.last_changed), onclick: () => p.moreInfo(a.op.id) })}</ul>${isDish ? dishPanel(p, a, st, hass, title) : nothing}`);
       }
       const ps = hass.states[a.power.id];
       return wrap(roomName, cfg.name || (hass.devices?.[a.device]?.name_by_user || hass.devices?.[a.device]?.name || t("Apparaat")), st.label, html`

@@ -54,7 +54,7 @@ A switch toggles on tap. A switch whose device also reports **power** becomes a 
 <div class="grid2" markdown>
 <figure markdown>
 ![Appliance card](assets/cards/appliance.webp)
-<figcaption>A dishwasher (Home Connect) with programme, progress and Stop</figcaption>
+<figcaption>A dishwasher after the cycle: clean, door open, with the Unloaded button</figcaption>
 </figure>
 </div>
 

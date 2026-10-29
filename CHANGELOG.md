@@ -4,6 +4,7 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **Docs: the appliance card picture shows the dishwasher flow** (*Schoon, uitruimen* with the *Uitgeruimd* button) instead of the old running dishwasher.
 ## 1.2.3 · 2026-10-29
 
 - **Dishwasher popup with every setting of the machine.** Besides the status, the popup now has: the clean / dirty / empty choice, the programme as buttons (read-only while it runs), the options of the cycle as toggles (half load, Hygiene Plus, intensive zone, VarioSpeed Plus, quiet …), delayed start in hours, the notices the machine reports, maintenance (salt, rinse aid, MachineCare, cycles, Wi-Fi) and the machine's own settings (child lock, water hardness, rinse-aid dosing, water connection), plus a Start button next to Stop. Each section appears only when the integration offers it. Programme names, levels and settings are shown in plain words (Eco 50°, Hardness 4, Cold) instead of the raw Home Connect codes. The mock home has a full Home Connect Local dishwasher.

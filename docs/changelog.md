@@ -4,6 +4,11 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+## 1.2.4 · 2026-10-30
+
+- **Fix: the scrim over the album art on the media card reaches the card edge.** The card's 1 px border sat outside the scrim (`overflow: hidden` clips it to the padding box), leaving a strip of bare art at the top, bottom and right; cards with art or an app backdrop now have no border.
+- **Fix: the media card and popup show album art for Music Assistant players.** Those players report `entity_picture` as an absolute `http://host:8097/...` address, which the browser blocks on https. Tomte now uses the `entity_picture_local` that Home Assistant proxies when the picture is an absolute URL.
+- **Docs: the appliance card picture shows the dishwasher flow** (*Schoon, uitruimen* with the *Uitgeruimd* button) instead of the old running dishwasher.
 ## 1.2.3 · 2026-10-29
 
 - **Dishwasher popup with every setting of the machine.** Besides the status, the popup now has: the clean / dirty / empty choice, the programme as buttons (read-only while it runs), the options of the cycle as toggles (half load, Hygiene Plus, intensive zone, VarioSpeed Plus, quiet …), delayed start in hours, the notices the machine reports, maintenance (salt, rinse aid, MachineCare, cycles, Wi-Fi) and the machine's own settings (child lock, water hardness, rinse-aid dosing, water connection), plus a Start button next to Stop. Each section appears only when the integration offers it. Programme names, levels and settings are shown in plain words (Eco 50°, Hardness 4, Cold) instead of the raw Home Connect codes. The mock home has a full Home Connect Local dishwasher.

@@ -305,7 +305,9 @@ export function climateCard(p, s, title = t("Verwarming")) {
   const action = s.attributes.hvac_action ? ({ heating: t("Verwarmt"), cooling: t("Koelt"), idle: t("Rust"), off: t("Uit"), drying: t("Droogt"), fan: t("Ventileert") }[s.attributes.hvac_action] || s.attributes.hvac_action) : on ? ({ heat: t("Verwarmen"), cool: t("Koelen"), auto: t("Auto"), heat_cool: t("Auto"), dry: t("Drogen"), fan_only: t("Ventileren") }[s.state] || s.state) : t("Uit");
   const lo = num(s.attributes.min_temp) ?? 7, hi = num(s.attributes.max_temp) ?? 35, v = target != null ? Math.max(0, Math.min(100, (target - lo) / (hi - lo) * 100)) : 0;
   const setTo = val => p.call("climate", "set_temperature", { entity_id: s.entity_id, temperature: +val.toFixed(1) });
-  return html`<div class=${classMap({ card: true, hero: true, climate: true, on, unavailable: un })}
+  // coloured only while it heats or cools; a thermostat that doesn't report hvac_action colours by mode
+  const busy = s.attributes.hvac_action ? !["idle", "off"].includes(s.attributes.hvac_action) && on : on;
+  return html`<div class=${classMap({ card: true, hero: true, climate: true, on: busy, unavailable: un })}
       ${pressDir(p, { tap: () => p.openPopup({ type: "climate", s }) })}>
     ${un ? ua() : nothing}
     <div class="i">${icoFor(p, s.entity_id, "mdi:radiator", "heating")}</div>

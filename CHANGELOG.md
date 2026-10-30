@@ -5,6 +5,7 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 ## Unreleased
 
 - **New: Music Assistant.** Speakers that Music Assistant runs were plain media players in Tomte (play, pause, volume). Their popup now has four tabs: favourites (tap to play), search, the queue (now and next) and moving the music to another speaker. A new **Muziek** page under Meer has the same for all speakers on one screen, plus what plays where; it only shows when Music Assistant is installed. Everything goes through Home Assistant's own `music_assistant` services. An administrator's panel stores the integration's id in the household settings, so search and favourites also work for other users.
+- **Fix: thermostat card coloured while resting.** The card took its colour from the mode, so a thermostat in "heat" that had reached its target said "Rust" but still looked like it was heating. It is now coloured only while the thermostat actually heats or cools; thermostats that don't report what they are doing still colour by mode.
 
 ## 1.3.0 · 2026-10-30
 

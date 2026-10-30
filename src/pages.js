@@ -9,7 +9,7 @@ import { pressDir, label, cardCfg, camStream, ico, energyOf } from "./cards.js";
 import { spark } from "./extras3.js";
 import { name, deviceName } from "./model.js";
 import { pendingUpdates, installUpdate } from "./features.js";
-import { pickNet, netCard, etaText } from "./extras3.js";
+import { pickNet, etaText } from "./extras3.js";
 
 export const PAGES = {
   automatiseringen: { label: t("Automatiseringen"), sub: t("aan, uit en fouten"), icon: "mdi:robot-outline", ha: "/config/automation/dashboard" },
@@ -20,12 +20,6 @@ export const PAGES = {
 };
 
 const sec = (title, cards, meta = "") => cards.length ? html`<section class="sec"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3><div class="cgrid">${cards}</div></section>` : nothing;
-/** a plain card: name, state, optional label and icon */
-const card = (p, { n, s, lbl = "", icon, on = false, dim = false, tap = null, hold = null, cls = "" }) => html`
-  <div class=${classMap({ card: true, [cls]: !!cls, on, unavailable: dim })} ${pressDir(p, { tap, hold })}>
-    <div class="n">${n}</div><div class="s">${s}</div>${lbl ? html`<div class="lbl">${lbl}</div>` : nothing}
-    ${icon ? html`<div class="i">${ico(icon)}</div>` : nothing}
-  </div>`;
 
 export function renderPage(p, key) {
   const def = PAGES[key];

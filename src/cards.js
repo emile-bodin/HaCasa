@@ -2,7 +2,7 @@
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { icon, isOn, unavailable, num, relTime, shortDate, sinceText, domain, setpoint } from "./util.js";
+import { icon, isOn, unavailable, num, relTime, sinceText, domain, setpoint } from "./util.js";
 import { name, deviceName } from "./model.js";
 import { applianceState, applianceEnd, applianceMonth, noRemote, eventWhen, nextEvent } from "./extras2.js";
 import { spark } from "./extras3.js";
@@ -758,7 +758,6 @@ export function wxExpect(p, short = false) {
   return soon ? t("{what} verwacht rond {t}", { what: t(PRECIP[soon.condition]), t: at }) : p.wx?.hourly?.length ? t("Droog de komende uren") : "";
 }
 /* ---------- group card: user-defined set of lights / switches / fans / plugs ---------- */
-const TOGGLE_DOMAINS = ["light", "switch", "fan", "input_boolean"];
 const svcFor = id => id.split(".")[0] === "input_boolean" ? "input_boolean" : id.split(".")[0] === "light" ? "light" : id.split(".")[0] === "fan" ? "fan" : "switch";
 const memberIcon = id => id.startsWith("light.") ? "lamp" : id.startsWith("fan.") ? "fan" : "plug";
 /** members as [{ id, s, on, name }] */
@@ -787,17 +786,6 @@ export const condText = c => ({ "clear-night": t("Helder"), cloudy: t("Bewolkt")
 /** thin SVG icon for a weather condition (see icons/) */
 export const condSvg = c => ({ "clear-night": "moon", cloudy: "cloud", fog: "fog", hail: "snow", lightning: "lightning", "lightning-rainy": "lightning", partlycloudy: "partly_cloudy", pouring: "pouring", rainy: "rain", snowy: "snow", "snowy-rainy": "snow", sunny: "sun", windy: "wind", "windy-variant": "wind" }[c] || "cloud");
 export const condIcon = c => ({ "clear-night": "mdi:weather-night", cloudy: "mdi:weather-cloudy", fog: "mdi:weather-fog", hail: "mdi:weather-hail", lightning: "mdi:weather-lightning", "lightning-rainy": "mdi:weather-lightning-rainy", partlycloudy: "mdi:weather-partly-cloudy", pouring: "mdi:weather-pouring", rainy: "mdi:weather-rainy", snowy: "mdi:weather-snowy", "snowy-rainy": "mdi:weather-snowy-rainy", sunny: "mdi:weather-sunny", windy: "mdi:weather-windy", "windy-variant": "mdi:weather-windy-variant" }[c] || "mdi:weather-cloudy");
-
-/** Drag on the in-card slider: converts pointer x to percent and calls fn on release (and while dragging, throttled). */
-function sliderDrag(ev, fn) {
-  ev.stopPropagation();
-  const el = ev.currentTarget, r = el.getBoundingClientRect();
-  const pct = x => Math.max(1, Math.min(100, Math.round((x - r.left) / r.width * 100)));
-  let last = 0;
-  const move = e => { const v = pct(e.clientX); el.style.setProperty("--v", v + "%"); if (Date.now() - last > 250) { last = Date.now(); fn(v); } };
-  const up = e => { fn(pct(e.clientX)); el.closest(".card").__skipClick = Date.now(); removeEventListener("pointermove", move); removeEventListener("pointerup", up); };
-  move(ev); addEventListener("pointermove", move); addEventListener("pointerup", up);
-}
 
 /** Drag on the climate rail: pointer y -> temperature between lo and hi, snapped to step; taps on the + / − ends are left to their own handlers. */
 function railDrag(ev, lo, hi, step, fn) {

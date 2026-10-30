@@ -16,7 +16,6 @@ export const LANGS = {
 
 let lang = "nl", dict = null;
 export const setLang = l => { lang = LANGS[l] ? l : "en"; dict = LANGS[lang].dict || null; };
-export const getLang = () => lang;
 export const locale = () => LANGS[lang].locale;
 export const LANGUAGES = Object.fromEntries(Object.entries(LANGS).map(([k, v]) => [k, v.name]));
 

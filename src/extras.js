@@ -1,7 +1,7 @@
 // Notifications, energy statistics, alarm keypad and the idle screen.
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
-import { num, relTime, clock } from "./util.js";
+import { num, clock } from "./util.js";
 import { condText, condIcon, cardCfg, isHidden, applianceIcon } from "./cards.js";
 import { applianceState, applianceEnd } from "./extras2.js";
 import { deviceName } from "./model.js";

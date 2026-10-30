@@ -1,24 +1,22 @@
 // Popup renderers. `pop` is the panel's open popup descriptor {type, ...}; `p` the panel.
 import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
-import { icon, isOn, unavailable, num, relTime, shortDate, domain, setpoint } from "./util.js";
+import { icon, isOn, unavailable, num, relTime, domain, setpoint } from "./util.js";
 import { name, deviceName } from "./model.js";
 import { PAGES } from "./pages.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState, applianceMonth, noRemote } from "./extras2.js";
-import { dishHelper, litterBox, wasteColor, wasteWhen, condText, condIcon, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView , lightCaps, batteryOf, groupMembers, cardType } from "./cards.js";
+import { dishHelper, litterBox, wasteColor, wasteWhen, condText, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView, lightCaps, batteryOf, groupMembers, cardType } from "./cards.js";
 import { roomPresets, snapshot, applyPreset, presetMatches, installUpdate, pendingUpdates } from "./features.js";
 import { modeList, toggleMode } from "./extras3.js";
 import { field, text, select, check } from "./settings.js";
 import { LANGUAGES } from "./i18n.js";
-import { fetchHistory } from "./extras2.js";
 import { addPopup, canEdit, isBuiltin, TPL_ASK, groupCandidates, graphCandidates, hoursLabel } from "./edit.js";
 import { templateOf } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 import { usagePopup, USAGE_PROVIDERS } from "./usage.js";
 import { siblings, maintenance, vacTask, vacStatus, VAC_LABELS, BUSY } from "./vacuum.js";
 
-const close = html`<img src=${icon("close")} alt=${t("sluiten")} data-close>`;
 const entityOf = pop => pop.type === "cardcfg" ? pop.key : pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
 /** header buttons: ⋯ (card options) when the popup belongs to an entity, and close */
 const hbtns = (p, pop) => html`<span class="hb">${entityOf(pop) && pop.type !== "cardcfg" ? html`<button class=${pop.menu ? "on" : ""} title=${t("Opties")} @click=${ev => { ev.stopPropagation(); p.openPopup({ ...pop, menu: !pop.menu, form: false }); }}><ha-icon icon="mdi:dots-horizontal"></ha-icon></button>` : nothing}<button data-close title=${t("Sluiten")}><img src=${icon("close")} alt="sluiten" data-close></button></span>`;

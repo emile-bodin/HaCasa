@@ -1,5 +1,5 @@
 // Quick actions, doorbell/motion camera pop-up, pending updates and per-room light presets.
-import { t, locale } from "./i18n.js";
+import { t } from "./i18n.js";
 import { html, nothing } from "lit";
 import { SUFFIX, VERSION, domain, isOn, unavailable } from "./util.js";
 import { pressDir } from "./cards.js";

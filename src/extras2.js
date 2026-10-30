@@ -1,7 +1,7 @@
 // Agenda, appliances, history timeline and weather animation.
 import { t, locale } from "./i18n.js";
-import { html, nothing } from "lit";
-import { num, relTime, isOn, unavailable } from "./util.js";
+import { html } from "lit";
+import { num, relTime, unavailable } from "./util.js";
 
 /* ---------- agenda (calendar.get_events with response) ---------- */
 export async function fetchEvents(hass, calendars, days = 2) {

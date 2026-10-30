@@ -5,6 +5,7 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 ## Unreleased
 
 - **Cleanup: one copy of the short entity state text.** The editor's entity list and the search bar each had their own identical copy of the code that turns a state into "Aan", "Uit", "Onbereikbaar" or a value with its unit; it now lives once in `util.js`. The editor also had a list of domain icons that nothing used, which is gone. Nothing changes in the panel.
+- **Cleanup: unused code removed.** Six pieces nothing called any more (an old slider drag handler, a plain page card, a close-button image, two domain lists and `getLang`) and 12 imports that were no longer used. Nothing changes in the panel.
 
 ## 1.2.6 · 2026-10-30
 

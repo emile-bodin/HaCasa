@@ -19,7 +19,7 @@ import { searchBar, openFor } from "./search.js";
 import { graphCard } from "./graph.js";
 import { fetchNumeric, batteryEta, modeList } from "./extras3.js";
 import { deviceName } from "./model.js";
-import { BASE, TAG, SUFFIX, icon, slug, isOn, unavailable, comfort, humidityText, greeting, clock, relTime, navigate, num, sinceText, markSetpoint, clearSetpoint } from "./util.js";
+import { BASE, TAG, SUFFIX, icon, slug, isOn, unavailable, greeting, clock, relTime, navigate, num, markSetpoint, clearSetpoint } from "./util.js";
 
 /** numbers with their unit (6,8 kWh · 50% · 12 min · 14:02) rendered white inside a notice */
 const emph = text => { const parts = String(text ?? "").split(/(\d+(?:[.,:]\d+)?(?:\s?(?:%|kWh|W|kW|°C?|min|uur|u|×))?)/g); return parts.map((x, i) => i % 2 ? html`<b>${x}</b>` : x); };

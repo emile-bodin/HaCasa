@@ -12,8 +12,6 @@ import { scopePicker } from "./settings.js";
 import { usageAvailable } from "./usage.js";
 
 export const canEdit = p => !!p.hass?.user?.is_admin;
-/** entity domains that have a card */
-export const ADD_DOMAINS = ["light", "switch", "input_boolean", "fan", "lock", "cover", "climate", "media_player", "vacuum", "humidifier", "camera", "binary_sensor", "sensor"];
 /** keys of cards the panel makes itself (not an entity, device or template instance) */
 export const isBuiltin = key => !key.includes(".") && !key.startsWith("device:") && !key.startsWith("tpl:");
 /** template fields a template can ask for when it is placed */

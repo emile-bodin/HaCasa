@@ -1,13 +1,11 @@
 // Search bar under the navigation: rooms, pages and entities. Tap = open the matching popup (or HA's dialog).
 import { html, nothing } from "lit";
 import { t } from "./i18n.js";
-import { domain, num, isOn, unavailable, icon } from "./util.js";
+import { domain, stateText, icon } from "./util.js";
 import { PAGES } from "./pages.js";
 
 const DOM_ICON = { light: "mdi:lightbulb-outline", switch: "mdi:power-socket-eu", media_player: "mdi:speaker", cover: "mdi:window-shutter", climate: "mdi:thermostat", fan: "mdi:fan", lock: "mdi:lock-outline", vacuum: "mdi:robot-vacuum", humidifier: "mdi:air-humidifier", camera: "mdi:cctv", binary_sensor: "mdi:radiobox-marked", sensor: "mdi:gauge", scene: "mdi:palette-outline", script: "mdi:script-text-outline", automation: "mdi:robot-outline", person: "mdi:account-outline", input_boolean: "mdi:toggle-switch-outline", update: "mdi:update", weather: "mdi:weather-partly-cloudy", calendar: "mdi:calendar-blank-outline" };
 const QUIET = new Set(["zone", "sun", "event", "tts", "stt", "conversation", "device_tracker", "number", "select", "button", "input_number", "input_select", "input_text", "input_datetime", "image", "todo", "siren", "text", "time", "date", "datetime"]);
-
-const stateText = s => unavailable(s) ? t("Onbereikbaar") : s.state === "on" ? t("Aan") : s.state === "off" ? t("Uit") : num(s.state) != null ? `${s.state}${s.attributes.unit_of_measurement ? " " + s.attributes.unit_of_measurement : ""}` : s.state.length <= 14 ? s.state : "";
 
 /** open the panel's own popup for an entity when it has one, otherwise HA's more-info */
 export function openFor(p, s, m) {

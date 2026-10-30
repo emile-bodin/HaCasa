@@ -5,7 +5,7 @@
 import { html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { t, locale } from "./i18n.js";
-import { domain, num, unavailable } from "./util.js";
+import { domain, num, stateText } from "./util.js";
 import { cardFor, homeCards, findCard } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 import { scopePicker } from "./settings.js";
@@ -14,7 +14,6 @@ import { usageAvailable } from "./usage.js";
 export const canEdit = p => !!p.hass?.user?.is_admin;
 /** entity domains that have a card */
 export const ADD_DOMAINS = ["light", "switch", "input_boolean", "fan", "lock", "cover", "climate", "media_player", "vacuum", "humidifier", "camera", "binary_sensor", "sensor"];
-const DOM_ICON = { light: "mdi:lightbulb-outline", switch: "mdi:power-socket-eu", input_boolean: "mdi:toggle-switch-outline", media_player: "mdi:speaker", cover: "mdi:window-shutter", climate: "mdi:thermostat", fan: "mdi:fan", lock: "mdi:lock-outline", vacuum: "mdi:robot-vacuum", humidifier: "mdi:air-humidifier", camera: "mdi:cctv", binary_sensor: "mdi:radiobox-marked", sensor: "mdi:gauge" };
 /** keys of cards the panel makes itself (not an entity, device or template instance) */
 export const isBuiltin = key => !key.includes(".") && !key.startsWith("device:") && !key.startsWith("tpl:");
 /** template fields a template can ask for when it is placed */
@@ -93,7 +92,6 @@ export const editBar = (p, key) => html`<div class="banner ebar show">
 /* ---------- "Kaart toevoegen" popup ---------- */
 /** where an entity lives now: its area (directly or through its device), or null */
 const areaOf = (p, id) => { const e = p.hass.entities?.[id]; return e?.area_id || (e?.device_id && p.hass.devices?.[e.device_id]?.area_id) || null; };
-const stateText = s => unavailable(s) ? t("Onbereikbaar") : s.state === "on" ? t("Aan") : s.state === "off" ? t("Uit") : num(s.state) != null ? `${s.state}${s.attributes.unit_of_measurement ? " " + s.attributes.unit_of_measurement : ""}` : s.state.length <= 14 ? s.state : "";
 /** add `key` to the page, then open its card settings */
 async function addKey(p, pageKey, key, { cardCfg = null, hideIn = null, haArea = false } = {}) {
   if (haArea) await p.hass.callWS({ type: "config/entity_registry/update", entity_id: key, area_id: pageKey });

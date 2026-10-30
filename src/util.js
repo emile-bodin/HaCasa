@@ -15,6 +15,8 @@ export const domain = id => id.split(".")[0];
 export const num = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
 export const isOn = s => !!s && ["on", "open", "playing", "heating", "cooling", "home"].includes(s.state);
 export const unavailable = s => !s || s.state === "unavailable" || s.state === "unknown";
+/** short state for a list row: on/off/unreachable, a number with its unit, or a short raw state */
+export const stateText = s => unavailable(s) ? t("Onbereikbaar") : s.state === "on" ? t("Aan") : s.state === "off" ? t("Uit") : num(s.state) != null ? `${s.state}${s.attributes.unit_of_measurement ? " " + s.attributes.unit_of_measurement : ""}` : s.state.length <= 14 ? s.state : "";
 
 export const comfort = v => v == null ? "" : v < 16 ? t("Erg koud") : v < 18 ? t("Fris") : v < 21 ? t("Comfortabel") : t("Warm");
 export const humidityText = h => h == null ? "" : h < 30 ? t("Luchtvochtigheid is erg droog, {h}%", { h: Math.round(h) })

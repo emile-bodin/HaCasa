@@ -4,6 +4,8 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **Cleanup: one copy of the short entity state text.** The editor's entity list and the search bar each had their own identical copy of the code that turns a state into "Aan", "Uit", "Onbereikbaar" or a value with its unit; it now lives once in `util.js`. The editor also had a list of domain icons that nothing used, which is gone. Nothing changes in the panel.
+
 ## 1.2.6 · 2026-10-30
 
 - **Fix: the media card in the two-row layout matches the other cards.** Its buttons were 34 px high next to the 24–26 px buttons of the other cards, so the icon and the status text had to be dropped. The buttons are now 26 px and the card keeps its icon and status (Playing, On) like every other card.

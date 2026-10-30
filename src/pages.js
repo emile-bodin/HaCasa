@@ -10,6 +10,7 @@ import { spark } from "./extras3.js";
 import { name, deviceName } from "./model.js";
 import { pendingUpdates, installUpdate } from "./features.js";
 import { pickNet, etaText } from "./extras3.js";
+import { maPlayers, playerName, favTiles, searchBox, queueList, movePills } from "./music.js";
 
 export const PAGES = {
   automatiseringen: { label: t("Automatiseringen"), sub: t("aan, uit en fouten"), icon: "mdi:robot-outline", ha: "/config/automation/dashboard" },
@@ -17,13 +18,16 @@ export const PAGES = {
   energie: { label: t("Energie"), sub: t("verbruik en opwek"), icon: "mdi:lightning-bolt-outline", ha: "/energy" },
   cameras: { label: t("Camera's"), sub: t("live beeld"), icon: "mdi:cctv", ha: null },
   systeem: { label: "Systeem", sub: "server, updates, netwerk", icon: "mdi:server-outline", ha: "/config/system" },
+  muziek: { label: t("Muziek"), sub: t("speakers, favorieten, zoeken"), icon: "mdi:music", ha: null, when: hass => maPlayers(hass).length > 0 },
 };
+/** the pages this home has: a page with `when` (Muziek needs Music Assistant) is left out when it does not apply */
+export const pagesFor = hass => Object.entries(PAGES).filter(([, v]) => !v.when || v.when(hass));
 
 const sec = (title, cards, meta = "") => cards.length ? html`<section class="sec"><h3>${title}${meta ? html`<b>${meta}</b>` : nothing}</h3><div class="cgrid">${cards}</div></section>` : nothing;
 
 export function renderPage(p, key) {
   const def = PAGES[key];
-  const page = { automatiseringen: automations, sensoren: sensors, energie: energy, cameras: cameras, systeem: system }[key](p);
+  const page = { automatiseringen: automations, sensoren: sensors, energie: energy, cameras: cameras, systeem: system, muziek: music }[key](p);
   return html`<section class="page">
     <header class="phead">
       <div><div class="peb">${t("Meer")}<i class="dt"></i>${page.sub}</div><h1>${t(def.label)}</h1>${page.head || nothing}</div>
@@ -186,6 +190,26 @@ function sensors(p) {
       </div>` };
 }
 
+/* ---------- music: Music Assistant speakers; pick one, then favourites, search, its queue and moving its music ---------- */
+function music(p) {
+  const all = maPlayers(p.hass).filter(s => !unavailable(s) && s.attributes.mass_player_type === "player").sort((a, b) => playerName(p.hass, a).localeCompare(playerName(p.hass, b), locale()));
+  const playing = all.filter(s => s.state === "playing" && s.attributes.source === "Music Assistant Queue");
+  const target = all.find(s => s.entity_id === p.musicTarget) || playing[0] || all[0], id = target?.entity_id;
+  const ma = Object.entries(p.hass.panels || {}).find(([k, v]) => /music.?assistant/i.test(k + " " + (v.title || "")));
+  const now = playing.map(s => srow({ icon: "mdi:speaker", svg: "music", name: s.attributes.media_title || playerName(p.hass, s), sub: [playerName(p.hass, s), s.attributes.media_artist].filter(Boolean).join(" · "), pill: t("Pauze"), on: true, tap: () => p.call("media_player", "media_pause", { entity_id: s.entity_id }) }));
+  return { sub: t("{n} speakers · {m} spelen", { n: all.length, m: playing.length }),
+    head: html`<div class="ppills">${all.map(s => html`<button class=${classMap({ on: s.entity_id === id })} @click=${() => { p.musicTarget = s.entity_id; }}>${ico("mdi:speaker", "music")}${playerName(p.hass, s)}</button>`)}</div>`,
+    tools: ma ? html`<a class="pill hab" @click=${() => p.goPath("/" + ma[0])}><ha-icon icon="mdi:open-in-new"></ha-icon><span>${t("Music Assistant openen")}</span></a>` : nothing,
+    body: !id ? html`<div class="hint" style="margin-top:20px;opacity:.75;font-size:13px">${t("Geen speakers van Music Assistant gevonden.")}</div>` : html`
+      <div class="sblks">
+        ${sblock(t("Speelt nu"), now, `${playing.length}`)}
+        <div class="sblk mblk"><h3>${t("Wachtrij")}<b>${playerName(p.hass, target)}</b></h3><div class="mbody">${queueList(p, id)}</div></div>
+        <div class="sblk mblk"><h3>${t("Verplaats naar")}<b>${t("van {n}", { n: playerName(p.hass, target) })}</b></h3><div class="mbody">${movePills(p, id)}</div></div>
+        <div class="sblk mblk"><h3>${t("Zoeken")}<b>${t("speelt op {n}", { n: playerName(p.hass, target) })}</b></h3><div class="mbody">${searchBox(p, id)}</div></div>
+      </div>
+      <section class="sec"><h3>${t("Favorieten")}<b>${t("speelt op {n}", { n: playerName(p.hass, target) })}</b></h3>${favTiles(p, id)}</section>` };
+}
+
 /* ---------- cameras: live snapshots as cards, tap for the stream ---------- */
 function cameras(p) {
   const cams = Object.values(p.hass.states).filter(s => domain(s.entity_id) === "camera");
@@ -269,6 +293,7 @@ export const pageStyles = `
   .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
   .hab{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;flex:none;margin-top:4px}
   .hab ha-icon{--mdc-icon-size:17px}
+  .mblk .mbody{padding:0 20px 14px} .mblk .mbody > .mnote:first-child,.mblk .mbody > .mpills:first-child{margin-top:4px}
   .sec{margin-top:26px}
   .sec h3{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin:0 0 10px 2px;display:flex;justify-content:space-between}
   .sec h3 b{font-weight:600;letter-spacing:0;text-transform:none;opacity:.7}

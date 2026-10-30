@@ -2,7 +2,7 @@
 import { html, nothing } from "lit";
 import { t } from "./i18n.js";
 import { domain, stateText, icon } from "./util.js";
-import { PAGES } from "./pages.js";
+import { pagesFor } from "./pages.js";
 
 const DOM_ICON = { light: "mdi:lightbulb-outline", switch: "mdi:power-socket-eu", media_player: "mdi:speaker", cover: "mdi:window-shutter", climate: "mdi:thermostat", fan: "mdi:fan", lock: "mdi:lock-outline", vacuum: "mdi:robot-vacuum", humidifier: "mdi:air-humidifier", camera: "mdi:cctv", binary_sensor: "mdi:radiobox-marked", sensor: "mdi:gauge", scene: "mdi:palette-outline", script: "mdi:script-text-outline", automation: "mdi:robot-outline", person: "mdi:account-outline", input_boolean: "mdi:toggle-switch-outline", update: "mdi:update", weather: "mdi:weather-partly-cloudy", calendar: "mdi:calendar-blank-outline" };
 const QUIET = new Set(["zone", "sun", "event", "tts", "stt", "conversation", "device_tracker", "number", "select", "button", "input_number", "input_select", "input_text", "input_datetime", "image", "todo", "siren", "text", "time", "date", "datetime"]);
@@ -30,7 +30,7 @@ export function searchResults(p, q) {
   const hit = s => (s || "").toLowerCase().includes(q), starts = s => (s || "").toLowerCase().startsWith(q);
   const hits = [];
   for (const r of p.rooms) if (hit(r.name)) hits.push({ label: r.name, sub: t("Kamer"), icon: "mdi:floor-plan", rank: starts(r.name) ? 0 : 1, go: () => { p.search = ""; p.go(r); } });
-  for (const [k, v] of Object.entries(PAGES)) if (hit(t(v.label))) hits.push({ label: t(v.label), sub: t("Pagina"), icon: v.icon, rank: starts(t(v.label)) ? 0 : 1, go: () => { p.search = ""; p.goPath("__" + k + "__"); } });
+  for (const [k, v] of pagesFor(p.hass)) if (hit(t(v.label))) hits.push({ label: t(v.label), sub: t("Pagina"), icon: v.icon, rank: starts(t(v.label)) ? 0 : 1, go: () => { p.search = ""; p.goPath("__" + k + "__"); } });
   const inRoom = new Map(); for (const r of p.rooms) for (const e of r.ents.all) inRoom.set(e.id, { e, r });
   for (const s of Object.values(p.hass.states)) {
     const d = domain(s.entity_id); if (QUIET.has(d)) continue;

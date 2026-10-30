@@ -3,7 +3,7 @@ import { t, locale } from "./i18n.js";
 import { html, nothing } from "lit";
 import { icon, isOn, unavailable, num, relTime, domain, setpoint } from "./util.js";
 import { name, deviceName } from "./model.js";
-import { PAGES } from "./pages.js";
+import { pagesFor } from "./pages.js";
 import { keypad, bars } from "./extras.js";
 import { eventWhen, timeline, applianceState, applianceMonth, noRemote } from "./extras2.js";
 import { dishHelper, litterBox, wasteColor, wasteWhen, condText, condSvg, label, camStream, attFilter, ATT_FILTERS, mediaView, lightCaps, batteryOf, groupMembers, cardType } from "./cards.js";
@@ -16,6 +16,7 @@ import { templateOf } from "./cards.js";
 import { GRAPH_HOURS } from "./graph.js";
 import { usagePopup, USAGE_PROVIDERS } from "./usage.js";
 import { siblings, maintenance, vacTask, vacStatus, VAC_LABELS, BUSY } from "./vacuum.js";
+import { isMA, favTiles, searchBox, queueList, movePills } from "./music.js";
 
 const entityOf = pop => pop.type === "cardcfg" ? pop.key : pop.e?.id || pop.s?.entity_id || pop.st?.id || pop.a?.id || (pop.type === "weather" ? CUR?.p?.home?.weather?.entity_id : null) || null;
 /** header buttons: ⋯ (card options) when the popup belongs to an entity, and close */
@@ -333,10 +334,14 @@ export function renderPopup(p, pop) {
       const v = mediaView(p, pop.e), s = v.main, vol = Math.round((s.attributes.volume_level ?? 0) * 100), on = v.playing;
       const call = (svc, data = {}) => p.call("media_player", svc, { entity_id: pop.e.id, ...data }), ctl = svc => p.call("media_player", svc, { entity_id: v.ctl });
       const big = v.title ? `${v.title}${v.artist ? " · " + v.artist : ""}` : v.app && !v.off ? v.app.name : v.off ? t("Uit") : s.state;
+      // Music Assistant speaker (the card's own player or a linked one): favourites, search, queue and moving, as tabs under the controls
+      const ma = [pop.e.id, ...(pop.e.linked || [])].find(id => isMA(hass, id)), tab = pop.tab || "fav";
+      const MA_TABS = [["fav", t("Favorieten"), favTiles], ["search", t("Zoeken"), searchBox], ["queue", t("Wachtrij"), queueList], ["move", t("Verplaats"), movePills]];
       return wrap(roomName, label(p, pop.e), big, html`
         ${v.art && !v.off ? html`<div class="mart" style=${`background-image:url("${v.art}")`}></div>` : nothing}
         ${modes([{ label: t("Vorige"), go: () => ctl("media_previous_track") }, { label: on ? t("Pauze") : t("Speel"), on, go: () => ctl("media_play_pause") }, { label: t("Volgende"), go: () => ctl("media_next_track") }, { label: v.off ? t("Aan") : t("Uit"), go: () => call(v.off ? "turn_on" : "turn_off") }])}
         ${s.attributes.volume_level != null ? range(t("Volume"), vol, v => call("volume_set", { volume_level: v / 100 })) : nothing}
+        ${ma ? html`<div class="mpop">${modes(MA_TABS.map(([k, l]) => ({ label: l, on: tab === k, go: () => p.openPopup({ ...pop, tab: k }) })), "mtabs")}${MA_TABS.find(([k]) => k === tab)[2](p, ma)}</div>` : nothing}
         <ul>${s.attributes.source_list ? s.attributes.source_list.slice(0, 8).map(src => li("mdi:import", src, "", { on: src === s.attributes.source, onclick: () => call("select_source", { source: src }) })) : nothing}
         ${v.app && !v.off ? li(v.app.icon, t("App"), v.app.name) : nothing}
         ${v.info && v.info !== s ? li("mdi:link-variant", t("Info van"), v.info.attributes.friendly_name || v.info.entity_id, { sub: t("gekoppelde speler"), onclick: () => p.moreInfo(v.info.entity_id) }) : nothing}
@@ -602,7 +607,7 @@ export function renderPopup(p, pop) {
     case "more":
       return wrap(t("Meer"), t("Overzichten"), t("Pagina's die niet bij een kamer horen"), html`
         ${modeList(p).length ? html`<div class="prow" style="margin-top:14px"><span>${t("Modi")}</span><b>${modeList(p).filter(m => m.on).map(m => m.label).join(", ") || ""}</b></div><ul style="margin-top:8px">${modeList(p).map(m => li(m.icon || "mdi:account-switch-outline", m.label, m.on ? t("Actief") : t("Uit"), { on: m.on, sub: m.s.attributes.friendly_name, onclick: () => toggleMode(p, m) }))}</ul>` : nothing}
-        <div class="pages">${[...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...Object.entries(PAGES).map(([k, v]) => ({ label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { label: t("Panel instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }].map(m => html`<a class=${m.wide ? "wide" : ""} @click=${() => m.action ? m.action() : p.goPath(m.path)}><ha-icon icon=${m.icon}></ha-icon><div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
+        <div class="pages">${[...(canEdit(p) && !p.page && !p.settings ? [{ label: p.room ? t("Kamer bewerken") : t("Startpagina bewerken"), sub: t("kaarten toevoegen, verbergen en ordenen"), icon: "mdi:pencil-outline", wide: true, action: () => p.startEdit(p.room?.id || "home") }] : []), ...pagesFor(p.hass).map(([k, v]) => ({ label: t(v.label), sub: t(v.sub), icon: v.icon, path: "__" + k + "__" })), ...(p.config.more || []), { label: t("Home Assistant"), sub: t("Instellingen"), icon: "mdi:cog-outline", path: "/config" }, { label: t("Profiel"), sub: t("gebruiker en thema"), icon: "mdi:account-circle-outline", path: "/profile" }, { label: t("Panel instellingen"), sub: t("kamers, kaarten, foto's"), icon: "mdi:tune", path: "__settings__" }].map(m => html`<a class=${m.wide ? "wide" : ""} @click=${() => m.action ? m.action() : p.goPath(m.path)}><ha-icon icon=${m.icon}></ha-icon><div>${m.label}<small>${m.sub || ""}</small></div></a>`)}</div>`);
     default: return nothing;
   }
 }

@@ -6,6 +6,7 @@ import { html, nothing } from "lit";
 import { domain, slug, SUFFIX, VERSION, relTime } from "./util.js";
 import { QUICK_TYPES, QUICK_DOMAINS, CHIMES, chimeName, triggerCandidates, selfUpdate } from "./features.js";
 import { GRAPH_HOURS } from "./graph.js";
+import { isMA, playerName as speakerName } from "./music.js";
 
 export const USER_DATA_KEY = "tomte" + (SUFFIX ? "_dev" : "");
 
@@ -108,10 +109,9 @@ export const select = (hass, dom, v, on, { empty = t("automatisch"), filter = nu
   return html`<select @change=${e => on(e.target.value || null)}><option value="">${empty}</option>${opts.map(s => html`<option value=${s.entity_id} ?selected=${s.entity_id === v}>${s.attributes.friendly_name || s.entity_id}</option>`)}</select>`;
 };
 /** the settings of an announcement quick action: message, chimes and the speakers (several can be ticked) */
-const speakerName = (hass, s) => { const e = hass.entities?.[s.entity_id], aid = e?.area_id || hass.devices?.[e?.device_id]?.area_id, a = aid && hass.areas?.[aid]?.name; return a ? a.charAt(0).toUpperCase() + a.slice(1) : s.attributes.friendly_name || s.entity_id; };
 function announceForm(hass, q, set) {
   const all = Object.values(hass.states).filter(s => domain(s.entity_id) === "media_player" && s.state !== "unavailable");
-  const ma = all.filter(s => hass.entities?.[s.entity_id]?.platform === "music_assistant");   // the announcement runs through Music Assistant, which resumes what was playing
+  const ma = all.filter(s => isMA(hass, s.entity_id));   // the announcement runs through Music Assistant, which resumes what was playing
   const vol = q.volume ?? 30, sel = q.speakers || [], ids = new Set(sel.map(x => x.entity));
   const list = sortByName([...(ma.length ? ma : all)]); for (const x of sel) if (!list.some(s => s.entity_id === x.entity)) list.push({ entity_id: x.entity, attributes: { friendly_name: x.name }, state: "unavailable" });
   const toggle = (s, on) => set("speakers", on ? [...sel, { name: speakerName(hass, s), entity: s.entity_id }] : sel.filter(x => x.entity !== s.entity_id));

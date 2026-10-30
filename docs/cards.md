@@ -132,6 +132,8 @@ A power strip whose device is named like a litter box (Kattenbak, litter, cat bo
 
 Artwork as the card background (for Music Assistant players Tomte uses the proxied `entity_picture_local`, so the picture also loads over https), title and artist, and previous / play-pause / next on the card. When the same TV appears through several integrations (Android TV, Cast, Bravia), they are merged into one card.
 
+- **Tap on a Music Assistant speaker:** below the controls and the volume four tabs: **Favourites** (tap to play on this speaker), **Search** (tracks, artists, albums, playlists, radio), **Queue** (what plays now and next) and **Move** (move what plays to another speaker). The same things are on the [Music page](pages.md#music).
+
 ## Climate
 
 <div class="grid2" markdown>

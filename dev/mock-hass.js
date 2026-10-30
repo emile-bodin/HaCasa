@@ -37,7 +37,8 @@ export function makeHass(onChange) {
   add("media_player.sony_kd_55x85l_2", null, "on", { friendly_name: "Bedroom TV", app_name: "com.amazon.amazonvideo.livingroom", volume_level: .2 }, { device: dS1 });
   add("media_player.sony_kd_55x85l_4", null, "on", { friendly_name: "Sony KD-55X85L", source: "HDMI 1" }, { device: dS2 });
   add("media_player.sony_kd_55x85l", null, "playing", { friendly_name: "SONY KD-55X85L", app_name: "Prime Video", media_series_title: "The Boys", media_title: "S4 E3 · We'll Keep the Red Flag Flying Here", entity_picture: "/images/rooms/livingroom.png" }, { device: dS3 });
-  add("media_player.speaker", "living_room", "playing", { friendly_name: "Speaker", media_title: "B2b", media_artist: "Charli xcx", volume_level: .35, entity_picture: "/images/rooms/lounge.png" });
+  add("media_player.speaker", "living_room", "playing", { friendly_name: "Speaker", media_title: "B2b", media_artist: "Charli xcx", volume_level: .35, entity_picture: "/images/rooms/lounge.png", mass_player_type: "player", source: "Music Assistant Queue", active_queue: "q-speaker" });
+  add("media_player.kitchen_speaker", "kitchen", "idle", { friendly_name: "Kitchen speaker", volume_level: .2, mass_player_type: "player", source: "Music Assistant Queue", active_queue: null });
   add("cover.blind_living_room", "living_room", "open", { friendly_name: "Blind", current_position: 100 });
   const dWin = dev("dev_window", "living_room");
   add("binary_sensor.living_room_living_room_window", "living_room", "off", { friendly_name: "Living room window", device_class: "window" }, { changed: ago(720), device: dWin });
@@ -243,6 +244,16 @@ export function makeHass(onChange) {
     },
     callWS(msg) {
       console.log("[mock] callWS", msg);
+      if (msg.type === "config_entries/get" && msg.domain === "music_assistant") return Promise.resolve([{ entry_id: "mock_ma", domain: "music_assistant", state: "loaded" }]);
+      if (msg.type === "call_service" && msg.domain === "music_assistant") {
+        const it = (media_type, n, name, extra = {}) => ({ media_type, uri: `library://${media_type}/${n}`, name, version: "", image: null, favorite: true, ...extra });
+        const by = a => ({ artists: [{ media_type: "artist", uri: "library://artist/1", name: a, image: null }] });
+        const lib = { playlist: [it("playlist", 1, "Friday dinner"), it("playlist", 2, "Focus")], album: [it("album", 3, "Brat", by("Charli xcx"))], radio: [it("radio", 4, "Qmusic"), it("radio", 5, "Radio 538")], artist: [it("artist", 6, "Fleetwood Mac")], track: [it("track", 7, "Dreams", by("Fleetwood Mac")), it("track", 8, "A track with a very long name that does not fit", by("Someone"))] };
+        if (msg.service === "get_library") return Promise.resolve({ response: { items: lib[msg.service_data.media_type] || [], limit: 24, offset: 0, media_type: msg.service_data.media_type } });
+        if (msg.service === "search") { const q = msg.service_data.name.toLowerCase(), f = l => l.filter(x => (x.name + " " + (x.artists || []).map(a => a.name).join(" ")).toLowerCase().includes(q)); return Promise.resolve({ response: { artists: f(lib.artist), albums: f(lib.album), tracks: f(lib.track), playlists: f(lib.playlist), radio: f(lib.radio), audiobooks: [], podcasts: [] } }); }
+        if (msg.service === "get_queue") { const id = msg.target.entity_id; if (id !== "media_player.speaker") return Promise.reject({ message: "No active queue found" });
+          return Promise.resolve({ response: { [id]: { queue_id: "q-speaker", active: true, name: "Speaker", items: 12, current_index: 3, current_item: { name: "Charli xcx - B2b", media_item: it("track", 9, "B2b", by("Charli xcx")) }, next_item: { name: "Charli xcx - 360", media_item: it("track", 10, "360", by("Charli xcx")) } } } }); }
+      }
       if (msg.type === "call_service" && msg.domain === "calendar") { const t = new Date(); return Promise.resolve({ response: { "calendar.family": { events: [{ summary: "Swimming lesson", start: new Date(t.getTime() + 2 * 3600000).toISOString(), end: new Date(t.getTime() + 3 * 3600000).toISOString() }, { summary: "Grandma's birthday", start: new Date(t.getTime() + 86400000).toISOString().slice(0, 10), end: new Date(t.getTime() + 2 * 86400000).toISOString().slice(0, 10) }] } } }); }
       if (msg.type === "history/history_during_period" && msg.entity_ids[0].startsWith("sensor.")) { const now = Date.now(), hrs = (now - Date.parse(msg.start_time)) / 3600000, id = msg.entity_ids[0], base = parseFloat(hass.states[id]?.state) || 20;
         return Promise.resolve({ [id]: Array.from({ length: Math.round(hrs * 4) + 1 }, (_, i) => { const h = i / 4 - hrs; return { s: String(base + Math.sin((h + 9) / 3.8) * 1.3 + Math.sin(h * 1.7) * .25 - .4), lu: (now + h * 3600000) / 1000 }; }) }); }

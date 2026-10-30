@@ -8,6 +8,7 @@ import { searchStyles } from "./search.js";
 import { extra3Styles } from "./extras3.js";
 import { graphStyles } from "./graph.js";
 import { usageStyles } from "./usage.js";
+import { musicStyles } from "./music.js";
 
 // Started from our own Homio-style mockup; scoped to the panel host.
 
@@ -798,6 +799,7 @@ export const styles = css`
   ${unsafeCSS(extra3Styles)}
   ${unsafeCSS(graphStyles)}
   ${unsafeCSS(usageStyles)}
+  ${unsafeCSS(musicStyles)}
   @media (max-width:900px){
     .card{width:auto}
     ${unsafeCSS(cardCompact("", ""))}

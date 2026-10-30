@@ -34,6 +34,13 @@ Home Assistant version and uptime, host info from the Supervisor (when available
 !!! note
     Host info comes from the Supervisor and needs an administrator account on Home Assistant OS or Supervised.
 
+## Music
+
+Only there when Home Assistant has the **Music Assistant** integration. Pills at the top pick a speaker (the one that plays comes first). Then what plays now on every speaker (tap to pause), the queue of the chosen speaker, buttons to move its music to another speaker, a search field, and your favourites from Music Assistant as artwork tiles; a tap plays it on the chosen speaker. Mark music as a favourite with the heart in Music Assistant.
+
+!!! note
+    Search and favourites need the id of the Music Assistant integration. An administrator's panel finds it and stores it in the household settings, so other users get it too: open the Music page once as an administrator.
+
 ## Your own links
 
 **Settings → More menu** adds your own entries (label, icon, path) next to the built-in pages, for example to another dashboard.

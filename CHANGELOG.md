@@ -4,6 +4,8 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **New: Music Assistant.** Speakers that Music Assistant runs were plain media players in Tomte (play, pause, volume). Their popup now has four tabs: favourites (tap to play), search, the queue (now and next) and moving the music to another speaker. A new **Muziek** page under Meer has the same for all speakers on one screen, plus what plays where; it only shows when Music Assistant is installed. Everything goes through Home Assistant's own `music_assistant` services. An administrator's panel stores the integration's id in the household settings, so search and favourites also work for other users.
+
 ## 1.3.0 · 2026-10-30
 
 - **New: offline devices fold into one row on the Sensors page.** With many unreachable devices the Attention block was mostly a long list of Offline rows, pushing low batteries and updates out of sight. Under "Alles" two or more of them now show as one row ("5 onbereikbaar" with the first few names); tap it to show them right below and tap again to hide them. The "onbereikbaar" filter still lists them all.

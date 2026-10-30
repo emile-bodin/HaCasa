@@ -28,6 +28,9 @@ const states = {
   "sensor.claude_week": mk("sensor.claude_week", "54.0", { friendly_name: "Claude · week", unit_of_measurement: "%", weekly_resets_at: new Date(Date.now() + 4.5 * 86400000).toISOString(), last_success_at: new Date().toISOString(), state: "ok" }),
   "sensor.chatgpt_5_h_session": mk("sensor.chatgpt_5_h_session", "0.0", { friendly_name: "ChatGPT · 5 h session", unit_of_measurement: "%", session_resets_at: new Date(Date.now() + 250 * 60000).toISOString(), last_success_at: new Date().toISOString(), state: "ok" }),
   "sensor.chatgpt_week": mk("sensor.chatgpt_week", "0.0", { friendly_name: "ChatGPT · week", unit_of_measurement: "%", weekly_resets_at: new Date(Date.now() + 6 * 86400000).toISOString(), last_success_at: new Date().toISOString(), state: "ok" }),
+  "media_player.mass": mk("media_player.mass", "playing", { friendly_name: "Keuken speaker", media_title: "Dreams", mass_player_type: "player", source: "Music Assistant Queue", active_queue: "q1", volume_level: .3 }),
+  "media_player.mass_2": mk("media_player.mass_2", "idle", { friendly_name: "Zolder speaker", mass_player_type: "player", volume_level: .3 }),
+  "media_player.tv": mk("media_player.tv", "on", { friendly_name: "TV", volume_level: .2 }),
   "climate.nest": mk("climate.nest", "heat", { temperature: 20, current_temperature: 19, friendly_name: "Nest", hvac_modes: ["heat", "off"] }),
 };
 const reg = (id, dev) => ({ entity_id: id, area_id: "huiskamer", device_id: dev });
@@ -44,6 +47,13 @@ el.hass = { states, entities, devices, areas: { huiskamer: { area_id: "huiskamer
     if (m.type === "frontend/get_user_data") return { value: data.user[m.key] ?? null };
     if (m.type === "frontend/set_system_data") { data.sys[m.key] = m.value; sets.push(`sys:${m.key}`); return null; }
     if (m.type === "frontend/set_user_data") { data.user[m.key] = m.value; sets.push(`user:${m.key}`); return null; }
+    if (m.type === "config_entries/get") return [{ entry_id: "ma1", state: "loaded" }];
+    if (m.type === "call_service" && m.domain === "music_assistant") {
+      const fav = { media_type: "playlist", uri: "library://playlist/1", name: "Vrijdagavond", image: null }, hit = { media_type: "track", uri: "library://track/2", name: "Go Your Own Way", image: null, artists: [{ name: "Fleetwood Mac" }] };
+      if (m.service === "get_library") return { response: { items: m.service_data.media_type === "playlist" ? [fav] : [] } };
+      if (m.service === "search") return { response: { tracks: [hit], artists: [], albums: [], playlists: [], radio: [] } };
+      if (m.service === "get_queue") return { response: { [m.target.entity_id]: { items: 4, current_item: { media_item: { media_type: "track", name: "Dreams", uri: "x" } }, next_item: { media_item: { media_type: "track", name: "Rhiannon", uri: "y" } } } } };
+    }
     return null;
   }, callService: async () => {}, connection: { subscribeMessage: () => Promise.resolve(() => {}), subscribeEvents: () => Promise.resolve(() => {}) }, formatEntityState: s => s.state };
 el.route = { path: "/huiskamer", prefix: "/tomte" }; el.panel = { url_path: "tomte" }; el.narrow = false;
@@ -91,6 +101,18 @@ await settle(300);
 check(/Opslag/.test(html()) && /Huis: /.test(html()), "settings page shows the storage section");
 el.stab = "ai"; await settle(200);
 check(/Reset sessie/.test(html()) && /Reset week/.test(html()) && /ChatGPT/.test(html()), "settings has an AI usage tab with Claude Code and ChatGPT");
+el.route = { path: "/muziek", prefix: "/tomte" }; el.stab = null;
+await settle(400); await settle(200);
+check(/Vrijdagavond/.test(html()) && /Rhiannon/.test(html()), "Muziek page shows favourites and the queue of the playing speaker");
+el.musicQuery = ""; el.shadowRoot.querySelector(".msearch input").value = "go"; el.shadowRoot.querySelector(".msearch input").dispatchEvent(new w.Event("input"));
+await settle(700);
+check(/Go Your Own Way/.test(html()), "Muziek page: search shows hits");
+el.route = { path: "/huiskamer", prefix: "/tomte" };
+el.popup = { type: "media", e: { id: "media_player.mass", state: states["media_player.mass"], reg: entities["media_player.mass"] } }; await settle(300);
+check(/class="modes mtabs"/.test(html()) && /Vrijdagavond/.test(html()), "speaker popup of a Music Assistant player has the music tabs");
+el.popup = { type: "media", e: { id: "media_player.tv", state: states["media_player.tv"], reg: entities["media_player.tv"] } }; await settle(300);
+check(!/class="modes mtabs"/.test(html()), "a plain media player has no music tabs");
+el.popup = null;
 check(w.__errs.length === 0, `no errors thrown (${w.__errs.join("; ") || "none"})`);
 console.warn = origWarn;
 console.log(fails.length ? `\n${fails.length} check(s) failed` : "\nall checks passed");

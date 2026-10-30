@@ -212,15 +212,20 @@ export function appInfo(raw) {
   const nm = raw.includes(".") && !raw.includes(" ") ? raw.split(".").filter(x => !/^(com|nl|tv|android|app|apps|google|sony|dtv)$/i.test(x)).pop() || raw : raw;   // com.sony.dtv.livingfit -> Livingfit
   return { name: nm.charAt(0).toUpperCase() + nm.slice(1), color: null, icon: "mdi:television-play" };
 }
+/** artwork URL of a player: Music Assistant gives an absolute http://host:8097 address that https blocks (mixed content), HA's proxied entity_picture_local works everywhere */
+export function artUrl(a) {
+  const pic = a?.entity_picture || null;
+  return pic && /^https?:\/\//i.test(pic) && a.entity_picture_local ? a.entity_picture_local : pic;
+}
 /** what a TV card shows: title, artwork and app from whichever linked player knows most; controls go to the player that is playing */
 export function mediaView(p, e) {
   const main = p.hass.states[e.id] || e.state, cands = [main, ...(e.linked || []).map(id => p.hass.states[id])].filter(s => s && !unavailable(s));
   const active = s => s.state === "playing" || s.state === "paused";
-  const info = cands.find(s => active(s) && s.attributes.entity_picture) || cands.find(s => active(s) && s.attributes.media_title) || cands.find(s => s.attributes.media_title && s.state !== "off") || main;
+  const info = cands.find(s => active(s) && artUrl(s.attributes)) || cands.find(s => active(s) && s.attributes.media_title) || cands.find(s => s.attributes.media_title && s.state !== "off") || main;
   const a = info?.attributes || {}, mainOff = main?.state === "off" || main?.state === "standby";
   const app = appInfo(a.app_name || main?.attributes?.app_name || (cands.find(s => s.attributes.app_name && s.state !== "off")?.attributes.app_name) || main?.attributes?.source);
   const title = a.media_series_title && a.media_title ? `${a.media_series_title} · ${a.media_title}` : a.media_title || null;
-  return { main, info, app, title, artist: a.media_artist || null, art: !mainOff || active(info) ? a.entity_picture || null : null,
+  return { main, info, app, title, artist: a.media_artist || null, art: !mainOff || active(info) ? artUrl(a) : null,
     playing: cands.some(s => s.state === "playing"), paused: info?.state === "paused", off: mainOff && !cands.some(active), ctl: info && info !== main && active(info) ? info.entity_id : e.id };
 }
 

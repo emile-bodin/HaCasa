@@ -322,7 +322,7 @@ export const styles = css`
   /* media: artwork fills the card, the text sits on a translucent panel on the right, transport row at the bottom */
   .card.media{--areas:var(--a-capt);--rows:var(--r-capt);--reserve:calc(var(--bh-media) + var(--bg));--rr:0px}
   .card.media.art,.card.media.appart{--rl:calc(var(--card-w) * .34)}
-  .card.art,.card.appart{--cb:rgba(255,255,255,.2);border-color:var(--cb)}
+  .card.art,.card.appart{border-width:0;padding:calc(var(--cp) + 1px) calc(var(--cp) + var(--rr) + 1px) calc(var(--cp) + var(--reserve) + 1px) calc(var(--cp) + var(--rl) + 1px)}   /* no border: overflow:hidden clips the scrim to the padding box, so a border left a strip of bare art around it; the extra 1px keeps the content where it was */
   .card.art{background-size:cover;background-position:center}
   .card.art::before,.card.appart::before{content:"";position:absolute;top:0;bottom:0;right:0;left:34%;background:rgba(20,20,24,.45);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);box-shadow:-6px 0 14px -2px rgba(0,0,0,.4);pointer-events:none}
   .card.art>*:not(.ctl):not(.ua):not(.appi):not(.c),.card.appart>*:not(.ctl):not(.ua):not(.appi):not(.c){position:relative}

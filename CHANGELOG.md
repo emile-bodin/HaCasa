@@ -4,6 +4,8 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **Fix: the scrim over the album art on the media card reaches the card edge.** The card's 1 px border sat outside the scrim (`overflow: hidden` clips it to the padding box), leaving a strip of bare art at the top, bottom and right; cards with art or an app backdrop now have no border.
+- **Fix: the media card and popup show album art for Music Assistant players.** Those players report `entity_picture` as an absolute `http://host:8097/...` address, which the browser blocks on https. Tomte now uses the `entity_picture_local` that Home Assistant proxies when the picture is an absolute URL.
 - **Docs: the appliance card picture shows the dishwasher flow** (*Schoon, uitruimen* with the *Uitgeruimd* button) instead of the old running dishwasher.
 ## 1.2.3 · 2026-10-29
 

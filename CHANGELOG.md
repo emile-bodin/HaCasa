@@ -4,6 +4,8 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+## 1.2.6 · 2026-10-30
+
 - **Fix: the media card in the two-row layout matches the other cards.** Its buttons were 34 px high next to the 24–26 px buttons of the other cards, so the icon and the status text had to be dropped. The buttons are now 26 px and the card keeps its icon and status (Playing, On) like every other card.
 
 ## 1.2.5 · 2026-10-30

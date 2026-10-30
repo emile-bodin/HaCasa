@@ -4,6 +4,8 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+## 1.3.0 · 2026-10-30
+
 - **New: offline devices fold into one row on the Sensors page.** With many unreachable devices the Attention block was mostly a long list of Offline rows, pushing low batteries and updates out of sight. Under "Alles" two or more of them now show as one row ("5 onbereikbaar" with the first few names); tap it to show them right below and tap again to hide them. The "onbereikbaar" filter still lists them all.
 
 - **Cleanup: one copy of the short entity state text.** The editor's entity list and the search bar each had their own identical copy of the code that turns a state into "Aan", "Uit", "Onbereikbaar" or a value with its unit; it now lives once in `util.js`. The editor also had a list of domain icons that nothing used, which is gone. Nothing changes in the panel.

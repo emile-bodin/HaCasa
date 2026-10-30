@@ -4,6 +4,13 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+## 1.3.0 · 2026-10-30
+
+- **New: offline devices fold into one row on the Sensors page.** With many unreachable devices the Attention block was mostly a long list of Offline rows, pushing low batteries and updates out of sight. Under "Alles" two or more of them now show as one row ("5 onbereikbaar" with the first few names); tap it to show them right below and tap again to hide them. The "onbereikbaar" filter still lists them all.
+
+- **Cleanup: one copy of the short entity state text.** The editor's entity list and the search bar each had their own identical copy of the code that turns a state into "Aan", "Uit", "Onbereikbaar" or a value with its unit; it now lives once in `util.js`. The editor also had a list of domain icons that nothing used, which is gone. Nothing changes in the panel.
+- **Cleanup: unused code removed.** Six pieces nothing called any more (an old slider drag handler, a plain page card, a close-button image, two domain lists and `getLang`) and 12 imports that were no longer used. Nothing changes in the panel.
+
 ## 1.2.6 · 2026-10-30
 
 - **Fix: the media card in the two-row layout matches the other cards.** Its buttons were 34 px high next to the 24–26 px buttons of the other cards, so the icon and the status text had to be dropped. The buttons are now 26 px and the card keeps its icon and status (Playing, On) like every other card.

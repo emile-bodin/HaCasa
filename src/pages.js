@@ -153,7 +153,7 @@ function sensors(p) {
   const battIds = batteries.map(b => b.e.id); if (battIds.length && p._battKey !== battIds.join()) p.loadBatteryEta(battIds);
   const eta = p.battEta || {}, more = id => () => p.moreInfo(id);
   const trend = e => { const h = p.lightHist?.[e.id]; if (!h) { p.loadLightHist(e.id); return html`<div class="tr"></div>`; } const g = Array.from({ length: 8 }, (_, i) => (h.bars[(new Date().getHours() + 1 + i * 3) % 24] + h.bars[(new Date().getHours() + 2 + i * 3) % 24] + h.bars[(new Date().getHours() + 3 + i * 3) % 24]) / 3); return html`<div class="tr">${g.map(v => html`<i class=${classMap({ on: v > 0 })} style="height:${Math.max(10, v * 100)}%"></i>`)}</div>`; };
-  const row = ({ icon, svg, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, on = false, dim = false, tap = null }) => html`<div class=${classMap({ srow: true, on, dim })} @click=${tap}>
+  const row = ({ icon, svg, name: n, sub = "", tr = nothing, val = null, unit = "", pill = null, on = false, dim = false, tap = null, cls = "" }) => html`<div class=${classMap({ srow: true, on, dim, [cls]: !!cls })} @click=${tap}>
     ${ico(icon, svg)}<div class="nm">${n}${sub ? html`<small>${sub}</small>` : nothing}</div>${tr}
     ${pill != null ? html`<span class="st">${pill}</span>` : html`<div class=${classMap({ val: true, dim })}>${val}${unit ? html`<small>${unit}</small>` : nothing}</div>`}</div>`;
   const R = {
@@ -170,8 +170,10 @@ function sensors(p) {
   const attention = [
     ...(filter === "all" || filter === "update" ? updates.map(u => row({ icon: u.kind === t("Firmware") ? "mdi:chip" : "mdi:update", svg: "update", name: u.title, sub: `${u.busy ? t("Bezig…") : `${u.from || "?"} → ${u.to || "?"}`}${u.canInstall ? " · " + t("tik = installeren") : ""}`, pill: t("Update"), on: true, tap: () => installUpdate(p, u) })) : []),
     ...(filter === "all" || filter === "battery" ? (filter === "battery" ? batteries : lowB).map(({ e, r, v }) => R.batt(e, r, v, true)) : []),
-    ...(filter === "all" || filter === "offline" ? offline.map(({ e, r }) => row({ icon: "mdi:lan-disconnect", svg: "network_off", name: name(p.hass, e), sub: `${r.name} · ${t("sinds {t}", { t: relTime(e.state?.last_changed) })}`, pill: t("Offline"), dim: true, tap: more(e.id) })) : []),
+    ...(filter === "offline" || (filter === "all" && (offline.length < 2 || p.sensOffOpen)) ? offline.map(({ e, r }) => row({ icon: "mdi:lan-disconnect", svg: "network_off", name: name(p.hass, e), sub: `${r.name} · ${t("sinds {t}", { t: relTime(e.state?.last_changed) })}`, pill: t("Offline"), dim: true, tap: more(e.id), cls: filter === "all" && offline.length > 1 ? "nest" : "" })) : []),
   ];
+  // under "Alles" two or more offline rows fold into one summary row; a tap shows them right below it
+  if (filter === "all" && offline.length > 1) attention.splice(attention.length - (p.sensOffOpen ? offline.length : 0), 0, row({ icon: "mdi:lan-disconnect", svg: "network_off", name: t("{n} onbereikbaar", { n: offline.length }), sub: offline.slice(0, 3).map(({ e }) => name(p.hass, e)).join(", ") + (offline.length > 3 ? ", …" : ""), pill: p.sensOffOpen ? t("Verbergen") : t("Tonen"), dim: true, cls: "fold", tap: () => { p.sensOffOpen = !p.sensOffOpen; } }));
   const kinds = [[t("Klimaat"), r => [...r.ents.temp.map(e => R.temp(e, r, true)), ...r.ents.hum.map(e => R.hum(e, r, true))]], [t("Deuren & ramen"), r => [...r.ents.doors.map(e => R.door(e, r, true, "door")), ...r.ents.windows.map(e => R.door(e, r, true, "window"))]], [t("Beweging"), r => r.ents.motion.map(e => R.motion(e, r, true))], [t("Overig"), r => [...r.ents.other, ...r.ents.details].map(e => R.other(e, r, true))], [t("Batterijen"), r => r.ents.battery.filter(e => num(e.state?.state) != null).map(e => R.batt(e, r, num(e.state.state), true))]];
   const pills = [["all", t("Alles"), "mdi:radar", "radar", null], ["battery", t("batterijen"), "mdi:battery", "battery", lowB.length], ["offline", t("onbereikbaar"), "mdi:lan-disconnect", "network_off", offline.length], ["update", t("updates"), "mdi:update", "update", updates.length]];
   return { sub: t("{n} sensoren in {r} ruimtes · {b} batterijen laag · {o} onbereikbaar", { n: total, r: p.rooms.length, b: lowB.length, o: offline.length }) + (updates.length ? ` · ${t("{n} updates", { n: updates.length })}` : ""),
@@ -233,6 +235,7 @@ export const pageStyles = `
   .srow .st{display:inline-flex;align-items:center;justify-content:center;height:22px;padding:1px 8px 0 10px;line-height:1;border-radius:999px;background:rgba(255,255,255,.12);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--fg-2)}
   .srow.on .st{background:rgba(255,255,255,.9);color:#1d1d1f}
   .srow.dim{color:var(--fg-3)}
+  .srow.nest{padding-left:34px;background:rgba(255,255,255,.03)}
   .srow.err .st{background:rgba(242,122,92,.6);color:#fff}
   .srow .tog{width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,.18);position:relative;justify-self:end;cursor:pointer;flex:none;transition:background .2s}
   .srow .tog::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;opacity:.6;transition:left .2s,opacity .2s}

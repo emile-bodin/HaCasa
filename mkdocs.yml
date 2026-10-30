@@ -53,6 +53,7 @@ nav:
       - Cards: cards.md
       - Pages: pages.md
       - Popups and extras: extras.md
+      - Announcements: announcements.md
   - Configuration:
       - Settings: settings.md
       - Card settings: card-settings.md

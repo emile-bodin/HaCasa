@@ -130,7 +130,7 @@ A power strip whose device is named like a litter box (Kattenbak, litter, cat bo
 </figure>
 </div>
 
-Artwork as the card background, title and artist, and previous / play-pause / next on the card. When the same TV appears through several integrations (Android TV, Cast, Bravia), they are merged into one card.
+Artwork as the card background (for Music Assistant players Tomte uses the proxied `entity_picture_local`, so the picture also loads over https), title and artist, and previous / play-pause / next on the card. When the same TV appears through several integrations (Android TV, Cast, Bravia), they are merged into one card.
 
 ## Climate
 

@@ -4,6 +4,9 @@ Tomte started as a fork of [HaCasa Nova](https://github.com/damianeickhoff/HaCas
 
 ## Unreleased
 
+- **Fix: the rows in Settings › Snelle acties looked like the home page buttons.** The home page row and the settings rows share the class `quick`, so the settings rows got the round 40 px pill buttons and the top margin; the delete button (×) was round and out of line with every other delete button. Those rules now apply to the home page row only.
+- **Quick action type *Omroep* (announcement).** A button under the greeting with a message ("We gaan eten") and speakers. Tapping it opens the speakers; tapping one runs `script.omroep_afspelen` (chime-tts through Music Assistant, what is playing continues afterwards). Settings › Snelle acties: the message, the volume, the chime before and after (any chime-tts preset, or none) and a tick list of the Music Assistant speakers, named after their area.
+- **brAIn's findings show up in Attention.** What brAIn has found and waits on the household for (the titles from `sensor.brain_findings_open_findings`) are rows in the Attention list, its pill and, as its own line, the ticker (tap = the *brAIn* filter), with their own *brAIn* filter in the list. There is no separate card; with nothing to report nothing shows. Read-only for now.
 ## 1.2.4 · 2026-10-30
 
 - **Fix: the scrim over the album art on the media card reaches the card edge.** The card's 1 px border sat outside the scrim (`overflow: hidden` clips it to the padding box), leaving a strip of bare art at the top, bottom and right; cards with art or an app backdrop now have no border.

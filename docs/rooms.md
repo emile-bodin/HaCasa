@@ -20,7 +20,7 @@ From top to bottom:
 - **Greeting.** Changes with the time of day, or set your own per page.
 - **Notification line.** Rotates through what is worth knowing: waste pickup, the next appointment, an open door, a playing speaker, a running appliance, active modes, and your own lines (plain text or Jinja templates).
 - **Status pills.** Lights on, doors and windows open, items needing attention. Tap one for the list.
-- **Quick actions.** Your own buttons: a scene, a script, toggle something, all lights off, media off. Optionally with a confirmation.
+- **Quick actions.** Your own buttons: a scene, a script, toggle something, all lights off, media off, or an [announcement](announcements.md) on chosen speakers. Optionally with a confirmation.
 - **Weather.** Current conditions with a heads-up when rain is coming; tap for the hourly and 7-day forecast.
 - **Cards.** Thermostat, playing media, attention, weather, waste, scenes, agenda, appliances, energy and your groups and template cards.
 - **Motion bar.** Shows where motion is detected right now.

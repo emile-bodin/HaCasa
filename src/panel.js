@@ -641,7 +641,9 @@ class TomtePanel extends LitElement {
     if (h.waste[0]) items.push({ k: "waste", icon: "mdi:trash-can-outline", title: h.waste[0].label, text: cap(wasteSentence(h.waste[0]).replace(h.waste[0].label, "").replace(/^[:\s]+/, "")) });
     const ev = nextEvent(this.events || []); if (ev) items.push({ k: "agenda", icon: "mdi:calendar-blank-outline", title: ev.summary, text: eventWhenShort(ev) });
     for (const n of this.notifications.slice(0, 2)) items.push({ k: "notifications", icon: "mdi:bell-outline", title: n.title || t("Melding"), text: (n.message || "").replace(/\s+/g, " ").slice(0, 70) });
-    if (h.attention.length) items.push({ k: "attention", icon: "mdi:alert-circle-outline", title: `${h.attention.length} ${h.attention.length === 1 ? t("melding") : t("meldingen")}`, text: `${h.attention[0].name} ${h.attention[0].text}` });
+    const att = h.attention.filter(a => a.kind !== "brain"), bra = h.attention.filter(a => a.kind === "brain");
+    if (att.length) items.push({ k: "attention", icon: "mdi:alert-circle-outline", title: `${att.length} ${att.length === 1 ? t("melding") : t("meldingen")}`, text: `${att[0].name} ${att[0].text}` });
+    if (bra.length) items.push({ k: "brain", icon: "mdi:brain", title: "brAIn", text: bra.length === 1 ? bra[0].name : `${bra[0].name} · ${t("+{n} meer", { n: bra.length - 1 })}`, tap: () => { this.attFilter = "brain"; this.openPopup({ type: "attention" }); } });
     if (h.doorsOpen.length) items.push({ k: "doors", icon: "mdi:door-open", title: h.doorsOpen.map(e => name(this.hass, e)).join(", "), text: h.doorsOpen.length === 1 ? t("Staat open") : t("Staan open") });
     for (const m of modeList(this).filter(m => m.on)) items.push({ k: "modes", icon: m.icon || "mdi:account-switch-outline", title: m.label, text: t("Actief") });
     items.push(...this.applianceItems(this.rooms.flatMap(r => r.ents.appliances)));

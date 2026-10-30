@@ -5,11 +5,15 @@ import { SUFFIX, VERSION, domain, isOn, unavailable } from "./util.js";
 import { pressDir } from "./cards.js";
 
 /* ---------- quick actions (home view) ---------- */
-export const QUICK_TYPES = { scene: t("Scène"), script: t("Script"), entity: t("Schakelen"), lights_off: t("Alle lampen uit"), media_off: t("Media uit") };
-const QUICK_ICON = { scene: "mdi:palette-outline", script: "mdi:script-text-outline", entity: "mdi:toggle-switch-outline", lights_off: "mdi:lightbulb-off-outline", media_off: "mdi:stop-circle-outline" };
+export const QUICK_TYPES = { scene: t("Scène"), script: t("Script"), entity: t("Schakelen"), lights_off: t("Alle lampen uit"), media_off: t("Media uit"), announce: t("Omroep") };
+const QUICK_ICON = { scene: "mdi:palette-outline", script: "mdi:script-text-outline", entity: "mdi:toggle-switch-outline", lights_off: "mdi:lightbulb-off-outline", media_off: "mdi:stop-circle-outline", announce: "mdi:bullhorn-outline" };
+/** the chime-tts presets, for the chime before and after an announcement ("" = none) */
+export const CHIMES = ["airport", "ba_dum_tss", "bells", "bells_2", "bright", "chirp", "choir", "chord", "classical", "crickets", "ding_dong", "doorbell", "drumroll", "dun_dun_dun", "error", "fanfare", "glockenspiel", "hail", "knock", "marimba", "mario_coin", "microphone_tap", "sad_trombone", "soft", "tada", "toast", "twenty_four", "whistle"];
+export const chimeName = c => c.replace(/_/g, " ").replace(/^./, m => m.toUpperCase());
 export const QUICK_DOMAINS = ["light", "switch", "input_boolean", "fan", "media_player", "cover", "lock", "automation"];
 
 export function runQuick(p, q) {
+  if (q.type === "announce") return p.openPopup({ type: "announce", q });   // the speakers open in a popup; the message plays on the one that is tapped
   const go = () => {
     if (q.type === "scene") return p.call("scene", "turn_on", { entity_id: q.entity });
     if (q.type === "script") return p.call("script", "turn_on", { entity_id: q.entity });
@@ -22,7 +26,7 @@ export function runQuick(p, q) {
 }
 const quickOn = (p, q) => q.type === "entity" ? isOn(p.hass.states[q.entity]) : q.type === "lights_off" ? false : q.type === "media_off" ? false : false;
 export function quickRow(p) {
-  const list = (p.config.home?.quick || []).filter(q => q.label && (q.type === "lights_off" || q.type === "media_off" || q.entity));
+  const list = (p.config.home?.quick || []).filter(q => q.label && (q.type === "lights_off" || q.type === "media_off" || (q.type === "announce" ? q.message && q.speakers?.length : q.entity)));
   if (!list.length) return nothing;
   return html`<div class="quick">${list.map(q => html`<button class=${quickOn(p, q) ? "on" : ""} @click=${() => runQuick(p, q)}><ha-icon icon=${q.icon || QUICK_ICON[q.type] || "mdi:flash-outline"}></ha-icon><span>${q.label}</span></button>`)}</div>`;
 }
@@ -96,12 +100,12 @@ export const featureStyles = `
   .offline{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:80;display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:rgba(242,122,92,.95);color:#fff;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:fadeIn .3s ease-out both}
   .offline ha-icon{--mdc-icon-size:18px}
   .title:has(.quick){transform:translateY(-56%)}
-  @media (max-height:620px){ .title:has(.quick){transform:translateY(-64%)} .quick{margin-top:10px} }
-  .quick{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0 5px;max-width:640px}
-  .quick button{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 12px;border:0;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .quick button:active{background:rgba(255,255,255,.3)}
-  .quick button.on{background:rgba(255,255,255,.4)}
-  .quick button ha-icon{--mdc-icon-size:18px}
+  @media (max-height:620px){ .title:has(.quick:not(.row)){transform:translateY(-64%)} .quick:not(.row){margin-top:10px} }
+  .quick:not(.row){display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0 5px;max-width:640px}
+  .quick:not(.row) button{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 12px;border:0;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .quick:not(.row) button:active{background:rgba(255,255,255,.3)}
+  .quick:not(.row) button.on{background:rgba(255,255,255,.4)}
+  .quick:not(.row) button ha-icon{--mdc-icon-size:18px}
   .card.presets .s button.add{background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
   .popup .fc.hours{display:flex;overflow-x:auto;scrollbar-width:none}
   .popup .fc.hours>div{flex:1 0 60px}
@@ -131,11 +135,24 @@ export const featureStyles = `
   .popup .chips button.on{background:rgba(255,255,255,.35);opacity:1}
   .settings input[type=file]{padding:7px 10px;font-size:12px}
   .settings input[type=checkbox]{width:auto;justify-self:start;accent-color:#fff;transform:scale(1.2)}
+  /* .quick is the home page row; the settings rows are .row.quick and must not pick up its pill buttons and margins (:not(.row) above) */
   .settings .row.quick{grid-template-columns:1.2fr 1fr 1fr 1.4fr max-content max-content;align-items:center}
   .settings .row.quick label{display:flex;align-items:center;gap:4px;font-size:11px;opacity:.8;white-space:nowrap}
+  .settings .qa{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 10px;margin:2px 0 12px;padding:12px;border:1px solid var(--line);border-radius:12px;align-items:start}
+  .settings .qa .f{margin:0;min-width:0;grid-template-columns:1fr;gap:6px;align-items:start;align-content:start}   /* label above the control: the usual 190px label column leaves a three-column cell no room for the control */
+  .settings .qa .vol{display:grid;grid-template-columns:28px 1fr 28px;gap:6px;align-items:center;height:38px;padding:0 5px;box-sizing:border-box;background:rgba(0,0,0,.35);border-radius:var(--r-sm)}
+  .settings .qa .vol button{height:28px;width:28px;padding:0;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:8px}
+  .settings .qa .vol b{text-align:center;font-size:13px;font-weight:600}
+  .settings .qa select,.settings .qa input[type=text]{height:38px;box-sizing:border-box}
+  .settings .qa .wide{grid-column:1 / -1}
+  .settings .qa .spk{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 12px;margin-top:6px}
+  .settings .qa .spk label{display:flex;align-items:center;gap:8px;font-size:13px;min-width:0}
+  .settings .qa .spk label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .settings .qa .spk small{opacity:.6;margin-left:4px}
   @media (max-width:900px){
-    .quick{margin:12px 0 0 2px}
-    .quick button{height:34px;font-size:11px;padding:0 12px 0 10px}
+    .settings .qa{grid-template-columns:1fr}
+    .quick:not(.row){margin:12px 0 0 2px}
+    .quick:not(.row) button{height:34px;font-size:11px;padding:0 12px 0 10px}
     .settings .row.quick{grid-template-columns:1fr 1fr}
   }
 `;

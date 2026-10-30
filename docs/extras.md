@@ -39,6 +39,10 @@ Under **Settings → Motion & doorbell** pick trigger sensors (a binary sensor o
 
 Home Assistant's persistent notifications appear in **Attention** and in the notification line. Tap one in the Attention popup to dismiss it.
 
+## brAIn
+
+When brAIn runs in the house, what it has found and waits on the household for (the titles from `sensor.brain_findings_open_findings`) appears as rows in **Attention**, with a **brAIn** filter, and as its own line in the notification line (tap it to open the Attention popup on that filter). It can be switched off per page under *Settings → Pages → notification lines*. With nothing to report, nothing shows. Read-only: findings are handled in brAIn itself.
+
 ## Connection
 
 When the connection to Home Assistant drops, a red pill at the top says so until it is back.

@@ -4,7 +4,7 @@
 import { t, locale, LANGUAGES } from "./i18n.js";
 import { html, nothing } from "lit";
 import { domain, slug, SUFFIX, VERSION, relTime } from "./util.js";
-import { QUICK_TYPES, QUICK_DOMAINS, triggerCandidates, selfUpdate } from "./features.js";
+import { QUICK_TYPES, QUICK_DOMAINS, CHIMES, chimeName, triggerCandidates, selfUpdate } from "./features.js";
 import { GRAPH_HOURS } from "./graph.js";
 
 export const USER_DATA_KEY = "tomte" + (SUFFIX ? "_dev" : "");
@@ -107,6 +107,24 @@ export const select = (hass, dom, v, on, { empty = t("automatisch"), filter = nu
   const opts = sortByName(Object.values(hass.states).filter(s => domain(s.entity_id) === dom && (!filter || filter(s))));
   return html`<select @change=${e => on(e.target.value || null)}><option value="">${empty}</option>${opts.map(s => html`<option value=${s.entity_id} ?selected=${s.entity_id === v}>${s.attributes.friendly_name || s.entity_id}</option>`)}</select>`;
 };
+/** the settings of an announcement quick action: message, chimes and the speakers (several can be ticked) */
+const speakerName = (hass, s) => { const e = hass.entities?.[s.entity_id], aid = e?.area_id || hass.devices?.[e?.device_id]?.area_id, a = aid && hass.areas?.[aid]?.name; return a ? a.charAt(0).toUpperCase() + a.slice(1) : s.attributes.friendly_name || s.entity_id; };
+function announceForm(hass, q, set) {
+  const all = Object.values(hass.states).filter(s => domain(s.entity_id) === "media_player" && s.state !== "unavailable");
+  const ma = all.filter(s => hass.entities?.[s.entity_id]?.platform === "music_assistant");   // the announcement runs through Music Assistant, which resumes what was playing
+  const vol = q.volume ?? 30, sel = q.speakers || [], ids = new Set(sel.map(x => x.entity));
+  const list = sortByName([...(ma.length ? ma : all)]); for (const x of sel) if (!list.some(s => s.entity_id === x.entity)) list.push({ entity_id: x.entity, attributes: { friendly_name: x.name }, state: "unavailable" });
+  const toggle = (s, on) => set("speakers", on ? [...sel, { name: speakerName(hass, s), entity: s.entity_id }] : sel.filter(x => x.entity !== s.entity_id));
+  const chime = (v, on) => html`<select @change=${e => on(e.target.value)}><option value="" ?selected=${!v}>${t("geen")}</option>${CHIMES.map(c => html`<option value=${c} ?selected=${v === c}>${chimeName(c)}</option>`)}</select>`;
+  return html`<div class="qa">
+    <div class="wide">${field(t("Bericht"), text(q.message, v => set("message", v), t("bijvoorbeeld: We gaan eten")), null)}</div>
+    ${field(t("Chime ervoor"), chime(q.chime ?? "airport", v => set("chime", v)))}
+    ${field(t("Chime erna"), chime(q.endChime ?? "", v => set("endChime", v)))}
+    ${field(t("Volume"), html`<div class="vol"><button type="button" @click=${() => set("volume", Math.max(1, vol - 5))}>−</button><b>${vol}%</b><button type="button" @click=${() => set("volume", Math.min(100, vol + 5))}>+</button></div>`)}
+    <div class="f wide"><span>${t("Speakers")}<small>${t("vink aan waar het bericht klinkt")}</small></span>
+      <div class="spk">${list.map(s => html`<label><input type="checkbox" .checked=${ids.has(s.entity_id)} @change=${e => toggle(s, e.target.checked)}><span>${speakerName(hass, s)}<small>${s.attributes.friendly_name && s.attributes.friendly_name !== speakerName(hass, s) ? s.attributes.friendly_name : ""}</small></span></label>`)}</div></div>
+  </div>`;
+}
 export const selectDoms = (hass, doms, v, on, empty = t("kies")) => {
   const opts = sortByName(Object.values(hass.states).filter(s => doms.includes(domain(s.entity_id))));
   return html`<select @change=${e => on(e.target.value || null)}><option value="">${empty}</option>${opts.map(s => html`<option value=${s.entity_id} ?selected=${s.entity_id === v}>${s.attributes.friendly_name || s.entity_id}</option>`)}</select>`;
@@ -261,8 +279,9 @@ export function renderSettings(p) {
     acties: sec(t("Snelle acties"), t("knoppen onder de begroeting op de startpagina"), html`
       ${quick.map((q, i) => html`<div class="row quick">${text(q.label, v => setQuick(i, "label", v), "label")}${text(q.icon, v => setQuick(i, "icon", v), t("mdi:icon (optioneel)"))}
         <select @change=${e => setQuick(i, "type", e.target.value)}>${Object.entries(QUICK_TYPES).map(([k, l]) => html`<option value=${k} ?selected=${(q.type || "scene") === k}>${t(l)}</option>`)}</select>
-        ${q.type === "lights_off" || q.type === "media_off" ? html`<span></span>` : selectDoms(hass, q.type === "script" ? ["script"] : q.type === "entity" ? QUICK_DOMAINS : ["scene"], q.entity, v => setQuick(i, "entity", v))}
-        <label title=${t("Eerst bevestigen")}>${check(q.confirm, v => setQuick(i, "confirm", v || undefined))}${t("bevestig")}</label><button @click=${() => setHome("quick", quick.filter((_, j) => j !== i))}>×</button></div>`)}
+        ${q.type === "lights_off" || q.type === "media_off" || q.type === "announce" ? html`<span></span>` : selectDoms(hass, q.type === "script" ? ["script"] : q.type === "entity" ? QUICK_DOMAINS : ["scene"], q.entity, v => setQuick(i, "entity", v))}
+        ${q.type === "announce" ? html`<span></span>` : html`<label title=${t("Eerst bevestigen")}>${check(q.confirm, v => setQuick(i, "confirm", v || undefined))}${t("bevestig")}</label>`}<button @click=${() => setHome("quick", quick.filter((_, j) => j !== i))}>×</button></div>
+        ${q.type === "announce" ? announceForm(hass, q, (k, v) => setQuick(i, k, v)) : nothing}`)}
       ${!quick.length ? html`<div class="hint">${t("Nog geen acties. Bijvoorbeeld: Welterusten (script), Alles uit (alle lampen uit, met bevestiging) of Film (scène).")}</div>` : nothing}
       <button class="add" @click=${() => setHome("quick", [...quick, { label: "", type: "scene" }])}>${t("+ snelle actie")}</button>`),
 

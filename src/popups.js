@@ -96,7 +96,7 @@ const wrap = (title, big, sub, body) => {
 };
 /** a switch whose device also has a power sensor or an operation-state sensor can be shown as an appliance (bezig / klaar) */
 const applianceCapable = (p, id) => { const dev = p.hass.entities?.[id]?.device_id; return !!dev && Object.values(p.hass.entities).some(e => e.device_id === dev && e.entity_id !== id && (p.hass.states[e.entity_id]?.attributes.device_class === "power" || p.hass.states[e.entity_id]?.attributes.unit_of_measurement === "W" || e.translation_key === "operation_state" || /_operation_state$|^sensor\..*_machine_state$/.test(e.entity_id))); };
-const TICKER_KINDS = { home: { update: t("Tomte-updates"), energy: t("Energie"), waste: t("Afval"), agenda: t("Agenda"), notifications: t("Meldingen"), attention: t("Aandacht"), doors: t("Open deuren"), weather: t("Weer"), modes: t("Modi"), appliances: t("Huishoudapparaten") }, room: { lights: t("Lampen"), doors: t("Open deuren/ramen"), media: t("Media"), battery: t("Batterij laag"), appliances: t("Huishoudapparaten") } };
+const TICKER_KINDS = { home: { update: t("Tomte-updates"), energy: t("Energie"), waste: t("Afval"), agenda: t("Agenda"), notifications: t("Meldingen"), attention: t("Aandacht"), brain: "brAIn", doors: t("Open deuren"), weather: t("Weer"), modes: t("Modi"), appliances: t("Huishoudapparaten") }, room: { lights: t("Lampen"), doors: t("Open deuren/ramen"), media: t("Media"), battery: t("Batterij laag"), appliances: t("Huishoudapparaten") } };
 /** sensible wizard defaults: what the panel already detected */
 function wizardDefaults(p) {
   const h = p.config.home || {};
@@ -414,7 +414,7 @@ export function renderPopup(p, pop) {
       { const items = attFilter(p, home.attention);
       return wrap(t("Aandacht"), `${items.length} ${items.length === 1 ? t("melding") : t("meldingen")}`, t("Apparaten, batterijen en automatiseringen"), html`
         <div class="modes att">${ATT_FILTERS.map(([k, l]) => { const n = attFilter({ attFilter: k }, home.attention).length; return html`<button class=${(p.attFilter || "all") === k ? "on" : ""} @click=${() => { p.attFilter = k; }}>${t(l)}${n ? html`<b class="cnt">${n}</b>` : nothing}</button>`; })}</div>
-        <ul>${items.map(a => li(a.icon, a.name, a.kind === "battery" ? `${a.value}%` : a.kind === "unavailable" ? t("Offline") : a.kind === "notification" ? t("Sluiten") : a.kind === "update" ? t("Installeren") : t("Fout"), { sub: a.kind === "notification" ? `${a.text} · ${relTime(a.since)}` : a.kind === "update" ? a.text : `${a.room ? a.room.name + " · " : ""}${a.since ? relTime(a.since) : a.text}`, onclick: a.kind === "notification" ? () => p.call("persistent_notification", "dismiss", { notification_id: a.id }) : a.kind === "update" ? () => { const u = pendingUpdates(hass).find(x => x.id === a.id); if (u) installUpdate(p, u); } : a.room ? () => p.go(a.room) : null }))}</ul>`);
+        <ul>${items.map(a => li(a.icon, a.name, a.kind === "battery" ? `${a.value}%` : a.kind === "unavailable" ? t("Offline") : a.kind === "notification" ? t("Sluiten") : a.kind === "update" ? t("Installeren") : a.kind === "brain" ? "brAIn" : t("Fout"), { sub: a.kind === "brain" ? "" : a.kind === "notification" ? `${a.text} · ${relTime(a.since)}` : a.kind === "update" ? a.text : `${a.room ? a.room.name + " · " : ""}${a.since ? relTime(a.since) : a.text}`, onclick: a.kind === "notification" ? () => p.call("persistent_notification", "dismiss", { notification_id: a.id }) : a.kind === "update" ? () => { const u = pendingUpdates(hass).find(x => x.id === a.id); if (u) installUpdate(p, u); } : a.room ? () => p.go(a.room) : null }))}</ul>`);
       }
     case "doors": case "windows": {
       const list = pop.type === "doors" ? [...home.doors, ...home.windows] : home.windows, open = list.filter(e => isOn(e.state)), isDoor = e => home.doors.includes(e);
@@ -518,6 +518,13 @@ export function renderPopup(p, pop) {
           <div class="modes n3">${step > 0 ? html`<button @click=${() => goStep(step - 1)}>${t("Terug")}</button>` : html`<button @click=${() => p.finishWizard(null)}>${t("Overslaan")}</button>`}
             <span></span>
             <button class="on" @click=${() => last ? p.finishWizard(d) : goStep(step + 1)}>${last ? t("Klaar") : t("Volgende")}</button></div></div></div>`;
+    }
+    case "announce": {
+      const q = pop.q, sp = q.speakers || [];
+      const play = (list, nm) => { p.popup = null; p.showToast(t("Omroep naar {n}", { n: nm })); p.call("script", "omroep_afspelen", { message: q.message, speakers: list, chime_path: q.chime ?? "airport", end_chime_path: q.endChime ?? "", announce_volume: q.volume ?? 30 }); };
+      return wrap(t("Omroep"), q.label || q.message, q.message, html`
+        <ul>${sp.map(x => li("mdi:speaker", x.name, "", { onclick: () => play([x.entity], x.name) }))}
+          ${sp.length > 1 ? li("mdi:speaker-multiple", t("Allemaal"), "", { onclick: () => play(sp.map(x => x.entity), t("Allemaal")) }) : nothing}</ul>`);
     }
     case "confirm":
       return html`<div class="popup"><h2>${pop.title || t("Bevestigen")} ${hbtns(p, pop)}</h2><div class="big">${pop.big}</div><div class="sub confirm-text">${pop.sub || ""}</div>

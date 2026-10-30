@@ -28,6 +28,12 @@ Tomte is a room-first panel for [Home Assistant](https://www.home-assistant.io/)
 
 The look comes from [Homio](https://github.com/iamtherufus/Homio) by iamtherufus: big photo backgrounds, frosted-glass cards, a pill navigation and a lot of breathing room.
 
+## Why "Tomte"?
+
+In Scandinavian folklore the *tomte* (*nisse* in Norway and Denmark) is the small spirit that looks after a house and the people in it. It works at night, unseen, and in the morning everything is in order.
+
+That is what this panel tries to be. It is not a control room with a hundred switches to tend. It knows your rooms, shows each one what lives in it, and stays out of the way. It drifts and dims when the house goes to sleep, and it only speaks up when something needs you, such as a dead sensor or an open door. Most of the time you should not notice it, only that the house is in order.
+
 ## What this version adds
 
 Compared with HaCasa Nova 3.0.5 and the work after it (details in the [changelog](CHANGELOG.md)):
@@ -45,7 +51,7 @@ Compared with HaCasa Nova 3.0.5 and the work after it (details in the [changelog
 | **Room pages** | One page per area with a photo, its temperature and humidity, and a scrolling strip of cards. Swipe or scroll between rooms. |
 | **Cards** | Lights (vertical dimmer, brightness steps or colour dots), switches and smart plugs (live watts, kWh today, timers), media with artwork and transport, covers, thermostats (drag rail, modes, presets), fans, locks, vacuums, humidifiers, cameras, appliances (Home Connect, Miele …: programme, progress, finish time; the dishwasher also says clean, dirty or empty and has a popup with its programme, options, delayed start and settings), groups, scenes and Jinja template cards. |
 | **Pages** | Sensors (attention first, per room or per kind, trend bars), Energy (today per hour, biggest consumers), Automations (toggle, errors, last run), Cameras and System (CPU, memory, disk, network, updates). |
-| **Attention** | Unavailable devices, low batteries, pending updates and persistent notifications in one place, with one-tap install for updates. |
+| **Attention** | Unavailable devices, low batteries, pending updates, persistent notifications and (with brAIn) its open findings in one place, with one-tap install for updates. |
 | **Popups** | Every card opens a detailed popup: brightness, colour and colour temperature, climate modes, media volume, history of the last 24 hours, and a shortcut to Home Assistant's own dialog. |
 | **Per-card settings** | Name, icon, tap and hold behaviour, bottom line, custom action buttons and template overrides per card, plus defaults per card type. |
 | **Extras** | Search, presence pill, alarm keypad, doorbell camera popup, light scene presets per room, guest and vacation modes, idle screen, Dutch, English and German. |

@@ -119,4 +119,14 @@ export default {
   // Claude Code usage card
   "Claude Code": "Claude Code", "Gebruik": "Nutzung", "Laatst bijgewerkt": "Zuletzt aktualisiert", "Reset sessie": "Sitzung zurücksetzen", "Reset week": "Woche zurücksetzen", "Sessie (5 uur)": "Sitzung (5 Stunden)", "Tempo": "Tempo", "Verstreken deel van het venster": "Verstrichener Teil des Fensters", "Week": "Woche", "alleen nodig als de sessiesensor zelf geen resettijd heeft": "nur nötig, wenn der Sitzungssensor selbst keine Rücksetzzeit hat", "alleen nodig als de weeksensor zelf geen resettijd heeft": "nur nötig, wenn der Wochensensor selbst keine Rücksetzzeit hat", "binnen schema": "im Plan", "boven schema": "über Plan", "kaart via Bewerken → Kaart toevoegen": "Karte über Bearbeiten → Karte hinzufügen", "percentage gebruikt in de weeklimiet": "Prozent der Wochengrenze verbraucht", "percentage gebruikt in het 5-uursvenster": "Prozent im 5-Stunden-Fenster verbraucht", "reset over {t}": "Reset in {t}", "sessie en week uit sensoren": "Sitzung und Woche aus Sensoren", "verouderd": "veraltet", "{d} d {h} u": "{d} T {h} Std", "{h} u {m} min": "{h} Std {m} Min", "{u} % gebruikt · {e} % van het venster verstreken": "{u} % verbraucht · {e} % des Fensters verstrichen", "gebruik: sessie en week": "Nutzung: Sitzung und Woche",
   "ChatGPT": "ChatGPT", "AI-gebruik": "KI-Nutzung", "Claude Code en ChatGPT uit sensoren": "Claude Code und ChatGPT aus Sensoren",
+  "Omroep": "Durchsage",
+  "Omroep naar {n}": "Durchsage an {n}",
+  "Allemaal": "Alle",
+  "bericht": "Nachricht",
+  "Bericht": "Nachricht",
+  "bijvoorbeeld: We gaan eten": "zum Beispiel: Essen ist fertig",
+  "Chime ervoor": "Ton davor",
+  "Chime erna": "Ton danach",
+  "Speakers": "Lautsprecher",
+  "vink aan waar het bericht klinkt": "ankreuzen, wo die Nachricht läuft",
 };

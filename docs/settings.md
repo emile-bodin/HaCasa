@@ -11,7 +11,7 @@ Open **More → Panel settings**. Changes are a draft until you press **Save**; 
 | **Card defaults** | tap, hold and the bottom line per card type (lights, switches, plugs, sensors …) |
 | **Rooms** | which areas are rooms and their order in the navigation |
 | **Home page** | temperature and humidity sensors for the header, weather, climate, alarm, scenes, media cards |
-| **Quick actions** | the buttons under the greeting: scene, script, toggle, all lights off, media off, with optional confirmation |
+| **Quick actions** | the buttons under the greeting: scene, script, toggle, all lights off, media off, with optional confirmation, or an [announcement](announcements.md) (message, chimes, volume and speakers) |
 | **Motion & doorbell** | which motion sensors drive the motion bar; doorbell triggers and the camera that pops up |
 | **Calendar & waste** | calendars for the agenda card and notification line; waste sensors and their labels |
 | **Energy** | power, consumption, solar return, gas and the price per kWh |

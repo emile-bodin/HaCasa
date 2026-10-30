@@ -224,6 +224,9 @@ export function buildHome(hass, config, rooms, notifications = []) {
   for (const s of Object.values(hass.states)) if (domain(s.entity_id) === "automation" && s.state === "unavailable")
     attention.push({ kind: "automation", id: s.entity_id, name: s.attributes.friendly_name || s.entity_id, text: t("automatisering mislukt"), icon: "mdi:robot-dead-outline", since: s.last_changed });
 
+  // what brAIn has found and waits on the household for: the titles its findings sensor publishes (one row each, shown with the other things that need attention)
+  for (const f of hass.states["sensor.brain_findings_open_findings"]?.attributes.findings || []) attention.push({ kind: "brain", id: "brain:" + f, name: f, text: "brAIn", icon: "mdi:brain" });
+
   const waste = (h.waste || []).map(w => { const s = hass.states[w.entity]; if (!s) return null;
     const date = wasteDate(s), d = date ? daysUntil(date) : (num(s.attributes?.Days_until) ?? null);
     return { label: w.label || s.attributes.friendly_name, state: s.state, date, days: d, entity: w.entity }; })

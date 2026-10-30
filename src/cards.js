@@ -595,7 +595,7 @@ function litterCard(p, st, K) {
 }
 
 /** attention filter: all · unavailable · updates · system (HA notifications, failed automations) · batteries */
-export const ATT_FILTERS = [["all", "Alles"], ["unavailable", "Onbereikbaar"], ["update", "Updates"], ["system", "Systeem"], ["battery", "Batterijen"]];
+export const ATT_FILTERS = [["all", "Alles"], ["unavailable", "Onbereikbaar"], ["update", "Updates"], ["system", "Systeem"], ["battery", "Batterijen"], ["brain", "brAIn"]];
 export const attFilter = (p, list) => { const f = p.attFilter || "all"; return f === "all" ? list : list.filter(a => f === "system" ? (a.kind === "notification" || a.kind === "automation") : a.kind === f); };
 
 /** "Voordeur · Garage +2 dicht": the first two names and a count for the rest */

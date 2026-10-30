@@ -10,7 +10,7 @@ A room-first Home Assistant panel, based on [HaCasa Nova](https://github.com/dam
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.4%2B-18BCF2?style=flat-square)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/github/license/emile-bodin/TomTe?style=flat-square)](https://github.com/emile-bodin/TomTe/blob/main/LICENSE)
 
-[Documentation](https://github.com/emile-bodin/TomTe/tree/main/docs) · [Install](#install) · [Screenshots](#screenshots)
+[Documentation](https://github.com/emile-bodin/TomTe/tree/main/docs) · [Install](#install)
 
 </div>
 
@@ -41,6 +41,9 @@ Compared with HaCasa Nova 3.0.5 and the work after it (details in the [changelog
 - **Household and personal settings**, with a scope picker in the edit bar and the settings header.
 - **A robot vacuum card and popup** (rooms, tasks, maintenance, dock), a **litter box card**, extra **appliance details** (SmartThings phases, month totals, remaining time) and an optional **two-row room layout**.
 - **Smaller changes** to the idle screen (it drifts and dims at night), the attention list (one line per dead device) and the thermostat setpoint (shown at once).
+- **Announcements.** A quick action that speaks a message ("We gaan eten") with a chime before and after, at a volume you set, on the Music Assistant speakers you tick. What was playing carries on afterwards. See [Announcements](docs/announcements.md) for the requirements.
+- **brAIn in Attention.** When brAIn runs in the house, its open findings show up in the attention list and as a line in the notification line.
+- **Album art for Music Assistant players** on the media card and popup, and a scrim that reaches the card edge.
 - **A deploy workflow** with checks, a render smoke test, backups and rollback (see [Development](#development)).
 
 ## Features
@@ -57,31 +60,6 @@ Compared with HaCasa Nova 3.0.5 and the work after it (details in the [changelog
 | **Extras** | Search, presence pill, alarm keypad, doorbell camera popup, light scene presets per room, guest and vacation modes, idle screen, Dutch, English and German. |
 | **Settings** | Household and personal layers, a setup wizard, export and import, a scope picker in the edit bar. |
 | **Phone and tablet** | Built for wall tablets and phones alike: the strip becomes a two-column grid on phones. |
-
-## Screenshots
-
-<sub>Taken from Tomte 3.0.x; the newer cards are not in them yet.</sub>
-
-<table>
-  <tr>
-    <td width="50%"><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/room.png" alt="Room page"><br><sub><b>Room page</b> · photo, climate and a strip of cards</sub></td>
-    <td width="50%"><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/kitchen.png" alt="Kitchen"><br><sub><b>Appliances and plugs</b> · power strips, dishwasher programme and progress</sub></td>
-  </tr>
-  <tr>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/popup-light.png" alt="Light popup"><br><sub><b>Light popup</b> · brightness, colour and colour temperature</sub></td>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/popup-climate.png" alt="Climate popup"><br><sub><b>Climate popup</b> · target, modes, presets, every room's temperature</sub></td>
-  </tr>
-  <tr>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/sensors.png" alt="Sensors page"><br><sub><b>Sensors</b> · attention first, then every room</sub></td>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/energy.png" alt="Energy page"><br><sub><b>Energy</b> · now, today per hour, biggest consumers</sub></td>
-  </tr>
-  <tr>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/settings.png" alt="Settings"><br><sub><b>Settings</b> · everything in the panel, stored per user</sub></td>
-    <td><img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/wizard.png" alt="Setup wizard"><br><sub><b>First run</b> · a four-step setup</sub></td>
-  </tr>
-</table>
-
-<img src="https://raw.githubusercontent.com/emile-bodin/TomTe/main/docs/assets/screenshots/phones.png" alt="Tomte on phones" width="100%">
 
 ## Install
 

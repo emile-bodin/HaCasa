@@ -804,12 +804,11 @@ export const styles = css`
   }
   @media (min-width:901px){
     ${unsafeCSS(cardCompact(":where(.strip.rows2)", ":where(.strip.rows2.compact)"))}
-    /* two rows under 160px: no room for icon and status on a media card; play/pause and the progress line carry the state (phones keep them) */
     :where(.strip.rows2.compact) .card.appl:not(.plug){--reserve:calc(var(--bh) + var(--bg))}   /* under 160px there is no room for the name at its usual height above the row */
     :where(.strip.rows2.compact) .card.graph .lbl{display:none}   /* under 160px the period text would run into the name */
     :where(.strip.rows2.compact) .card.actions{--rc:var(--rr)}   /* the control column is as tall as the card: the corner text moves left of it */
-    :where(.strip.rows2.compact) .card.media .i,:where(.strip.rows2.compact) .card.media .c{display:none}
-    :where(.strip.rows2.compact) .card.media{--areas:". ." ". ." "n n" "s s" "l l" ". ."}
+    /* two rows under 160px: the media buttons are as low as the other cards' buttons, so the card keeps its icon and status row like every other card */
+    :where(.strip.rows2.compact) .card.media{--bh-media:26px}
   }
   /* unavailable: controls are hidden, so center what is left */
   .card.unavailable{grid-template-columns:1fr;grid-template-rows:1fr max-content max-content 1fr;grid-template-areas:"." "n" "s" ".";justify-items:center;text-align:center;padding:0 40px}

@@ -43,7 +43,7 @@ Defined once on `.card`, changed once for the compact variant:
 | `--ib` | 36px | 26px | icon box and corner height |
 | `--bh` | 34px | 30px | button rows (appliance, actions) |
 | `--bh-sock` | 56px | 44px | socket buttons |
-| `--bh-media` | 42px | 34px | media transport buttons |
+| `--bh-media` | 42px | 34px (26px in two rows under 160px) | media transport buttons |
 | `--bh-tile` | 52px | 40px | scene and group tiles |
 | `--ctl-w` | 46px | 34px | the side control column |
 | `--vs-w` | 12px | 8px | vertical slider |
@@ -94,7 +94,7 @@ Each card in [Cards](cards.md) and the modifier classes that give it its layout.
 These differ on purpose; each is a modifier class with its own rules:
 
 - **Climate:** the setpoint rail on the right and the control row at the bottom (desktop); the rail only, with the bottom line at the edge (compact). Its name is one line.
-- **Media:** artwork under the card with the text on a translucent panel (`.art`, `.appart`), the transport row at the bottom, the progress line (a bar along the bottom edge in compact). In two rows under 160px the icon and the corner state are hidden.
+- **Media:** artwork under the card with the text on a translucent panel (`.art`, `.appart`), the transport row at the bottom, the progress line (a bar along the bottom edge in compact). In two rows under 160px the transport buttons shrink to 26px so the icon and the corner state stay, as on every other card.
 - **Plug with a power meter:** the sparkline on the right (hidden in compact, so phones show watts and kWh only), a footer row for the options (timer, cost, bars).
 - **Sub-content** (weather, waste, agenda): a glass column on the right; in compact the second item moves into the bottom line (`.lbl.mob`).
 - **Appliance and action rows:** buttons in a row at the bottom; the bottom line is hidden when the row takes its place.
